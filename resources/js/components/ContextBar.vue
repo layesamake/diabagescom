@@ -40,13 +40,13 @@ function selectWarehouse(id: string): void {
 }
 
 const triggerClass =
-    'flex min-h-11 max-w-full items-center gap-2 rounded-md px-2 text-left text-sm hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none';
+    'flex min-h-11 min-w-0 shrink items-center gap-2 rounded-md px-2 text-left text-sm hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none';
 </script>
 
 <template>
     <div
         v-if="context"
-        class="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-0"
+        class="flex min-w-0 flex-1 flex-nowrap items-center gap-1"
     >
         <DropdownMenu>
             <DropdownMenuTrigger
@@ -57,7 +57,7 @@ const triggerClass =
                     class="size-4 shrink-0 text-muted-foreground"
                     aria-hidden="true"
                 />
-                <span class="hidden text-muted-foreground sm:inline"
+                <span class="hidden text-muted-foreground xl:inline"
                     >{{ t('context.company') }} :</span
                 >
                 <span class="truncate font-medium">{{
@@ -100,7 +100,7 @@ const triggerClass =
             </DropdownMenuContent>
         </DropdownMenu>
 
-        <span class="hidden text-muted-foreground sm:inline" aria-hidden="true"
+        <span class="hidden text-muted-foreground xl:inline" aria-hidden="true"
             >|</span
         >
 
@@ -113,7 +113,7 @@ const triggerClass =
                     class="size-4 shrink-0 text-muted-foreground"
                     aria-hidden="true"
                 />
-                <span class="hidden text-muted-foreground sm:inline"
+                <span class="hidden text-muted-foreground xl:inline"
                     >{{ t('context.warehouse') }} :</span
                 >
                 <span class="truncate font-medium">{{

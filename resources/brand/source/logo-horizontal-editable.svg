@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 460">
+  <path fill="#002456" d="M22 0H286a230 230 0 0 1 0 460H22A22 22 0 0 1 0 438V22A22 22 0 0 1 22 0Z"/>
+  <!-- Feuille arrière (registre) -->
+  <path fill="#FFFFFF" d="M70 66H370q22 0 34 26l6 14H70Z"/>
+  <!-- Livre ouvert : deux pages et couverture -->
+  <path fill="#FFFFFF" stroke="#002456" stroke-width="10" stroke-linejoin="round"
+        d="M46 112q104-12 194 42 90-54 194-42v278q-104-10-194 40-90-50-194-40Z"/>
+  <path fill="none" stroke="#002456" stroke-width="10" d="M240 154v276"/>
+  <path fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linejoin="round"
+        d="M36 404q110-14 204 38 94-52 204-38"/>
+  <!-- Lignes du grand livre : débit (bleu nuit) et crédit (turquoise) -->
+  <g fill="#002456">
+    <rect x="86" y="180" width="118" height="22" rx="4"/>
+    <rect x="86" y="222" width="118" height="22" rx="4"/>
+    <rect x="86" y="264" width="118" height="22" rx="4"/>
+    <rect x="86" y="306" width="118" height="22" rx="4"/>
+  </g>
+  <g fill="#018270">
+    <rect x="276" y="180" width="128" height="22" rx="4"/>
+    <rect x="276" y="222" width="128" height="22" rx="4"/>
+    <rect x="276" y="264" width="70" height="22" rx="4"/>
+    <rect x="276" y="306" width="56" height="22" rx="4"/>
+  </g>
+  <!-- Coche de validation -->
+  <circle cx="378" cy="320" r="58" fill="#018270" stroke="#FFFFFF" stroke-width="12"/>
+  <path fill="none" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"
+        d="M350 320l20 20 36-38"/>
+  <!-- Accent or -->
+  <path fill="#E8A304" d="M240 64q8 26 32 34-24 8-32 34-8-26-32-34 24-8 32-34Z"/>
+  <text x="590" y="285" font-family="Montserrat" font-weight="800" font-size="150" letter-spacing="2"><tspan fill="#002456">DIABA</tspan><tspan fill="#018270" dx="40">GESCOM</tspan></text>
+</svg>

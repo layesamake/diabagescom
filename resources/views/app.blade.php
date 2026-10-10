@@ -30,9 +30,18 @@
             }
         </style>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        {{-- Identité DIABA GESCOM (docs/15-identite-visuelle.md) --}}
+        <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+        <link rel="icon" href="/brand/diaba-icon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="manifest" href="/manifest.webmanifest">
+        <meta name="theme-color" content="#002456">
+        <meta name="application-name" content="DIABA GESCOM">
+        <meta property="og:site_name" content="DIABA GESCOM">
+        <meta property="og:image" content="{{ url('/brand/og-diaba-gescom.png') }}">
+        <meta property="og:image:alt" content="DIABA GESCOM">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
 
         @fonts
 

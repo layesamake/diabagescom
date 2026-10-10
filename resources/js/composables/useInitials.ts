@@ -11,7 +11,10 @@ export function getInitials(fullName?: string): string {
         return '';
     }
 
-    const names = fullName.trim().split(/\s+/u).filter(Boolean);
+    // Seuls les mots commençant par une lettre comptent : « Awa Diallo (test) » → « AD ».
+    const words = fullName.trim().split(/\s+/u).filter(Boolean);
+    const lettered = words.filter((word) => /^\p{L}/u.test(word));
+    const names = lettered.length > 0 ? lettered : words;
 
     if (names.length === 0) {
         return '';

@@ -43,6 +43,21 @@ Lors de l’intégration, exporter et versionner les fichiers suivants dans `pub
 | `apple-touch-icon.png` | icône Apple, 180 × 180 px |
 | `og-diaba-gescom.png` | visuel de partage social, 1200 × 630 px |
 
+## Favicon livré
+
+Les déclinaisons raster du favicon comptable validé sont déjà présentes dans `public/brand/` :
+
+| Fichier | Usage |
+|---|---|
+| `favicon.ico` | favicon navigateur multi-compatibilité |
+| `favicon-32.png` | favicon PNG 32 × 32 px |
+| `apple-touch-icon.png` | raccourci iOS, 180 × 180 px |
+| `icon-192.png` | manifeste PWA, 192 × 192 px |
+| `icon-512.png` | manifeste PWA, 512 × 512 px |
+| `diaba-favicon-source.png` | source PNG haute définition à conserver |
+
+Préférer `favicon.ico` et `favicon-32.png` dans le document HTML, et déclarer les icônes 192/512 dans le manifeste PWA. Le fichier SVG existant n’est pas remplacé sans validation explicite de sa conformité avec le logo officiel.
+
 Le SVG doit être redessiné ou vectorisé proprement à partir du visuel validé avant son usage final. Ne pas convertir une petite image matricielle en SVG automatique de mauvaise qualité.
 
 ## Règles d’utilisation
@@ -89,3 +104,30 @@ La palette doit être complétée par des couleurs d’état accessibles (`succe
 - [ ] Le logo possède une alternative textuelle utile et ne dégrade pas l’accessibilité.
 - [ ] Le contraste du logo et du texte environnant est validé sur fond clair et sombre.
 - [ ] Les fichiers de marque sont versionnés dans le dépôt ; aucune image n’est chargée depuis un répertoire temporaire ou l’historique de conversation.
+
+## Intégration réalisée (2026-10-10)
+
+### Couleurs relevées sur les fichiers officiels
+
+| Jeton | Valeur relevée | Source | Remarque |
+|---|---|---|---|
+| `brand-navy` | `#002456` | logo horizontal | remplace `#062C70` |
+| `brand-teal` | `#018270` | logo horizontal (texte, lignes) | contraste ≈ 4,6:1 sur blanc : utilisable pour du texte (WCAG AA) |
+| `brand-teal-light` | `#01A985` | favicon | décoratif ou sur fond sombre uniquement (≈ 3:1 sur blanc) |
+| `brand-gold` | `#E8A304` | étoile du logo | remplace `#F4B723` |
+| bleu nuit du favicon | `#032D6B` | favicon | conservé dans l'icône pour rester fidèle au fichier fourni |
+
+Les variables CSS correspondantes sont définies dans `resources/css/app.css`.
+
+### Deux symboles validés
+
+- **Logo horizontal** : D plein, coche dans un cercle, étoile or. Utilisé sur l'écran de connexion, les documents et le visuel de partage.
+- **Icône seule** (favicon fourni) : D évidé, livre à colonnes de grand livre, grande coche. Utilisée pour le favicon, la PWA, l'icône Apple et la barre latérale (avec le nom en texte).
+
+### Fichiers
+
+- `public/brand/` : fichiers servis (SVG redessinés, PNG, favicon, icônes PWA, visuel 1200 × 630) ; `public/favicon.ico` et `public/apple-touch-icon.png` en sont des copies.
+- `resources/brand/source/` : originaux fournis et SVG source du logo (texte modifiable et texte vectorisé avec Montserrat ExtraBold, licence OFL).
+- `resources/brand/build.sh` : régénère toutes les déclinaisons raster depuis les SVG (rsvg-convert + ImageMagick, exécuté dans un conteneur Alpine).
+
+Les SVG sont redessinés à la main d'après les visuels fournis, sans vectorisation automatique.

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="100 116 1098 1036" role="img" aria-labelledby="title">
+  <title id="title">DIABA GESCOM</title>
+  <!-- Monogramme D évidé : contour bleu nuit, intérieur blanc. -->
+  <path fill="#032D6B" d="M175 138H679A496 496 0 0 1 679 1130H175A53 53 0 0 1 122 1077V191A53 53 0 0 1 175 138Z"/>
+  <path fill="#FFFFFF" d="M275 278H675A363 363 0 0 1 675 1004H275A17 17 0 0 1 258 987V295A17 17 0 0 1 275 278Z"/>
+
+  <!-- Livre ouvert : tranches arrière, couverture, puis pages. -->
+  <g stroke="#032D6B" stroke-width="22" stroke-linejoin="round" fill="#FFFFFF">
+    <path d="M288 486Q288 466 308 462H962Q982 466 982 486V902Q800 870 660 918Q625 944 590 918Q450 870 288 902Z"/>
+    <path d="M330 448Q330 424 354 424Q520 418 625 470Q730 418 896 424Q920 424 920 448V864Q760 840 625 886Q490 840 330 864Z"/>
+  </g>
+  <path fill="none" stroke="#032D6B" stroke-width="20" d="M625 470V886"/>
+
+  <!-- Colonnes du grand livre -->
+  <g stroke="#01A985" stroke-width="24" stroke-linecap="round" fill="none">
+    <path d="M432 492V798M768 492V690"/>
+    <path d="M370 537H404M462 537H566M370 603H404M462 603H566M370 668H404M462 668H566M370 735H404M462 735H566"/>
+    <path d="M690 537H736M800 537H900M690 603H736M800 603H900M690 668H736M800 668H900"/>
+  </g>
+
+  <!-- Coche de validation : contour blanc puis trait turquoise. -->
+  <path fill="none" stroke="#FFFFFF" stroke-width="112" stroke-linecap="round" stroke-linejoin="round" d="M745 752L832 832L1068 610"/>
+  <path fill="none" stroke="#01A985" stroke-width="80" stroke-linecap="round" stroke-linejoin="round" d="M745 752L832 832L1068 610"/>
+</svg>
