@@ -2,24 +2,17 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Domain\Identity\SyncPermissions;
 use Illuminate\Database\Seeder;
 
+/**
+ * Données de référence uniquement (permissions et rôles intégrés).
+ * Aucun compte n'est créé ici : utiliser diaba:create-platform-admin ou l'inscription.
+ */
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
-    public function run(): void
+    public function run(SyncPermissions $sync): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $sync();
     }
 }

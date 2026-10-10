@@ -8,7 +8,7 @@ Une permission est une action atomique exprimée en `domaine.action`. Les rôles
 
 | Domaine | Permissions |
 |---|---|
-| Organisation | `organization.view`, `organization.manage`, `warehouse.view`, `warehouse.manage` |
+| Organisation | `organization.view`, `organization.manage`, `warehouse.view`, `warehouse.manage`, `audit.view` (journal d’audit de l’entreprise, administrateur par défaut) |
 | Membres | `member.view`, `member.invite`, `member.manage`, `role.view`, `role.manage` |
 | Catalogue | `catalog.view`, `catalog.create`, `catalog.update`, `catalog.archive`, `catalog.price_override` |
 | Clients/fournisseurs | `customer.view/manage`, `supplier.view/manage` |
@@ -44,3 +44,10 @@ Une permission est une action atomique exprimée en `domaine.action`. Les rôles
 - Toute permission de validation est évaluée avec le statut du document, le dépôt, la période comptable et la souscription.
 - Les rôles personnalisés sont autorisés après le MVP ; ils ne peuvent jamais attribuer une permission plateforme.
 - La suppression est remplacée par archivage ou correction : aucune permission `delete` pour les événements financiers ou de stock.
+
+## Implémentation (EPIC-01)
+
+- Catalogue et rôles intégrés : `app/Domain/Identity/PermissionCatalog.php`, synchronisés en base par `php artisan diaba:sync-permissions` (idempotent, exécuté à chaque déploiement).
+- Codes des rôles intégrés : `admin`, `cashier`, `warehouse_manager`, `purchaser`, `accountant`, `management` ; rôle plateforme `super_admin`.
+- MFA (TOTP ou passkey) imposée aux rôles `admin` et `super_admin` avant tout accès à l’espace entreprise.
+- Un compte n’est jamais supprimé physiquement : la clôture anonymise les données personnelles, révoque les moyens d’authentification et conserve les traces d’audit. Elle est refusée tant que le compte appartient à une entreprise active.

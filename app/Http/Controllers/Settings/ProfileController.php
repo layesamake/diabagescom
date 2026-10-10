@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Domain\Identity\CloseAccount;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
@@ -44,15 +45,13 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's profile.
+     * Clôture du compte : anonymisation, pas de suppression physique (audit append-only).
      */
-    public function destroy(ProfileDeleteRequest $request): RedirectResponse
+    public function destroy(ProfileDeleteRequest $request, CloseAccount $closeAccount): RedirectResponse
     {
-        $user = $request->user();
+        $closeAccount($request->user());
 
         Auth::logout();
-
-        $user->delete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

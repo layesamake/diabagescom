@@ -1,47 +1,44 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
+import { Head, usePage } from '@inertiajs/vue3';
+import { useAppContext } from '@/composables/useAppContext';
+import { t } from '@/i18n';
 import { dashboard } from '@/routes';
 
 defineOptions({
     layout: {
         breadcrumbs: [
             {
-                title: 'Dashboard',
+                title: t('nav.dashboard'),
                 href: dashboard(),
             },
         ],
     },
 });
+
+const page = usePage();
+const { context } = useAppContext();
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head :title="t('dashboard.page_title')" />
 
-    <div
-        class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-        </div>
+    <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">
+        <section class="space-y-2">
+            <h1 class="text-2xl font-semibold tracking-tight">
+                {{
+                    t('dashboard.welcome', { name: page.props.auth.user.name })
+                }}
+            </h1>
+            <p v-if="context" class="text-muted-foreground">
+                {{ t('dashboard.subtitle', { company: context.tenant.name }) }}
+                {{ t('dashboard.role', { role: context.role.name }) }}
+            </p>
+        </section>
+
         <div
-            class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
+            class="rounded-xl border border-dashed border-sidebar-border p-6 text-sm text-muted-foreground"
         >
-            <PlaceholderPattern />
+            {{ t('dashboard.coming_soon') }}
         </div>
     </div>
 </template>

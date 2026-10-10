@@ -17,12 +17,12 @@ docker compose up -d
 docker compose exec app composer setup:docker
 ```
 
-| Service | Adresse |
-|---|---|
-| Application | http://localhost:8000 |
+| Service                     | Adresse                                    |
+| --------------------------- | ------------------------------------------ |
+| Application                 | http://localhost:8000                      |
 | Vite (rechargement à chaud) | `docker compose --profile vite up -d vite` |
-| E-mails de test (Mailpit) | http://localhost:8025 |
-| PostgreSQL (outils locaux) | `127.0.0.1:54320` |
+| E-mails de test (Mailpit)   | http://localhost:8025                      |
+| PostgreSQL (outils locaux)  | `127.0.0.1:54320`                          |
 
 Tous les ports sont liés à `127.0.0.1`.
 

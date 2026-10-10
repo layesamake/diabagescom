@@ -1,0 +1,276 @@
+/**
+ * Dictionnaire français (langue de référence). Ton : clair, vouvoiement,
+ * sans jargon technique (docs/07-ux-ui.md).
+ */
+export const fr = {
+    app: {
+        name: 'DIABA GESCOM',
+    },
+    common: {
+        continue: 'Continuer',
+        cancel: 'Annuler',
+        close: 'Fermer',
+        save: 'Enregistrer',
+        saved: 'Enregistré.',
+        confirm: 'Confirmer',
+        logout: 'Se déconnecter',
+        or: 'ou',
+        optional: 'facultatif',
+        error_title: 'Une erreur est survenue.',
+        show_password: 'Afficher le mot de passe',
+        hide_password: 'Masquer le mot de passe',
+        previous: 'Précédent',
+        next: 'Suivant',
+    },
+    fields: {
+        name: 'Nom complet',
+        email: 'Adresse e-mail',
+        email_placeholder: 'nom@exemple.sn',
+        password: 'Mot de passe',
+        password_confirmation: 'Confirmer le mot de passe',
+        current_password: 'Mot de passe actuel',
+        new_password: 'Nouveau mot de passe',
+    },
+    nav: {
+        dashboard: 'Accueil',
+        audit: "Journal d'audit",
+        settings: 'Paramètres',
+        profile: 'Profil',
+        security: 'Sécurité',
+        appearance: 'Apparence',
+        settings_menu: 'Menu des paramètres',
+        user_menu: 'Menu utilisateur',
+    },
+    context: {
+        company: 'Entreprise',
+        warehouse: 'Dépôt',
+        no_warehouse: 'Aucun dépôt affecté',
+        switch_company: "Changer d'entreprise",
+        switch_warehouse: 'Changer de dépôt',
+        new_company: 'Créer une autre entreprise',
+    },
+    auth: {
+        login: {
+            title: 'Connexion à votre compte',
+            description:
+                'Saisissez votre adresse e-mail et votre mot de passe pour vous connecter.',
+            page_title: 'Connexion',
+            forgot: 'Mot de passe oublié ?',
+            remember: 'Rester connecté',
+            submit: 'Se connecter',
+            no_account: "Vous n'avez pas encore de compte ?",
+            register: 'Créer un compte',
+        },
+        register: {
+            title: 'Créer un compte',
+            description:
+                'Renseignez vos informations. Vous créerez ensuite votre entreprise.',
+            page_title: 'Inscription',
+            name_placeholder: 'Prénom et nom',
+            submit: 'Créer mon compte',
+            has_account: 'Vous avez déjà un compte ?',
+            login: 'Se connecter',
+        },
+        forgot: {
+            title: 'Mot de passe oublié',
+            description:
+                'Saisissez votre adresse e-mail pour recevoir un lien de réinitialisation.',
+            submit: 'Recevoir le lien de réinitialisation',
+            back: 'Ou revenir à la',
+            back_link: 'connexion',
+        },
+        reset: {
+            title: 'Nouveau mot de passe',
+            description: 'Choisissez votre nouveau mot de passe.',
+            submit: 'Réinitialiser le mot de passe',
+        },
+        verify: {
+            title: 'Vérification de votre e-mail',
+            description:
+                'Confirmez votre adresse en cliquant sur le lien que nous venons de vous envoyer par e-mail.',
+            sent: "Un nouveau lien de vérification a été envoyé à l'adresse indiquée lors de l'inscription.",
+            resend: "Renvoyer l'e-mail de vérification",
+        },
+        confirm: {
+            title: 'Confirmer votre mot de passe',
+            description:
+                'Cette zone est protégée. Confirmez votre mot de passe pour continuer.',
+            submit: 'Confirmer le mot de passe',
+            passkey: 'Confirmer avec une passkey',
+            passkey_loading: 'Confirmation…',
+            passkey_separator: 'Ou confirmer avec le mot de passe',
+        },
+        two_factor: {
+            page_title: 'Double authentification',
+            code_title: "Code d'authentification",
+            code_description:
+                "Saisissez le code à 6 chiffres affiché par votre application d'authentification.",
+            use_recovery: 'utiliser un code de secours',
+            recovery_title: 'Code de secours',
+            recovery_description:
+                "Confirmez l'accès à votre compte avec l'un de vos codes de secours.",
+            use_code: "utiliser un code d'authentification",
+            recovery_placeholder: 'Code de secours',
+            or_you_can: 'ou vous pouvez',
+        },
+        passkey: {
+            sign_in: 'Se connecter avec une passkey',
+            loading: 'Authentification…',
+            separator: 'Ou continuer avec votre e-mail',
+        },
+    },
+    settings: {
+        title: 'Paramètres',
+        description: 'Gérez votre profil et la sécurité de votre compte.',
+        profile: {
+            page_title: 'Profil',
+            heading: 'Informations du profil',
+            description: 'Modifiez votre nom et votre adresse e-mail.',
+            unverified: "Votre adresse e-mail n'est pas vérifiée.",
+            resend: "Cliquez ici pour renvoyer l'e-mail de vérification.",
+            link_sent: 'Un nouveau lien de vérification a été envoyé.',
+        },
+        close_account: {
+            heading: 'Clôturer le compte',
+            description:
+                'Vos informations personnelles seront anonymisées. Les traces obligatoires (audit, documents) sont conservées.',
+            warning: 'Attention',
+            warning_text: 'Cette action est définitive.',
+            button: 'Clôturer mon compte',
+            confirm_title: 'Voulez-vous vraiment clôturer votre compte ?',
+            confirm_text:
+                'Saisissez votre mot de passe pour confirmer. Vous ne pourrez plus vous connecter.',
+            confirm_button: 'Clôturer définitivement',
+        },
+        security: {
+            page_title: 'Sécurité',
+            password_heading: 'Mot de passe',
+            password_description:
+                'Utilisez un mot de passe long et unique pour protéger votre compte.',
+            password_saved: 'Mot de passe enregistré.',
+            save_password: 'Enregistrer le mot de passe',
+            mfa_heading: 'Double authentification',
+            mfa_description:
+                "Protégez votre compte avec une application d'authentification ou une passkey. Obligatoire pour les administrateurs.",
+        },
+        appearance: {
+            page_title: 'Apparence',
+            heading: 'Apparence',
+            description: "Choisissez l'affichage clair, sombre ou automatique.",
+            light: 'Clair',
+            dark: 'Sombre',
+            system: 'Automatique',
+        },
+    },
+    two_factor: {
+        enabled: 'Activée',
+        disabled: 'Désactivée',
+        enabled_text:
+            "La double authentification est activée. À chaque connexion, un code de votre application d'authentification vous sera demandé.",
+        disabled_text:
+            "Une fois activée, un code de votre application d'authentification (Google Authenticator, Microsoft Authenticator…) vous sera demandé à chaque connexion.",
+        enable: 'Activer la double authentification',
+        disable: 'Désactiver la double authentification',
+        continue_setup: 'Poursuivre la configuration',
+        setup_enabled_title: 'Double authentification activée',
+        setup_enabled_description:
+            "La double authentification est activée. Scannez le QR code ou saisissez la clé dans votre application d'authentification.",
+        setup_verify_title: 'Vérifier le code',
+        setup_verify_description:
+            "Saisissez le code à 6 chiffres de votre application d'authentification.",
+        setup_title: 'Activer la double authentification',
+        setup_description:
+            "Pour terminer, scannez le QR code ou saisissez la clé dans votre application d'authentification.",
+        manual_key: 'ou saisissez la clé manuellement',
+        back: 'Retour',
+        confirm: 'Confirmer',
+        recovery_heading: 'Codes de secours',
+        recovery_description:
+            "Les codes de secours permettent de retrouver l'accès si vous perdez votre téléphone. Conservez-les dans un endroit sûr.",
+        recovery_show: 'Afficher les codes de secours',
+        recovery_hide: 'Masquer les codes de secours',
+        recovery_regenerate: 'Régénérer les codes',
+        recovery_hint:
+            'Chaque code ne peut être utilisé qu’une seule fois. Il sera supprimé après usage. Régénérez-les si nécessaire.',
+        qr_error: 'Impossible de charger le QR code.',
+        key_error: 'Impossible de charger la clé de configuration.',
+        codes_error: 'Impossible de charger les codes de secours.',
+    },
+    passkeys: {
+        heading: 'Passkeys',
+        description:
+            'Connectez-vous sans mot de passe grâce à l’empreinte, au visage ou au code de votre appareil.',
+        empty: 'Aucune passkey enregistrée.',
+        register: 'Enregistrer une passkey',
+        registering: 'Enregistrement…',
+        name_label: 'Nom de la passkey',
+        remove: 'Supprimer la passkey',
+        removing: 'Suppression…',
+        created: 'Ajoutée {when}',
+        last_used: 'Dernière utilisation {when}',
+        never_used: 'Jamais utilisée',
+        not_supported: 'Ce navigateur ne permet pas d’utiliser les passkeys.',
+        add: 'Ajouter une passkey',
+        name_placeholder: 'Ex. Téléphone de la boutique',
+        name_help: 'Un nom vous aidera à reconnaître cette passkey.',
+        remove_confirm:
+            'Voulez-vous supprimer la passkey « {name} » ? Elle ne permettra plus de vous connecter.',
+        empty_hint:
+            'Ajoutez une passkey pour vous connecter sans mot de passe.',
+    },
+    onboarding: {
+        page_title: 'Créer votre entreprise',
+        title: 'Créez votre entreprise',
+        description:
+            'Quelques informations suffisent pour commencer. Vous pourrez les compléter plus tard.',
+        company_section: 'Votre entreprise',
+        warehouse_section: 'Votre premier dépôt',
+        warehouse_help:
+            'Le dépôt est le lieu où vous vendez et stockez vos articles (boutique, magasin, entrepôt).',
+        legal_name: 'Raison sociale',
+        legal_name_placeholder: 'Ex. Boutique Diallo SARL',
+        display_name: 'Nom affiché',
+        display_name_help: "Le nom court visible dans l'application.",
+        country: 'Pays',
+        timezone: 'Fuseau horaire',
+        warehouse_name: 'Nom du dépôt',
+        warehouse_name_placeholder: 'Ex. Dakar Centre',
+        warehouse_code: 'Code du dépôt',
+        warehouse_code_help:
+            'Lettres majuscules et chiffres, sans espace (ex. DKR-1).',
+        warehouse_address: 'Adresse',
+        submit: "Créer l'entreprise",
+        mfa_notice:
+            'En tant qu’administrateur, vous devrez ensuite activer la double authentification.',
+    },
+    dashboard: {
+        page_title: 'Accueil',
+        welcome: 'Bienvenue, {name}',
+        subtitle: 'Voici votre espace {company}.',
+        role: 'Votre rôle : {role}',
+        coming_soon:
+            'Les ventes, le stock et la caisse arriveront dans les prochaines étapes.',
+    },
+    audit: {
+        page_title: "Journal d'audit",
+        heading: "Journal d'audit",
+        description:
+            "Historique des actions sensibles de l'entreprise. Ces traces ne peuvent être ni modifiées ni supprimées.",
+        empty: 'Aucune action enregistrée pour le moment.',
+        date: 'Date',
+        action: 'Action',
+        actor: 'Auteur',
+        entity: 'Élément',
+        system: 'Système',
+        actions: {
+            'tenant.created': 'Entreprise créée',
+            'membership.created': 'Membre ajouté',
+            'warehouse.created': 'Dépôt créé',
+            'auth.login': 'Connexion',
+            'auth.logout': 'Déconnexion',
+            'auth.failed': 'Échec de connexion',
+            'auth.password_reset': 'Mot de passe réinitialisé',
+            'account.closed': 'Compte clôturé',
+        },
+    },
+} as const;

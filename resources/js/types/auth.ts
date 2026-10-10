@@ -1,17 +1,32 @@
 export type User = {
-    id: number;
+    id: string;
     name: string;
     email: string;
     avatar?: string;
     email_verified_at: string | null;
-    two_factor_enabled?: boolean;
-    created_at: string;
-    updated_at: string;
-    [key: string]: unknown;
 };
 
 export type Auth = {
     user: User;
+};
+
+export type ContextOption = {
+    id: string;
+    name: string;
+};
+
+export type WarehouseOption = ContextOption & {
+    code: string;
+};
+
+/** Contexte entreprise/dépôt résolu par le serveur (null hors espace entreprise). */
+export type AppContext = {
+    tenant: ContextOption;
+    warehouse: WarehouseOption | null;
+    role: { code: string; name: string };
+    tenants: ContextOption[];
+    warehouses: WarehouseOption[];
+    permissions: string[];
 };
 
 export type Passkey = {

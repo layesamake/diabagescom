@@ -9,20 +9,28 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
+import { t } from '@/i18n';
+import { useAppContext } from '@/composables/useAppContext';
+import { index as auditIndex } from '@/routes/audit';
+
+const { can } = useAppContext();
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: t('nav.profile'),
         href: editProfile(),
     },
     {
-        title: 'Security',
+        title: t('nav.security'),
         href: editSecurity(),
     },
     {
-        title: 'Appearance',
+        title: t('nav.appearance'),
         href: editAppearance(),
     },
+    ...(can('audit.view')
+        ? [{ title: t('nav.audit'), href: auditIndex() }]
+        : []),
 ];
 
 const { isCurrentOrParentUrl } = useCurrentUrl();
@@ -31,15 +39,15 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
 <template>
     <div class="px-4 py-6">
         <Heading
-            title="Settings"
-            description="Manage your profile and account settings"
+            :title="t('settings.title')"
+            :description="t('settings.description')"
         />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">
             <aside class="w-full max-w-xl lg:w-48">
                 <nav
                     class="flex flex-col space-y-1 space-x-0"
-                    aria-label="Settings"
+                    :aria-label="t('nav.settings_menu')"
                 >
                     <Button
                         v-for="item in sidebarNavItems"

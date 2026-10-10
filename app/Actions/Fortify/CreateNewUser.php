@@ -19,6 +19,9 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        // L'e-mail est stocké en minuscules : l'unicité doit être vérifiée sur la même forme.
+        $input['email'] = mb_strtolower(trim($input['email'] ?? ''));
+
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),

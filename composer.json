@@ -55,6 +55,7 @@
             "composer install --no-interaction",
             "@php -r \"preg_match('/^APP_KEY=.+/m', file_get_contents('.env')) || passthru('php artisan key:generate --ansi');\"",
             "@php artisan migrate --force",
+            "@php artisan diaba:sync-permissions",
             "npm ci --no-audit --no-fund",
             "@php artisan wayfinder:generate --with-form",
             "npm run build"

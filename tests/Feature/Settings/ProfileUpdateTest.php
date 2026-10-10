@@ -76,7 +76,26 @@ class ProfileUpdateTest extends TestCase
             ->assertRedirect(route('home'));
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+
+        // Clôture = anonymisation : le compte reste référencé par l'audit.
+        $closed = $user->fresh();
+        $this->assertSame('suspended', $closed->status);
+        $this->assertStringStartsWith('closed-', $closed->email);
+        $this->assertDatabaseHas('audit_events', ['action' => 'account.closed', 'actor_id' => $user->id]);
+        $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password']);
+        $this->assertGuest();
+    }
+
+    public function test_account_cannot_be_closed_while_member_of_a_company()
+    {
+        $user = $this->createTenantWithMember('cashier')['user'];
+
+        $this->actingAs($user)
+            ->from(route('profile.edit'))
+            ->delete(route('profile.destroy'), ['password' => 'password'])
+            ->assertSessionHasErrors('password');
+
+        $this->assertSame('active', $user->fresh()->status);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account()

@@ -2,6 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\Identity\Authorizer;
+use App\Domain\Tenancy\TenantContext;
+use App\Domain\Tenancy\WarehouseAccess;
+use App\Models\TenantMembership;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,6 +34,10 @@ class HandleInertiaRequests extends Middleware
     /**
      * Define the props that are shared by default.
      *
+     * Les données de contexte sont des closures : elles sont évaluées au rendu,
+     * après la résolution du contexte entreprise par le middleware de route.
+     * Seuls les champs nécessaires à l'affichage quittent le serveur.
+     *
      * @see https://inertiajs.com/shared-data
      *
      * @return array<string, mixed>
@@ -38,10 +47,50 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
-            'auth' => [
-                'user' => $request->user(),
+            'auth' => fn () => [
+                'user' => $request->user() instanceof User ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'email_verified_at' => $request->user()->email_verified_at?->toIso8601String(),
+                ] : null,
             ],
+            'context' => fn () => $this->context($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function context(Request $request): ?array
+    {
+        $user = $request->user();
+        $context = app(TenantContext::class);
+        $membership = $context->membership();
+
+        if (! $user instanceof User || $membership === null) {
+            return null;
+        }
+
+        $warehouse = $context->warehouse();
+
+        return [
+            'tenant' => ['id' => $membership->tenant->id, 'name' => $membership->tenant->display_name],
+            'warehouse' => $warehouse ? ['id' => $warehouse->id, 'code' => $warehouse->code, 'name' => $warehouse->name] : null,
+            'role' => ['code' => $membership->role->code, 'name' => $membership->role->name],
+            'tenants' => TenantMembership::query()
+                ->with('tenant:id,display_name')
+                ->where('user_id', $user->id)
+                ->where('status', TenantMembership::STATUS_ACTIVE)
+                ->get()
+                ->map(fn (TenantMembership $m) => ['id' => $m->tenant->id, 'name' => $m->tenant->display_name])
+                ->values(),
+            'warehouses' => app(WarehouseAccess::class)->accessible($membership)
+                ->map(fn ($w) => ['id' => $w->id, 'code' => $w->code, 'name' => $w->name])
+                ->values(),
+            // Pour l'affichage du menu uniquement : chaque action est revérifiée côté serveur.
+            'permissions' => app(Authorizer::class)->grantedTenantPermissions($user),
         ];
     }
 }
