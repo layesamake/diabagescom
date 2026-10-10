@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\BusinessRuleViolation;
 use App\Domain\Subscriptions\SubscriptionRestriction;
 use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\EnforceSubscription;
@@ -68,4 +69,16 @@ return Application::configure(basePath: dirname(__DIR__))
                 : back(303);
         });
         $exceptions->dontReport(SubscriptionRestriction::class);
+
+        // Règles métier refusées (stock insuffisant, document déjà validé…) : message clair.
+        $exceptions->render(function (BusinessRuleViolation $e, Request $request) {
+            if ($request->expectsJson() && ! $request->header('X-Inertia')) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+
+            Inertia::flash('toast', ['type' => 'error', 'message' => $e->getMessage()]);
+
+            return back(303)->withErrors(['business' => $e->getMessage()]);
+        });
+        $exceptions->dontReport(BusinessRuleViolation::class);
     })->create();

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+    Boxes,
     Building2,
     Layers,
     LayoutGrid,
@@ -26,6 +27,7 @@ import { useAppContext } from '@/composables/useAppContext';
 import { dashboard } from '@/routes';
 import { index as customersIndex } from '@/routes/customers';
 import { index as productsIndex } from '@/routes/products';
+import { index as stockIndex } from '@/routes/stock';
 import { index as suppliersIndex } from '@/routes/suppliers';
 import { index as platformPlans } from '@/routes/platform/plans';
 import { index as platformTenants } from '@/routes/platform/tenants';
@@ -43,6 +45,9 @@ const mainNavItems = computed<NavItem[]>(() => [
     // Rubriques métier : affichées selon les permissions (le serveur revérifie tout).
     ...(can('catalog.view')
         ? [{ title: t('catalog.nav'), href: productsIndex(), icon: Package }]
+        : []),
+    ...(can('inventory.view')
+        ? [{ title: t('stock.nav'), href: stockIndex(), icon: Boxes }]
         : []),
     ...(can('customer.view')
         ? [

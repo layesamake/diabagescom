@@ -90,6 +90,36 @@ class ProductController extends Controller
         ]]);
     }
 
+    /**
+     * Sélecteur d'articles (lignes de stock, de transfert, d'inventaire) : 10 résultats.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        Gate::authorize('catalog.view');
+
+        // Le coût d'achat est une donnée sensible : réservé à qui saisit du stock valorisé.
+        $showCost = Gate::allows('inventory.adjust');
+
+        $products = Product::query()
+            ->with('unit:id,code,decimals_allowed')
+            ->whereNull('archived_at')
+            ->when($request->boolean('stocked'), fn ($q) => $q->whereIn('type', ['stockable', 'consumable']))
+            ->search((string) $request->query('q', ''))
+            ->orderBy('name')
+            ->limit(10)
+            ->get()
+            ->map(fn (Product $p) => [
+                'id' => $p->id,
+                'sku' => $p->sku,
+                'name' => $p->name,
+                'unit' => $p->unit->code,
+                'decimals' => $p->unit->decimals_allowed,
+                'standard_cost' => $showCost ? $p->standard_cost : null,
+            ]);
+
+        return response()->json(['products' => $products]);
+    }
+
     public function create(): Response
     {
         Gate::authorize('catalog.create');

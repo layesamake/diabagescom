@@ -112,3 +112,15 @@ Une écriture comptabilisée respecte obligatoirement `SUM(debit) = SUM(credit)`
 - Recherche insensible aux accents et à la casse : fonction `diaba_search_text()` (`unaccent` + `lower`) et index trigramme `pg_trgm`.
 - `catalog_imports` : import CSV d'articles (aperçu, erreurs par ligne, application unique et tout-ou-rien, rapprochement par SKU).
 - Écart assumé : `party_addresses` (adresses multiples) est reporté ; clients et fournisseurs portent une adresse principale (`address_line`, `city`) et le NINEA (`tax_number`).
+
+## Mise en œuvre du stock (EPIC-04, 2026-10-13)
+
+- `stock_operations` (une par action, clé d'idempotence unique par entreprise) et `inventory_movements` (lignes) : **append-only** (trigger PostgreSQL + modèles). Seul `App\Domain\Inventory\StockLedger` les écrit.
+- `inventory_balances` : projection mise à jour dans la même transaction ; verrouillage `FOR UPDATE` dans l'ordre (dépôt, article) contre pertes de mise à jour et interblocages. Invariant testé : solde = somme des mouvements.
+- Quantités `numeric(15,3)` manipulées en bcmath (`Quantity`), jamais en flottant ; unités non fractionnables refusant les décimales ; services sans stock.
+- Valorisation au **coût moyen pondéré** en XOF entiers (arrondi au franc) ; sorties valorisées au coût moyen courant ; transferts reçus au coût de sortie du dépôt d'origine.
+- Stock négatif refusé par défaut ; autorisé seulement sur demande explicite avec motif (opération marquée et auditée). Les ajustements manuels ne peuvent jamais rendre le stock négatif.
+- Transferts : brouillon → expédié (`in_transit`, sortie du dépôt d'origine, numéro `TR-AAAA-NNNNN`) → reçu (entrée au dépôt de destination ; écart justifié, quantité manquante jamais entrée). Annulation possible seulement en brouillon.
+- Inventaires : quantité théorique figée à la validation sous verrou des soldes ; motif obligatoire pour tout écart ; numéro `INV-AAAA-NNNNN`.
+- Accès : un utilisateur n'agit que sur les dépôts qui lui sont affectés (administrateur : tous). Coûts et valeurs visibles seulement avec `report.margin_view`.
+- Types de mouvements prévus pour EPIC-05 : `receipt`, `sale`, `customer_return`, `supplier_return`.

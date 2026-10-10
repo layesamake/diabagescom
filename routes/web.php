@@ -6,6 +6,10 @@ use App\Http\Controllers\Catalog\ProductController;
 use App\Http\Controllers\Catalog\ProductImportController;
 use App\Http\Controllers\Catalog\ReferenceDataController;
 use App\Http\Controllers\ContextController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Inventory\CountController;
+use App\Http\Controllers\Inventory\StockController;
+use App\Http\Controllers\Inventory\TransferController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\Platform\PlanController;
 use App\Http\Controllers\Platform\TenantController;
@@ -26,7 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Espace entreprise : contexte tenant résolu côté serveur, MFA des administrateurs,
 // puis état de l'abonnement (lecture seule / suspension).
 Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     Route::post('context/tenant', [ContextController::class, 'switchTenant'])->name('context.tenant');
     Route::post('context/warehouse', [ContextController::class, 'switchWarehouse'])->name('context.warehouse');
@@ -61,6 +65,30 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::post('catalog/categories/{category?}', [ReferenceDataController::class, 'saveCategory'])->whereUuid('category')->name('catalog.categories.save');
     Route::post('catalog/units/{unit?}', [ReferenceDataController::class, 'saveUnit'])->whereUuid('unit')->name('catalog.units.save');
     Route::post('catalog/tax-rates/{taxRate?}', [ReferenceDataController::class, 'saveTaxRate'])->whereUuid('taxRate')->name('catalog.tax_rates.save');
+
+    Route::get('catalog/search', [ProductController::class, 'search'])->middleware('throttle:240,1')->name('products.search');
+
+    // Stock
+    Route::get('stock', [StockController::class, 'index'])->name('stock.index');
+    Route::get('stock/movements', [StockController::class, 'movements'])->name('stock.movements');
+    Route::post('stock/adjustments', [StockController::class, 'adjust'])->name('stock.adjust');
+    Route::post('stock/products/{product}/reorder-point', [StockController::class, 'reorderPoint'])->name('stock.reorder_point');
+
+    Route::get('stock/transfers', [TransferController::class, 'index'])->name('transfers.index');
+    Route::get('stock/transfers/create', [TransferController::class, 'create'])->name('transfers.create');
+    Route::post('stock/transfers', [TransferController::class, 'store'])->name('transfers.store');
+    Route::get('stock/transfers/{transfer}', [TransferController::class, 'show'])->name('transfers.show');
+    Route::post('stock/transfers/{transfer}/ship', [TransferController::class, 'ship'])->name('transfers.ship');
+    Route::post('stock/transfers/{transfer}/receive', [TransferController::class, 'receive'])->name('transfers.receive');
+    Route::post('stock/transfers/{transfer}/cancel', [TransferController::class, 'cancel'])->name('transfers.cancel');
+
+    Route::get('stock/counts', [CountController::class, 'index'])->name('counts.index');
+    Route::post('stock/counts', [CountController::class, 'store'])->name('counts.store');
+    Route::get('stock/counts/{count}', [CountController::class, 'show'])->name('counts.show');
+    Route::post('stock/counts/{count}/lines', [CountController::class, 'setLine'])->name('counts.lines.store');
+    Route::delete('stock/counts/{count}/lines/{line}', [CountController::class, 'removeLine'])->name('counts.lines.destroy');
+    Route::post('stock/counts/{count}/validate', [CountController::class, 'validateCount'])->name('counts.validate');
+    Route::post('stock/counts/{count}/cancel', [CountController::class, 'cancel'])->name('counts.cancel');
 
     // Tiers
     foreach (['customers' => 'customer', 'suppliers' => 'supplier'] as $path => $party) {
