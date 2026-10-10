@@ -1,0 +1,141 @@
+# DIABA GESCOM — déploiement serveur (dev.diaba.cloud et diaba.cloud).
+#
+# Chaque environnement tourne sur son VPS avec son propre fichier
+# /opt/diaba/<env>/.env (permissions 600, hors dépôt) et ses propres volumes.
+# L'image est toujours référencée par SHA de commit, jamais par "latest" :
+#   DIABA_IMAGE=ghcr.io/layesamake/diabagescom
+#   DIABA_VERSION=<sha>
+#
+# Aucun port base de données / Redis n'est publié. Seul Caddy expose 80/443.
+
+name: diaba-${DIABA_ENV:?DIABA_ENV requis (dev|production)}
+
+x-app: &app
+  image: ${DIABA_IMAGE:?}:${DIABA_VERSION:?}
+  env_file: .env
+  environment:
+    APP_VERSION: ${DIABA_VERSION}
+  volumes:
+    - app-storage:/var/www/html/storage/app
+  networks: [backend, egress]
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
+  read_only: true
+  tmpfs:
+    - /tmp:uid=82,gid=82,mode=0700
+    - /var/www/html/storage/framework/cache:uid=82,gid=82,mode=0700
+    - /var/www/html/storage/framework/views:uid=82,gid=82,mode=0700
+    - /var/www/html/storage/framework/sessions:uid=82,gid=82,mode=0700
+    - /var/www/html/storage/logs:uid=82,gid=82,mode=0700
+    - /var/www/html/bootstrap/cache:uid=82,gid=82,mode=0700
+  security_opt: ["no-new-privileges:true"]
+  logging: &logging
+    driver: json-file
+    options: { max-size: "20m", max-file: "5" }
+
+services:
+  app:
+    <<: *app
+    command: ["sh", "-c", "php artisan optimize && exec php-fpm"]
+
+  worker:
+    <<: *app
+    command: ["php", "artisan", "queue:work", "redis", "--sleep=1", "--tries=3", "--max-time=3600"]
+    healthcheck: { disable: true }
+
+  scheduler:
+    <<: *app
+    command: ["php", "artisan", "schedule:work"]
+    healthcheck: { disable: true }
+
+  nginx:
+    image: ${DIABA_IMAGE}-nginx:${DIABA_VERSION}
+    networks: [backend, edge]
+    depends_on:
+      app: { condition: service_healthy }
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/var/cache/nginx, /var/run, /tmp]
+    security_opt: ["no-new-privileges:true"]
+    logging: *logging
+
+  caddy:
+    image: caddy:2.10-alpine
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DIABA_DOMAIN: ${DIABA_DOMAIN:?}
+      ACME_EMAIL: ${ACME_EMAIL:?}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks: [edge]
+    depends_on: [nginx]
+    restart: unless-stopped
+    logging: *logging
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:?}
+      POSTGRES_USER: ${DB_USERNAME:?}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    shm_size: 256m
+    logging: *logging
+
+  backup:
+    image: ${DIABA_IMAGE}-backup:${DIABA_VERSION}
+    env_file: backup.env
+    environment:
+      PGHOST: postgres
+      PGDATABASE: ${DB_DATABASE}
+      PGUSER: ${DB_USERNAME}
+      PGPASSWORD: ${DB_PASSWORD}
+    networks: [backend, egress]
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    logging: *logging
+
+  redis:
+    image: redis:8-alpine
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly yes"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?}
+    volumes:
+      - redis-data:/data
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    logging: *logging
+
+networks:
+  backend:
+    internal: true
+  edge:
+  egress:
+
+volumes:
+  app-storage:
+  postgres-data:
+  redis-data:
+  caddy-data:
+  caddy-config:

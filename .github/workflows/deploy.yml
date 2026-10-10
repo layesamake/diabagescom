@@ -1,0 +1,98 @@
+name: deploy
+
+# main → CI → images taguées par SHA → déploiement automatique sur dev.diaba.cloud.
+# Production : déclenchement manuel uniquement, sur un SHA déjà publié, avec
+# approbation obligatoire de l'environnement GitHub "production".
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environnement cible
+        type: choice
+        options: [dev, production]
+        default: dev
+      version:
+        description: SHA complet déjà publié (vide = commit courant)
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ inputs.environment || 'dev' }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/layesamake/diabagescom
+
+jobs:
+  ci:
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/tests.yml
+
+  publish:
+    name: Publication des images
+    if: github.event_name == 'push'
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Login GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+      - name: Build and push (tag = SHA, jamais latest)
+        run: |
+          docker build -f docker/php/Dockerfile --target app --build-arg APP_VERSION="$GITHUB_SHA" -t "$IMAGE:$GITHUB_SHA" .
+          docker build -f docker/php/Dockerfile --target nginx -t "$IMAGE-nginx:$GITHUB_SHA" .
+          docker build -f docker/backup/Dockerfile -t "$IMAGE-backup:$GITHUB_SHA" .
+          docker push "$IMAGE:$GITHUB_SHA"
+          docker push "$IMAGE-nginx:$GITHUB_SHA"
+          docker push "$IMAGE-backup:$GITHUB_SHA"
+
+  deploy:
+    name: Déploiement ${{ inputs.environment || 'dev' }}
+    needs: publish
+    if: always() && (needs.publish.result == 'success' || (github.event_name == 'workflow_dispatch' && needs.publish.result == 'skipped'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: ${{ inputs.environment || 'dev' }}
+      url: ${{ (inputs.environment || 'dev') == 'production' && 'https://diaba.cloud' || 'https://dev.diaba.cloud' }}
+    steps:
+      - name: Resolve version
+        id: version
+        env:
+          REQUESTED: ${{ inputs.version }}
+        run: |
+          VERSION="${REQUESTED:-$GITHUB_SHA}"
+          [[ "$VERSION" =~ ^[0-9a-f]{40}$ ]] || { echo "SHA invalide"; exit 1; }
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy over restricted SSH
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          SSH_TARGET: ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}
+          VERSION: ${{ steps.version.outputs.value }}
+          OPERATOR: ${{ github.actor }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            "$SSH_TARGET" "deploy $VERSION $OPERATOR"

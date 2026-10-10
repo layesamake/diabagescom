@@ -1,0 +1,2 @@
+# Sauvegarde quotidienne à 02:15 UTC (RPO initial ≤ 24 h, cf. docs/09).
+15 2 * * * /usr/local/bin/diaba-backup > /proc/1/fd/1 2>&1
