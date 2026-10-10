@@ -3,11 +3,13 @@
 namespace App\Http\Middleware;
 
 use App\Domain\Identity\Authorizer;
+use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Domain\Tenancy\WarehouseAccess;
 use App\Models\TenantMembership;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -56,6 +58,12 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'context' => fn () => $this->context($request),
+            'subscription' => fn () => app(TenantContext::class)->has()
+                ? app(FeatureAccess::class)->summary(app(TenantContext::class)->tenant())
+                : null,
+            'platform' => fn () => [
+                'can_access' => $request->user() instanceof User && Gate::forUser($request->user())->allows('platform.tenants.manage'),
+            ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

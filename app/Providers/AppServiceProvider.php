@@ -6,6 +6,7 @@ use App\Domain\Audit\AuditLog;
 use App\Domain\Audit\RecordAuthenticationEvents;
 use App\Domain\Identity\Authorizer;
 use App\Domain\Identity\PermissionCatalog;
+use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Models\User;
 use App\Support\Health\CheckCriticalDependencies;
@@ -30,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(TenantContext::class);
         $this->app->scoped(Authorizer::class);
         $this->app->scoped(AuditLog::class);
+        $this->app->scoped(FeatureAccess::class);
     }
 
     /**

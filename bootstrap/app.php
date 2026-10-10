@@ -1,9 +1,12 @@
 <?php
 
+use App\Domain\Subscriptions\SubscriptionRestriction;
 use App\Http\Middleware\AssignRequestId;
+use App\Http\Middleware\EnforceSubscription;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RequireFeature;
 use App\Http\Middleware\RequireMultiFactorForPrivilegedUsers;
 use App\Http\Middleware\ResolveTenantContext;
 use Illuminate\Foundation\Application;
@@ -11,6 +14,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -24,6 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant' => ResolveTenantContext::class,
             'mfa.privileged' => RequireMultiFactorForPrivilegedUsers::class,
+            'subscription' => EnforceSubscription::class,
+            'feature' => RequireFeature::class,
         ]);
 
         // Le TLS est terminé par Caddy, puis Nginx, sur le réseau Docker privé.
@@ -42,4 +48,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Refus liés à l'abonnement : message clair, jamais une page d'erreur technique.
+        $exceptions->render(function (SubscriptionRestriction $e, Request $request) {
+            if ($request->expectsJson() && ! $request->header('X-Inertia')) {
+                return response()->json(['message' => $e->getMessage()], 403);
+            }
+
+            Inertia::flash('toast', ['type' => 'error', 'message' => $e->getMessage()]);
+
+            return $request->isMethodSafe()
+                ? redirect()->route('dashboard')
+                : back(303);
+        });
+        $exceptions->dontReport(SubscriptionRestriction::class);
     })->create();

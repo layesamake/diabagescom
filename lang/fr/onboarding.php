@@ -13,5 +13,6 @@ return [
         'warehouse_name' => 'nom du dépôt',
         'warehouse_code' => 'code du dépôt',
         'warehouse_address' => 'adresse du dépôt',
+        'plan' => 'formule',
     ],
 ];

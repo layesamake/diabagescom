@@ -4,6 +4,8 @@ namespace App\Domain\Tenancy;
 
 use App\Domain\Audit\AuditLog;
 use App\Domain\Identity\PermissionCatalog;
+use App\Domain\Subscriptions\SubscriptionLifecycle;
+use App\Models\Plan;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\TenantMembership;
@@ -12,18 +14,19 @@ use App\Models\Warehouse;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Crée une entreprise, son premier administrateur et son premier dépôt,
- * dans une seule transaction auditée.
+ * Crée une entreprise, son premier administrateur, son premier dépôt et son
+ * essai gratuit sur la formule choisie, dans une seule transaction auditée.
  */
 final class CreateTenant
 {
     public function __construct(
         private readonly TenantContext $context,
         private readonly AuditLog $audit,
+        private readonly SubscriptionLifecycle $subscriptions,
     ) {}
 
     /**
-     * @param  array{legal_name: string, display_name: string, country_code: string, timezone: string, warehouse_name: string, warehouse_code: string, warehouse_address?: string|null}  $data
+     * @param  array{legal_name: string, display_name: string, country_code: string, timezone: string, warehouse_name: string, warehouse_code: string, warehouse_address?: string|null, plan_code: string}  $data
      */
     public function __invoke(User $owner, array $data): TenantMembership
     {
@@ -44,6 +47,9 @@ final class CreateTenant
             $membership->role_id = Role::system(PermissionCatalog::SCOPE_TENANT, PermissionCatalog::ADMIN_ROLE)->id;
             $membership->status = TenantMembership::STATUS_ACTIVE;
             $membership->save();
+
+            $plan = Plan::query()->where('code', $data['plan_code'])->where('active', true)->firstOrFail();
+            $this->subscriptions->startTrial($tenant, $plan, $owner);
 
             return $this->context->runAs($tenant, function () use ($tenant, $owner, $membership, $data): TenantMembership {
                 $warehouse = Warehouse::query()->create([

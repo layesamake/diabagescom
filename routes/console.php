@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Cycle des abonnements : transitions essai → lecture seule → suspension, puis rappels.
+Schedule::command('diaba:subscriptions:tick')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();

@@ -50,7 +50,7 @@ if [[ -n "$PREV_VERSION" ]]; then
 fi
 
 echo "==> Migrations"
-DIABA_VERSION="$NEW_VERSION" docker compose run --rm app sh -c "php artisan migrate --force && php artisan diaba:sync-permissions"
+DIABA_VERSION="$NEW_VERSION" docker compose run --rm app sh -c "php artisan migrate --force && php artisan diaba:sync-permissions && php artisan diaba:sync-plans"
 
 echo "==> Démarrage de la nouvelle version"
 DIABA_VERSION="$NEW_VERSION" docker compose up -d --remove-orphans

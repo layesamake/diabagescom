@@ -38,6 +38,7 @@ class CreateCompanyRequest extends FormRequest
             'warehouse_name' => ['required', 'string', 'min:2', 'max:80'],
             'warehouse_code' => ['required', 'string', 'regex:/^[A-Z0-9][A-Z0-9_-]{0,15}$/'],
             'warehouse_address' => ['nullable', 'string', 'max:500'],
+            'plan_code' => ['required', 'string', Rule::exists('plans', 'code')->where('active', true)],
         ];
     }
 
@@ -54,6 +55,7 @@ class CreateCompanyRequest extends FormRequest
             'warehouse_name' => __('onboarding.fields.warehouse_name'),
             'warehouse_code' => __('onboarding.fields.warehouse_code'),
             'warehouse_address' => __('onboarding.fields.warehouse_address'),
+            'plan_code' => __('onboarding.fields.plan'),
         ];
     }
 }

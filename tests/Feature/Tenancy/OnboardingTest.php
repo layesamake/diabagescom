@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Tenancy;
 
+use App\Domain\Tenancy\TenantScope;
 use App\Models\AuditEvent;
+use App\Models\Subscription;
 use App\Models\Tenant;
 use App\Models\TenantMembership;
 use App\Models\User;
@@ -26,6 +28,7 @@ class OnboardingTest extends TestCase
             'timezone' => 'Africa/Dakar',
             'warehouse_name' => 'Dakar Centre',
             'warehouse_code' => 'dkr-1',
+            'plan_code' => 'essential',
             ...$overrides,
         ];
     }
@@ -55,9 +58,14 @@ class OnboardingTest extends TestCase
 
         $this->assertDatabaseHas('warehouses', ['tenant_id' => $tenant->id, 'code' => 'DKR-1', 'name' => 'Dakar Centre']);
         $this->assertEqualsCanonicalizing(
-            ['tenant.created', 'membership.created', 'warehouse.created'],
+            ['tenant.created', 'membership.created', 'subscription.trial_started', 'warehouse.created'],
             AuditEvent::query()->where('tenant_id', $tenant->id)->pluck('action')->all(),
         );
+
+        $subscription = Subscription::query()->withoutGlobalScope(TenantScope::class)->with('plan')->sole();
+        $this->assertSame('trialing', $subscription->status);
+        $this->assertSame('essential', $subscription->plan->code);
+        $this->assertLessThan(60, abs($subscription->trial_ends_at->diffInSeconds(now()->addDays(10))));
     }
 
     public function test_new_admin_must_set_up_mfa_before_using_the_company_space(): void

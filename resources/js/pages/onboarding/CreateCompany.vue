@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { t } from '@/i18n';
 import { store } from '@/routes/onboarding';
+import type { PlanOption } from '@/types';
 
 defineOptions({
     layout: {
@@ -16,11 +17,14 @@ defineOptions({
 });
 
 defineProps<{
+    plans: PlanOption[];
+    trialDays: number;
     countries: { code: string; name: string }[];
     defaults: {
         country_code: string;
         timezone: string;
         warehouse_code: string;
+        plan_code: string;
     };
 }>();
 
@@ -172,6 +176,55 @@ const selectClass =
                 />
                 <InputError :message="errors.warehouse_address" />
             </div>
+        </fieldset>
+
+        <fieldset class="grid gap-3">
+            <legend class="mb-1 text-base font-semibold">
+                {{ t('onboarding.plan_section') }}
+            </legend>
+            <p class="-mt-1 text-sm text-muted-foreground">
+                {{ t('onboarding.plan_help', { days: trialDays }) }}
+            </p>
+            <div class="grid gap-3 sm:grid-cols-2">
+                <label
+                    v-for="plan in plans"
+                    :key="plan.code"
+                    class="flex min-h-11 cursor-pointer gap-3 rounded-lg border p-3 has-[:checked]:border-[var(--color-brand-teal)] has-[:checked]:ring-1 has-[:checked]:ring-[var(--color-brand-teal)]"
+                >
+                    <input
+                        type="radio"
+                        name="plan_code"
+                        :value="plan.code"
+                        :checked="plan.code === defaults.plan_code"
+                        required
+                        class="mt-1 size-4 accent-[var(--color-brand-teal)]"
+                    />
+                    <span class="grid gap-0.5 text-sm">
+                        <span class="font-semibold">{{ plan.name }}</span>
+                        <span class="text-muted-foreground">
+                            {{
+                                plan.warehouse_limit === null
+                                    ? t('subscription.unlimited')
+                                    : t('subscription.warehouses_count', {
+                                          count: plan.warehouse_limit,
+                                      })
+                            }}
+                            ·
+                            {{
+                                t('subscription.users_count', {
+                                    count: plan.included_users,
+                                })
+                            }}
+                        </span>
+                        <span class="text-muted-foreground">{{
+                            plan.accounting_enabled
+                                ? t('subscription.accounting_included')
+                                : t('subscription.accounting_excluded')
+                        }}</span>
+                    </span>
+                </label>
+            </div>
+            <InputError :message="errors.plan_code" />
         </fieldset>
 
         <div class="grid gap-3">

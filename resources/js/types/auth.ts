@@ -42,3 +42,31 @@ export type TwoFactorConfigContent = {
     description: string;
     buttonText: string;
 };
+
+export type SubscriptionStatus =
+    | 'trialing'
+    | 'active'
+    | 'read_only'
+    | 'suspended'
+    | 'cancelled';
+
+/** État d'abonnement de l'entreprise active (affichage ; le serveur décide). */
+export type SubscriptionSummary = {
+    status: SubscriptionStatus;
+    plan: { code: string; name: string } | null;
+    trial_ends_at: string | null;
+    read_only_ends_at: string | null;
+    trial_days_left: number | null;
+    can_write: boolean;
+    features: { accounting: boolean };
+};
+
+export type PlanOption = {
+    code: string;
+    name: string;
+    warehouse_limit: number | null;
+    included_users: number;
+    accounting_enabled: boolean;
+    price_monthly?: number | null;
+    price_yearly?: number | null;
+};

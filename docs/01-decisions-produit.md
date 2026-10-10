@@ -49,3 +49,22 @@
 - Logo officiel : monogramme bleu nuit en forme de `D`, contenant un livre comptable ouvert, des colonnes de grand livre, une coche turquoise et un accent or ; mot-symbole `DIABA GESCOM` plus discret à droite.
 - Le symbole comptable exprime les écritures, la tenue du grand livre et la validation ; il est prioritaire visuellement sur le texte.
 - Voir `15-identite-visuelle.md` pour les déclinaisons, couleurs et règles d’intégration.
+
+## Mise en œuvre des abonnements (EPIC-02, 2026-10-11)
+
+- Essai de 10 jours démarré à la création de l'entreprise sur la formule choisie, puis 7 jours de lecture seule, puis suspension. Les échéances sont calculées depuis la date de fin précédente : un retard du planificateur ne prolonge jamais l'accès.
+- Lecture seule : consultation et changement d'entreprise/dépôt possibles, toute modification refusée côté serveur. Suspension : seule la page Abonnement reste accessible. Aucune donnée n'est supprimée.
+- Rappels e-mail aux administrateurs à J-3, J-1 et J0 (une seule fois chacun).
+- Limites appliquées côté serveur (formule + options `extra_user`, `extra_warehouse`) ; un déclassement ne supprime rien mais bloque les créations au-delà de la limite.
+- Console plateforme (super-administrateur) : changement de formule, prolongation d'essai, activation manuelle (virement validé), suspension ; motif obligatoire et audit dans le journal de l'entreprise.
+
+### Valeurs provisoires à valider par le propriétaire
+
+| Formule | Dépôts | Utilisateurs inclus | Prix |
+|---|---:|---:|---|
+| Essentiel | 1 | 2 | à définir |
+| Essentiel Compta | 1 | 3 | à définir |
+| Business | 5 | 5 | à définir |
+| Business Compta | 5 | 8 | à définir |
+
+Ces valeurs se modifient dans la console plateforme (Formules) sans déploiement. Tant qu'un prix est vide, il est affiché « Tarif communiqué prochainement ».

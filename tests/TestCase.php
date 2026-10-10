@@ -2,7 +2,9 @@
 
 namespace Tests;
 
+use App\Domain\Subscriptions\SubscriptionLifecycle;
 use App\Domain\Tenancy\TenantContext;
+use App\Models\Plan;
 use App\Models\Tenant;
 use App\Models\TenantMembership;
 use App\Models\User;
@@ -29,12 +31,16 @@ abstract class TestCase extends BaseTestCase
      *
      * @return array{tenant: Tenant, user: User, membership: TenantMembership, warehouse: Warehouse}
      */
-    protected function createTenantWithMember(string $role = 'admin', ?User $user = null): array
+    protected function createTenantWithMember(string $role = 'admin', ?User $user = null, ?string $plan = 'business_accounting'): array
     {
         $user ??= User::factory()->withTwoFactor()->create();
         $tenant = Tenant::factory()->create();
         $membership = TenantFactory::addMember($tenant, $user, $role);
         $warehouse = app(TenantContext::class)->runAs($tenant, fn () => Warehouse::factory()->create());
+
+        if ($plan !== null) {
+            app(SubscriptionLifecycle::class)->startTrial($tenant, Plan::query()->where('code', $plan)->firstOrFail());
+        }
 
         return compact('tenant', 'user', 'membership', 'warehouse');
     }
