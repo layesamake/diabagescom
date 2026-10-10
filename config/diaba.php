@@ -17,6 +17,16 @@ return [
         'default_plan' => 'business_accounting',
     ],
 
+    'sales' => [
+        // Remise maximale accordée avec la permission sale.discount_standard, en points
+        // de base du montant de la ligne (1000 = 10 %). Au-delà : sale.discount_exception.
+        // Valeur provisoire, à valider par le propriétaire.
+        'standard_discount_max_bp' => 1000,
+
+        // Durée de validité par défaut d'un devis.
+        'quote_validity_days' => 30,
+    ],
+
     /*
      * Formules créées si absentes (diaba:sync-plans). Une fois en base, elles
      * sont gérées par le super-administrateur et jamais écrasées ici.

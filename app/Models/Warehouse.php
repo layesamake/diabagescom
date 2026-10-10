@@ -34,6 +34,14 @@ class Warehouse extends Model
         return ['archived_at' => 'datetime'];
     }
 
+    protected static function booted(): void
+    {
+        // Chaque dépôt dispose d'une caisse dès sa création (même transaction).
+        static::created(function (Warehouse $warehouse): void {
+            CashRegister::query()->create(['warehouse_id' => $warehouse->id, 'name' => __('cash.default_register')]);
+        });
+    }
+
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;

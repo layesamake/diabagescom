@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Catalog;
 
 use App\Domain\Catalog\Barcode;
 use App\Domain\Catalog\ProductService;
+use App\Domain\Inventory\Quantity;
+use App\Domain\Inventory\StockAccess;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Catalog\ProductRequest;
 use App\Models\Product;
@@ -15,6 +17,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
@@ -93,29 +96,43 @@ class ProductController extends Controller
     /**
      * Sélecteur d'articles (lignes de stock, de transfert, d'inventaire) : 10 résultats.
      */
-    public function search(Request $request): JsonResponse
+    public function search(Request $request, StockAccess $access): JsonResponse
     {
         Gate::authorize('catalog.view');
 
         // Le coût d'achat est une donnée sensible : réservé à qui saisit du stock valorisé.
         $showCost = Gate::allows('inventory.adjust');
 
+        // Stock disponible affiché à la vente, seulement pour un dépôt accessible.
+        $warehouseId = (string) $request->query('warehouse', '');
+        $stock = $warehouseId !== '' && in_array($warehouseId, $access->accessibleIds(), true) ? $warehouseId : null;
+
         $products = Product::query()
-            ->with('unit:id,code,decimals_allowed')
+            ->with(['unit:id,code,decimals_allowed', 'taxRate:id,rate_basis_points'])
             ->whereNull('archived_at')
+            ->where('active', true)
             ->when($request->boolean('stocked'), fn ($q) => $q->whereIn('type', ['stockable', 'consumable']))
             ->search((string) $request->query('q', ''))
             ->orderBy('name')
             ->limit(10)
-            ->get()
-            ->map(fn (Product $p) => [
-                'id' => $p->id,
-                'sku' => $p->sku,
-                'name' => $p->name,
-                'unit' => $p->unit->code,
-                'decimals' => $p->unit->decimals_allowed,
-                'standard_cost' => $showCost ? $p->standard_cost : null,
-            ]);
+            ->get();
+
+        $available = $stock !== null
+            ? DB::table('inventory_balances')->where('warehouse_id', $stock)->whereIn('product_id', $products->pluck('id'))->pluck('quantity_on_hand', 'product_id')
+            : collect();
+
+        $products = $products->map(fn (Product $p) => [
+            'id' => $p->id,
+            'sku' => $p->sku,
+            'name' => $p->name,
+            'type' => $p->type,
+            'unit' => $p->unit->code,
+            'decimals' => $p->unit->decimals_allowed,
+            'standard_cost' => $showCost ? $p->standard_cost : null,
+            'sale_price' => $p->sale_price,
+            'tax_rate_basis_points' => $p->taxRate->rate_basis_points,
+            'available' => $stock !== null && $p->type !== 'service' ? Quantity::of((string) ($available[$p->id] ?? '0'))->format() : null,
+        ]);
 
         return response()->json(['products' => $products]);
     }

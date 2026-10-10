@@ -31,16 +31,19 @@ export default defineConfig({
             formVariants: true,
         }),
     ]),
-    // Dans Docker (service "vite") : écoute sur toutes les interfaces, HMR annoncé
-    // sur localhost, et polling car les événements fichiers ne traversent pas les
-    // montages Windows.
+    // Dans Docker (service "vite") : écoute sur toutes les interfaces et annonce
+    // 127.0.0.1 (le port n'est publié que sur l'IPv4 locale : « localhost » peut
+    // résoudre vers ::1 et tomber sur un autre serveur), polling car les
+    // événements fichiers ne traversent pas les montages Windows.
     server: {
         ...(process.env.VITE_IN_DOCKER
             ? {
                   host: '0.0.0.0',
                   port: 5173,
                   strictPort: true,
-                  hmr: { host: 'localhost' },
+                  origin: 'http://127.0.0.1:5173',
+                  hmr: { host: '127.0.0.1' },
+                  cors: { origin: /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/ },
               }
             : {}),
         watch: {

@@ -37,6 +37,36 @@ class DashboardController extends Controller
                 ->count();
         }
 
-        return Inertia::render('Dashboard', ['alerts' => $alerts]);
+        if (Gate::allows('sale.view')) {
+            // Factures clients échues non soldées.
+            $alerts['overdue_invoices'] = DB::table('sales_documents')
+                ->where('tenant_id', $context->tenantId())
+                ->whereIn('warehouse_id', $access->accessibleIds())
+                ->where('type', 'invoice')->where('status', 'validated')
+                ->whereIn('payment_status', ['unpaid', 'partial'])
+                ->where('due_date', '<', now()->toDateString())
+                ->count();
+        }
+
+        if (Gate::allows('cash.open_close')) {
+            // Caisses restées ouvertes depuis un jour précédent : à fermer.
+            $alerts['cash_to_close'] = DB::table('cash_sessions as s')
+                ->join('cash_registers as r', 'r.id', '=', 's.register_id')
+                ->where('s.tenant_id', $context->tenantId())
+                ->whereIn('r.warehouse_id', $access->accessibleIds())
+                ->where('s.status', 'open')
+                ->where('s.opened_at', '<', now()->startOfDay())
+                ->count();
+        }
+
+        return Inertia::render('Dashboard', [
+            'alerts' => $alerts,
+            'shortcuts' => [
+                'sell' => Gate::allows('sale.create') && Gate::allows('sale.validate'),
+                'quote' => Gate::allows('sale.create'),
+                'cash' => Gate::any(['cash.view_own', 'cash.view_all']),
+                'purchase' => Gate::allows('purchase.view'),
+            ],
+        ]);
     }
 }

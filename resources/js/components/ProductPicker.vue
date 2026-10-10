@@ -12,13 +12,21 @@ export type PickedProduct = {
     unit: string;
     decimals: boolean;
     standard_cost: number | null;
+    type?: string;
+    sale_price?: number;
+    tax_rate_basis_points?: number;
+    available?: string | null;
 };
 
 /**
  * Sélection d'un article par recherche (nom, référence) ou par scan :
  * un lecteur de codes-barres « tape » le code puis Entrée → sélection directe.
  */
-const props = defineProps<{ inputId: string; stockedOnly?: boolean }>();
+const props = defineProps<{
+    inputId: string;
+    stockedOnly?: boolean;
+    warehouseId?: string;
+}>();
 const emit = defineEmits<{ select: [product: PickedProduct] }>();
 
 const query = ref('');
@@ -49,7 +57,13 @@ async function runSearch(): Promise<void> {
     }
 
     const data = await fetchJson<{ products: PickedProduct[] }>(
-        search({ query: { q, stocked: props.stockedOnly ? 1 : 0 } }).url,
+        search({
+            query: {
+                q,
+                stocked: props.stockedOnly ? 1 : 0,
+                ...(props.warehouseId ? { warehouse: props.warehouseId } : {}),
+            },
+        }).url,
     );
     results.value = data?.products ?? [];
     notFound.value = results.value.length === 0;
@@ -61,14 +75,20 @@ watch(query, () => {
     timer = setTimeout(runSearch, 250);
 });
 
-function choose(product: PickedProduct): void {
+function choose(product: PickedProduct, clear = true): void {
     emit('select', product);
-    query.value = '';
-    results.value = [];
-    open.value = false;
+
+    if (clear) {
+        query.value = '';
+        results.value = [];
+        open.value = false;
+    }
 }
 
 // Entrée : code-barres exact d'abord (scan), sinon premier résultat.
+// Le champ est vidé dès l'appui sur Entrée : avec un réseau lent, un second scan
+// rapide ne se colle pas au premier, et la réponse du premier n'efface pas la
+// saisie du second.
 async function onEnter(): Promise<void> {
     const code = query.value.trim();
 
@@ -77,20 +97,33 @@ async function onEnter(): Promise<void> {
     }
 
     clearTimeout(timer);
+    query.value = '';
+    open.value = false;
     const exact = await fetchJson<{
         product: PickedProduct & { unit_decimals: boolean };
     }>(lookup({ query: { code } }).url);
 
-    if (exact) {
-        choose({
-            ...exact.product,
-            decimals: exact.product.unit_decimals,
-            standard_cost: null,
-        });
+    if (exact && !(props.stockedOnly && exact.product.type === 'service')) {
+        choose(
+            {
+                ...exact.product,
+                decimals: exact.product.unit_decimals,
+                standard_cost: null,
+                available: null,
+            },
+            false,
+        );
 
         return;
     }
 
+    // Pas un code exact : recherche texte, si rien d'autre n'a été saisi entre-temps.
+    if (query.value !== '') {
+        return;
+    }
+
+    query.value = code;
+    clearTimeout(timer);
     await runSearch();
 
     if (results.value.length === 1) {
@@ -143,7 +176,20 @@ async function onEnter(): Promise<void> {
                         product.name
                     }}</span>
                     <span class="text-xs text-muted-foreground"
-                        >{{ product.sku }} · {{ product.unit }}</span
+                        >{{ product.sku }} · {{ product.unit
+                        }}<template
+                            v-if="
+                                product.available !== null &&
+                                product.available !== undefined
+                            "
+                        >
+                            ·
+                            {{
+                                t('pos.available', {
+                                    quantity: product.available,
+                                })
+                            }}</template
+                        ></span
                     >
                 </button>
             </li>

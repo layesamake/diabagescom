@@ -53,4 +53,15 @@ final class Sequences
     {
         return sprintf('%s-%s', $prefix, str_pad((string) $this->next($key), $padding, '0', STR_PAD_LEFT));
     }
+
+    /**
+     * Numéro de document annuel, ex. document('sales:invoice', 'FA') → « FA-2026-00042 ».
+     * Attribué seulement à la validation, dans la transaction qui valide.
+     */
+    public function document(string $key, string $prefix): string
+    {
+        $year = now()->year;
+
+        return $this->formatted("{$key}:{$year}", "{$prefix}-{$year}");
+    }
 }
