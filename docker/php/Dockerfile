@@ -20,9 +20,10 @@ FROM composer:${COMPOSER_VERSION} AS composer
 FROM php:${PHP_VERSION}-fpm-alpine AS base
 
 RUN set -eux; \
-    apk add --no-cache icu-libs libpq libzip fcgi tini; \
-    apk add --no-cache --virtual .build-deps $PHPIZE_DEPS icu-dev postgresql-dev libzip-dev linux-headers; \
-    docker-php-ext-install -j"$(nproc)" bcmath intl pcntl pdo_pgsql pgsql zip; \
+    apk add --no-cache icu-libs libpq libzip libpng libjpeg-turbo libwebp freetype fcgi tini; \
+    apk add --no-cache --virtual .build-deps $PHPIZE_DEPS icu-dev postgresql-dev libzip-dev linux-headers libpng-dev libjpeg-turbo-dev libwebp-dev freetype-dev; \
+    docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype; \
+    docker-php-ext-install -j"$(nproc)" bcmath gd intl pcntl pdo_pgsql pgsql zip; \
     pecl install redis; \
     docker-php-ext-enable redis; \
     apk del .build-deps; \

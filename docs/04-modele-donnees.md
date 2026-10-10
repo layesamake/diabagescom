@@ -99,3 +99,16 @@ Une écriture comptabilisée respecte obligatoirement `SUM(debit) = SUM(credit)`
 | `offline_devices` | tenant_id, user_id, device_id, public key/device metadata, last_seen_at, revoked_at |
 | `sync_commands` | tenant_id, device_id, command_id, type, payload hash, status, accepted/result/error, created_at ; unique tenant/device/command |
 | `sync_conflicts` | tenant_id, command_id, entity type/id, reason, resolution status, resolved_by/at |
+
+## Mise en œuvre du catalogue (EPIC-03, 2026-10-12)
+
+- `tax_rates.rate_basis_points` (1800 = 18 %), un seul taux par défaut par entreprise (index partiel). Valeurs initiales : TVA 18 % et Exonéré 0 %, à valider par l'expert-comptable.
+- `units.decimals_allowed` ; quantités futures en `numeric(15,3)` (jamais de flottant), ex. `product_warehouse_settings.reorder_point`.
+- `products.sku` et `product_barcodes.code` uniques par entreprise **sans tenir compte de la casse** ; un seul code principal par article ; EAN-13/UPC-A vérifiés par leur clé de contrôle ; codes internes EAN-13 à préfixe `2`.
+- `products.version` : verrou optimiste (une modification concurrente est refusée, jamais écrasée).
+- Catégories : arbre sans cycle (trigger PostgreSQL), photo facultative.
+- Photos d'articles et de catégories : ré-encodées en WebP (1200 px max, métadonnées supprimées), stockage privé `tenants/{id}/…`, affichage par URL signée de 30 minutes.
+- `tenant_sequences` : compteurs par entreprise verrouillés (`SELECT … FOR UPDATE`) — codes clients `C-00001`, fournisseurs `F-00001`, codes-barres internes ; réutilisés pour la numérotation des documents (EPIC-05).
+- Recherche insensible aux accents et à la casse : fonction `diaba_search_text()` (`unaccent` + `lower`) et index trigramme `pg_trgm`.
+- `catalog_imports` : import CSV d'articles (aperçu, erreurs par ligne, application unique et tout-ou-rien, rapprochement par SKU).
+- Écart assumé : `party_addresses` (adresses multiples) est reporté ; clients et fournisseurs portent une adresse principale (`address_line`, `city`) et le NINEA (`tax_number`).

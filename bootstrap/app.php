@@ -14,6 +14,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Inertia\Inertia;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -31,6 +32,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'subscription' => EnforceSubscription::class,
             'feature' => RequireFeature::class,
         ]);
+
+        // Le contexte d'entreprise doit exister AVANT la résolution des paramètres
+        // de route ({product}…) : le scope tenant filtre alors la recherche, et un
+        // identifiant d'une autre entreprise aboutit à un 404.
+        $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: ResolveTenantContext::class);
 
         // Le TLS est terminé par Caddy, puis Nginx, sur le réseau Docker privé.
         $middleware->trustProxies(at: ['127.0.0.1', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16']);

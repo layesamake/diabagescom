@@ -3,6 +3,7 @@
 namespace App\Domain\Tenancy;
 
 use App\Domain\Audit\AuditLog;
+use App\Domain\Catalog\SeedTenantCatalogDefaults;
 use App\Domain\Identity\PermissionCatalog;
 use App\Domain\Subscriptions\SubscriptionLifecycle;
 use App\Models\Plan;
@@ -23,6 +24,7 @@ final class CreateTenant
         private readonly TenantContext $context,
         private readonly AuditLog $audit,
         private readonly SubscriptionLifecycle $subscriptions,
+        private readonly SeedTenantCatalogDefaults $catalogDefaults,
     ) {}
 
     /**
@@ -52,6 +54,8 @@ final class CreateTenant
             $this->subscriptions->startTrial($tenant, $plan, $owner);
 
             return $this->context->runAs($tenant, function () use ($tenant, $owner, $membership, $data): TenantMembership {
+                ($this->catalogDefaults)();
+
                 $warehouse = Warehouse::query()->create([
                     'code' => $data['warehouse_code'],
                     'name' => $data['warehouse_name'],

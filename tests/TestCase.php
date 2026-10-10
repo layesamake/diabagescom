@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Domain\Catalog\SeedTenantCatalogDefaults;
 use App\Domain\Subscriptions\SubscriptionLifecycle;
 use App\Domain\Tenancy\TenantContext;
 use App\Models\Plan;
@@ -36,7 +37,11 @@ abstract class TestCase extends BaseTestCase
         $user ??= User::factory()->withTwoFactor()->create();
         $tenant = Tenant::factory()->create();
         $membership = TenantFactory::addMember($tenant, $user, $role);
-        $warehouse = app(TenantContext::class)->runAs($tenant, fn () => Warehouse::factory()->create());
+        $warehouse = app(TenantContext::class)->runAs($tenant, function () {
+            app(SeedTenantCatalogDefaults::class)();
+
+            return Warehouse::factory()->create();
+        });
 
         if ($plan !== null) {
             app(SubscriptionLifecycle::class)->startTrial($tenant, Plan::query()->where('code', $plan)->firstOrFail());
