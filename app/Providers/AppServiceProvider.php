@@ -72,12 +72,13 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
+        // 8 caractères minimum, lettres et chiffres, et refus des mots de passe
+        // connus des fuites publiques. Simple pour des non-informaticiens ; la
+        // double authentification reste obligatoire pour les comptes à privilèges.
         Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
-                ->mixedCase()
+            ? Password::min(8)
                 ->letters()
                 ->numbers()
-                ->symbols()
                 ->uncompromised()
             : null,
         );
