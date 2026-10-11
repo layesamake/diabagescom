@@ -127,6 +127,36 @@ export const fr = {
             separator: 'Ou continuer avec votre e-mail',
         },
     },
+    backup: {
+        nav: 'Sauvegarde',
+        page_title: 'Sauvegarde des données',
+        heading: 'Sauvegarde de vos données',
+        description:
+            'Téléchargez une copie complète de votre entreprise : articles, clients, fournisseurs, stock, ventes, achats, caisse et comptabilité.',
+        create: 'Préparer une sauvegarde',
+        what_title: 'Que contient la sauvegarde ?',
+        what_readable:
+            'Un dossier « lisible » avec vos listes (articles, clients, stock, ventes) à ouvrir dans Excel.',
+        what_full:
+            'Une copie complète de vos données, qui permet de les restaurer dans DIABA GESCOM.',
+        what_private:
+            'Ce fichier contient des données confidentielles : gardez-le en lieu sûr (clé USB, Google Drive…).',
+        list_title: 'Sauvegardes récentes',
+        empty: 'Aucune sauvegarde pour le moment.',
+        status: {
+            pending: 'En préparation…',
+            ready: 'Prête',
+            failed: 'Échec',
+            expired: 'Expirée',
+        },
+        download: 'Télécharger',
+        by: 'par {name}',
+        rows: '{count} enregistrements',
+        expires: 'Disponible jusqu’au {date}',
+        keep_note:
+            'Les fichiers restent disponibles {days} jours sur le serveur, puis sont supprimés.',
+        retry: 'Réessayez ; si le problème continue, contactez le support.',
+    },
     settings: {
         title: 'Paramètres',
         description: 'Gérez votre profil et la sécurité de votre compte.',
@@ -681,6 +711,10 @@ export const fr = {
         entity: 'Élément',
         system: 'Système',
         actions: {
+            'backup.export_requested': 'Sauvegarde demandée',
+            'backup.export_ready': 'Sauvegarde prête',
+            'backup.export_downloaded': 'Sauvegarde téléchargée',
+            'sales.document_shared': 'Document partagé',
             'tenant.created': 'Entreprise créée',
             'membership.created': 'Membre ajouté',
             'warehouse.created': 'Dépôt créé',

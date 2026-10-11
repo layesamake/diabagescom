@@ -31,6 +31,7 @@ use App\Http\Controllers\Sales\DocumentShareController;
 use App\Http\Controllers\Sales\PosController;
 use App\Http\Controllers\Sales\SalesDocumentController;
 use App\Http\Controllers\SalesReportController;
+use App\Http\Controllers\Settings\BackupController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\WarehouseController;
@@ -63,6 +64,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('settings/warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
     Route::post('settings/warehouses', [WarehouseController::class, 'store'])->name('warehouses.store');
     Route::get('settings/audit', [AuditController::class, 'index'])->name('audit.index');
+    Route::get('settings/backup', [BackupController::class, 'index'])->name('backup.index');
+    Route::post('settings/backup', [BackupController::class, 'store'])->middleware('throttle:5,1')->name('backup.store');
+    Route::get('settings/backup/{export}/download', [BackupController::class, 'download'])->whereUuid('export')->middleware('throttle:10,1')->name('backup.download');
 
     // Catalogue
     Route::get('catalog/products', [ProductController::class, 'index'])->name('products.index');

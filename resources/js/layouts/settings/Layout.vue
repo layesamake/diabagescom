@@ -12,6 +12,7 @@ import type { NavItem } from '@/types';
 import { t } from '@/i18n';
 import { useAppContext } from '@/composables/useAppContext';
 import { index as auditIndex } from '@/routes/audit';
+import { index as backupIndex } from '@/routes/backup';
 import { show as subscriptionShow } from '@/routes/subscription';
 import { index as devicesIndex } from '@/routes/sync/devices';
 import { index as warehousesIndex } from '@/routes/warehouses';
@@ -40,6 +41,9 @@ const sidebarNavItems: NavItem[] = [
         : []),
     ...(can('audit.view')
         ? [{ title: t('nav.audit'), href: auditIndex() }]
+        : []),
+    ...(can('organization.manage')
+        ? [{ title: t('backup.nav'), href: backupIndex() }]
         : []),
     ...(context.value
         ? [{ title: t('nav.devices'), href: devicesIndex() }]

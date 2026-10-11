@@ -19,3 +19,9 @@ Schedule::command('diaba:billing:remind')
     ->dailyAt('08:00')
     ->withoutOverlapping()
     ->onOneServer();
+
+// Sauvegardes d'entreprise : suppression des archives expirées (7 jours).
+Schedule::command('diaba:backups:prune')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer();
