@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#002456" />
+        <title>Hors connexion - DIABA GESCOM</title>
+        <style>
+            :root {
+                color-scheme: light dark;
+            }
+            body {
+                margin: 0;
+                min-height: 100vh;
+                display: grid;
+                place-items: center;
+                font-family: system-ui, sans-serif;
+                background: #f7f9fc;
+                color: #0f172a;
+            }
+            @media (prefers-color-scheme: dark) {
+                body {
+                    background: #0b1220;
+                    color: #e2e8f0;
+                }
+            }
+            main {
+                max-width: 28rem;
+                padding: 24px 16px;
+                text-align: center;
+            }
+            img {
+                width: 64px;
+                height: 64px;
+            }
+            h1 {
+                font-size: 1.4rem;
+                margin: 16px 0 8px;
+            }
+            p {
+                line-height: 1.5;
+            }
+            a {
+                display: inline-flex;
+                align-items: center;
+                min-height: 44px;
+                margin-top: 16px;
+                padding: 0 20px;
+                border-radius: 8px;
+                background: #002456;
+                color: #fff;
+                text-decoration: none;
+                font-weight: 600;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <img src="/brand/diaba-icon.svg" alt="DIABA GESCOM" />
+            <h1>Vous êtes hors connexion</h1>
+            <p>
+                Cette page n’est pas disponible sans réseau. La vente comptoir
+                reste utilisable si elle a déjà été ouverte sur cet appareil :
+                les ventes sont enregistrées comme provisoires puis envoyées dès
+                le retour du réseau.
+            </p>
+            <a href="/sales/pos">Ouvrir la vente comptoir</a>
+        </main>
+    </body>
+</html>

@@ -54,3 +54,17 @@ export type Paginated<T> = {
     next_page_url: string | null;
     total?: number;
 };
+
+/** Article choisi dans un sélecteur (vente, achat, stock), en ligne ou hors ligne. */
+export type PickedProduct = {
+    id: string;
+    sku: string;
+    name: string;
+    unit: string;
+    decimals: boolean;
+    standard_cost: number | null;
+    type?: string;
+    sale_price?: number;
+    tax_rate_basis_points?: number;
+    available?: string | null;
+};

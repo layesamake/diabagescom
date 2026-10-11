@@ -43,7 +43,9 @@ export default defineConfig({
                   strictPort: true,
                   origin: 'http://127.0.0.1:5173',
                   hmr: { host: '127.0.0.1' },
-                  cors: { origin: /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/ },
+                  cors: {
+                      origin: /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/,
+                  },
               }
             : {}),
         watch: {

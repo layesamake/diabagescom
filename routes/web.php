@@ -20,6 +20,7 @@ use App\Http\Controllers\Purchases\SupplierInvoiceController;
 use App\Http\Controllers\Sales\PosController;
 use App\Http\Controllers\Sales\SalesDocumentController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\SyncController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
@@ -113,6 +114,14 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::post('sales/{document}/refunds', [SalesDocumentController::class, 'refund'])->whereUuid('document')->name('sales.refunds.store');
     Route::post('sales/{document}/credit-notes', [SalesDocumentController::class, 'creditNote'])->whereUuid('document')->name('sales.credit_notes.store');
     Route::get('sales/{document}/pdf', [SalesDocumentController::class, 'pdf'])->whereUuid('document')->middleware('throttle:60,1')->name('sales.pdf');
+
+    // Hors connexion (PWA) : appareils et synchronisation
+    Route::post('sync/devices', [SyncController::class, 'register'])->middleware('throttle:30,1')->name('sync.devices.register');
+    Route::get('sync/catalog', [SyncController::class, 'catalog'])->middleware('throttle:60,1')->name('sync.catalog');
+    Route::post('sync/commands', [SyncController::class, 'commands'])->middleware('throttle:60,1')->name('sync.commands');
+    Route::inertia('sync', 'sync/Queue')->name('sync.index');
+    Route::get('settings/devices', [SyncController::class, 'devices'])->name('sync.devices.index');
+    Route::post('settings/devices/{device}/revoke', [SyncController::class, 'revoke'])->whereUuid('device')->name('sync.devices.revoke');
 
     // Caisse
     Route::get('cash', [CashController::class, 'index'])->name('cash.index');

@@ -21,6 +21,7 @@ import {
     parseAmount,
     parseQuantity,
 } from '@/lib/money';
+import { enqueueSale, syncState, type SalePayload } from '@/offline/sync';
 import { open as openRegister } from '@/routes/cash';
 import { create as posCreate, store as posStore } from '@/routes/pos';
 import { index as salesIndex } from '@/routes/sales';
@@ -70,6 +71,9 @@ const processing = ref(false);
 const openingAmount = ref('');
 // Une clé par vente : un double appui ou un renvoi après coupure ne crée qu'une vente.
 const saleKey = ref(crypto.randomUUID());
+const provisional = ref<{ total: number; change: number; at: string } | null>(
+    null,
+);
 
 const quickMethods: Method[] = ['cash', 'wave', 'orange_money', 'card'];
 
@@ -222,31 +226,79 @@ function clearCart(): void {
     }
 }
 
+function payload(): SalePayload | null {
+    if (!props.warehouse) {
+        return null;
+    }
+
+    return {
+        warehouse_id: props.warehouse.id,
+        cash_session_id: sessionId.value,
+        customer_id: customer.value?.id ?? null,
+        negative_stock_reason: negativeReason.value.trim() || null,
+        lines: cart.value.map((l) => ({
+            product_id: l.product.id,
+            quantity: l.quantity,
+            unit_price: l.unitPrice,
+            discount: parseAmount(l.discount),
+        })),
+        tenders: plan.value.applied,
+    };
+}
+
+/**
+ * Hors connexion (ou réseau coupé pendant l'envoi) : la vente part en file
+ * locale avec la même clé. Si le serveur l'avait déjà reçue, la synchronisation
+ * renverra simplement son résultat : jamais de doublon.
+ */
+async function saveOffline(data: SalePayload): Promise<void> {
+    await enqueueSale(
+        data,
+        {
+            total: total.value,
+            labels: cart.value.map((l) => `${l.quantity} × ${l.product.name}`),
+            customer: customer.value?.name ?? null,
+        },
+        saleKey.value,
+    );
+    provisional.value = {
+        total: total.value,
+        change: plan.value.change,
+        at: new Date().toISOString(),
+    };
+    cart.value = [];
+    customer.value = null;
+    tenders.value = [{ method: 'cash', amount: '', reference: '' }];
+    onCredit.value = false;
+    negativeReason.value = '';
+    saleKey.value = crypto.randomUUID();
+}
+
 function checkout(): void {
-    if (blocked.value || !props.warehouse) {
+    const data = payload();
+
+    if (blocked.value || !data) {
+        return;
+    }
+
+    if (!syncState.online || !navigator.onLine) {
+        void saveOffline(data);
+
         return;
     }
 
     router.post(
         posStore().url,
-        {
-            idempotency_key: saleKey.value,
-            warehouse_id: props.warehouse.id,
-            cash_session_id: sessionId.value,
-            customer_id: customer.value?.id ?? null,
-            negative_stock_reason: negativeReason.value.trim() || null,
-            lines: cart.value.map((l) => ({
-                product_id: l.product.id,
-                quantity: l.quantity,
-                unit_price: l.unitPrice,
-                discount: parseAmount(l.discount),
-            })),
-            tenders: plan.value.applied,
-        },
+        { idempotency_key: saleKey.value, ...data },
         {
             preserveScroll: true,
             onStart: () => (processing.value = true),
             onFinish: () => (processing.value = false),
+            onNetworkError: () => {
+                void saveOffline(data);
+
+                return false;
+            },
         },
     );
 }
@@ -335,6 +387,37 @@ function checkout(): void {
                     })
                 }}
             </p>
+
+            <div
+                v-if="provisional"
+                class="space-y-2 rounded-lg border border-sky-300 bg-sky-50 p-4 dark:border-sky-800 dark:bg-sky-950"
+                role="status"
+            >
+                <p class="flex items-center justify-between gap-2 font-medium">
+                    {{ t('offline.provisional_title') }}
+                    <span
+                        class="rounded bg-background px-2 py-0.5 text-xs uppercase"
+                        >{{ t('offline.provisional') }}</span
+                    >
+                </p>
+                <p class="text-2xl font-bold tabular-nums">
+                    {{ formatXof(provisional.total) }}
+                </p>
+                <p v-if="provisional.change > 0" class="text-sm font-medium">
+                    {{
+                        t('pos.change', {
+                            amount: formatXof(provisional.change),
+                        })
+                    }}
+                </p>
+                <p class="text-sm">{{ t('offline.provisional_hint') }}</p>
+                <Button
+                    variant="outline"
+                    class="h-11"
+                    @click="provisional = null"
+                    >{{ t('pos.new_sale') }}</Button
+                >
+            </div>
 
             <ProductPicker
                 input-id="pos-picker"
@@ -683,11 +766,15 @@ function checkout(): void {
                 >
                     <Spinner v-if="processing" />
                     {{
-                        plan.remaining > 0
-                            ? t('pos.checkout_credit', {
+                        !syncState.online
+                            ? t('offline.offline_sale', {
                                   amount: formatXof(total),
                               })
-                            : t('pos.checkout', { amount: formatXof(total) })
+                            : plan.remaining > 0
+                              ? t('pos.checkout_credit', {
+                                    amount: formatXof(total),
+                                })
+                              : t('pos.checkout', { amount: formatXof(total) })
                     }}
                 </Button>
             </div>

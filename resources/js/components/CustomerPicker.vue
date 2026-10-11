@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { t } from '@/i18n';
 import { formatXof } from '@/lib/money';
+import { searchCustomersOffline } from '@/offline/sync';
 import { customers as customersRoute } from '@/routes/sales';
 
 export type PickedCustomer = {
@@ -29,18 +30,21 @@ const open = ref(false);
 let timer: ReturnType<typeof setTimeout> | undefined;
 
 async function runSearch(): Promise<void> {
-    const response = await fetch(
-        customersRoute({ query: { q: query.value.trim() } }).url,
-        {
-            headers: {
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        },
-    );
-    results.value = response.ok
+    const response = navigator.onLine
+        ? await fetch(
+              customersRoute({ query: { q: query.value.trim() } }).url,
+              {
+                  headers: {
+                      Accept: 'application/json',
+                      'X-Requested-With': 'XMLHttpRequest',
+                  },
+              },
+          ).catch(() => null)
+        : null;
+    // Hors connexion : clients synchronisés sur l'appareil.
+    results.value = response?.ok
         ? ((await response.json()) as { customers: PickedCustomer[] }).customers
-        : [];
+        : await searchCustomersOffline(query.value);
     open.value = true;
 }
 

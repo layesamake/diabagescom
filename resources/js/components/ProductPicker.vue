@@ -3,20 +3,11 @@ import { ScanBarcode } from '@lucide/vue';
 import { ref, watch } from 'vue';
 import { Input } from '@/components/ui/input';
 import { t } from '@/i18n';
+import { lookupOffline, searchProductsOffline } from '@/offline/sync';
+import type { PickedProduct as CatalogPickedProduct } from '@/types/catalog';
 import { lookup, search } from '@/routes/products';
 
-export type PickedProduct = {
-    id: string;
-    sku: string;
-    name: string;
-    unit: string;
-    decimals: boolean;
-    standard_cost: number | null;
-    type?: string;
-    sale_price?: number;
-    tax_rate_basis_points?: number;
-    available?: string | null;
-};
+export type PickedProduct = CatalogPickedProduct;
 
 /**
  * Sélection d'un article par recherche (nom, référence) ou par scan :
@@ -56,16 +47,22 @@ async function runSearch(): Promise<void> {
         return;
     }
 
-    const data = await fetchJson<{ products: PickedProduct[] }>(
-        search({
-            query: {
-                q,
-                stocked: props.stockedOnly ? 1 : 0,
-                ...(props.warehouseId ? { warehouse: props.warehouseId } : {}),
-            },
-        }).url,
-    );
-    results.value = data?.products ?? [];
+    // Hors connexion (ou réseau coupé) : catalogue local synchronisé.
+    const data = navigator.onLine
+        ? await fetchJson<{ products: PickedProduct[] }>(
+              search({
+                  query: {
+                      q,
+                      stocked: props.stockedOnly ? 1 : 0,
+                      ...(props.warehouseId
+                          ? { warehouse: props.warehouseId }
+                          : {}),
+                  },
+              }).url,
+          ).catch(() => null)
+        : null;
+    results.value =
+        data?.products ?? (await searchProductsOffline(q, props.stockedOnly));
     notFound.value = results.value.length === 0;
     open.value = true;
 }
@@ -99,9 +96,20 @@ async function onEnter(): Promise<void> {
     clearTimeout(timer);
     query.value = '';
     open.value = false;
-    const exact = await fetchJson<{
-        product: PickedProduct & { unit_decimals: boolean };
-    }>(lookup({ query: { code } }).url);
+    const online = navigator.onLine
+        ? await fetchJson<{
+              product: PickedProduct & { unit_decimals: boolean };
+          }>(lookup({ query: { code } }).url).catch(() => undefined)
+        : undefined;
+    const offline = online === undefined ? await lookupOffline(code) : null;
+
+    if (offline && !(props.stockedOnly && offline.type === 'service')) {
+        choose(offline, false);
+
+        return;
+    }
+
+    const exact = online ?? null;
 
     if (exact && !(props.stockedOnly && exact.product.type === 'service')) {
         choose(

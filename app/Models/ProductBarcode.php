@@ -24,6 +24,13 @@ class ProductBarcode extends Model
 
     protected $fillable = ['product_id', 'code', 'symbology', 'is_primary'];
 
+    /**
+     * Un code ajouté ou retiré marque l'article modifié (synchronisation hors ligne).
+     *
+     * @var list<string>
+     */
+    protected $touches = ['product'];
+
     protected $attributes = ['is_primary' => false];
 
     protected function casts(): array

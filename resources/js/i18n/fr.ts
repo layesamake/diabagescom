@@ -34,6 +34,7 @@ export const fr = {
     nav: {
         dashboard: 'Accueil',
         audit: "Journal d'audit",
+        devices: 'Appareils',
         subscription: 'Abonnement',
         warehouses: 'Dépôts',
         settings: 'Paramètres',
@@ -738,6 +739,11 @@ export const fr = {
             'purchase.invoice_cancelled': 'Facture fournisseur annulée',
             'purchase.payment': 'Règlement fournisseur',
             'purchase.supplier_return': 'Retour fournisseur',
+            'sync.device_registered': 'Appareil enregistré',
+            'sync.device_revoked': 'Appareil révoqué',
+            'sync.command_rejected': 'Vente hors connexion refusée',
+            'sync.command_conflict': 'Vente hors connexion en conflit',
+            'sync.command_requires_review': 'Vente hors connexion à revoir',
         },
     },
     money: {
@@ -941,6 +947,65 @@ export const fr = {
             expense: 'Dépense',
             income: 'Recette',
         },
+    },
+    offline: {
+        online: 'En ligne',
+        offline: 'Hors connexion',
+        syncing: 'Synchronisation',
+        attention: 'Attention requise',
+        pending: '{count} vente(s) en attente',
+        update_available:
+            'Une nouvelle version de DIABA GESCOM est disponible.',
+        update_now: 'Mettre à jour',
+        title: 'À synchroniser',
+        description:
+            'Ventes enregistrées sur cet appareil et leur résultat. Une vente reste provisoire tant que le serveur ne l’a pas validée.',
+        last_sync: 'Dernière synchronisation : {date}',
+        never_synced: 'Catalogue jamais synchronisé sur cet appareil.',
+        sync_now: 'Synchroniser maintenant',
+        empty: 'Aucune vente enregistrée hors connexion sur cet appareil.',
+        provisional: 'Provisoire',
+        status: {
+            queued: 'En attente d’envoi',
+            sending: 'Envoi en cours',
+            accepted: 'Validée',
+            rejected: 'Refusée',
+            conflict: 'Conflit',
+            requires_review: 'À revoir',
+            discarded: 'Abandonnée',
+        },
+        problem: {
+            session:
+                'Votre session a expiré : reconnectez-vous pour envoyer les ventes en attente (elles sont conservées).',
+            device: 'Cet appareil n’est plus autorisé à synchroniser. Contactez un administrateur.',
+            subscription:
+                'Envoi impossible pour le moment (abonnement en lecture seule ou suspendu). Les ventes restent en attente.',
+        },
+        resend_prices: 'Renvoyer aux prix actuels',
+        resend_negative: 'Renvoyer avec motif de stock négatif',
+        negative_prompt: 'Motif pour vendre sans stock suffisant :',
+        discard: 'Abandonner',
+        discard_confirm:
+            'Abandonner cette vente ? Elle ne sera jamais envoyée.',
+        open_document: 'Voir la facture {number}',
+        price_issue: '{name} : {captured} → {current}',
+        archived_issue: '{name} : article archivé',
+        stale_stock: 'Stock au {date}, peut avoir changé',
+        offline_sale: 'Enregistrer hors connexion ({amount})',
+        provisional_title: 'Vente enregistrée hors connexion',
+        provisional_hint:
+            'Reçu provisoire : la vente sera validée par le serveur au retour du réseau. Elle ne fait pas encore foi.',
+        logout_pending:
+            '{count} vente(s) n’ont pas encore été envoyées. En vous déconnectant, elles seront supprimées de cet appareil. Continuer ?',
+        devices: 'Appareils',
+        devices_description:
+            'Appareils autorisés à vendre hors connexion. Révoquez un appareil perdu ou qui n’est plus utilisé.',
+        device_user: 'Utilisateur : {name}',
+        device_seen: 'Dernière activité : {date}',
+        device_revoked: 'Révoqué le {date}',
+        revoke: 'Révoquer',
+        revoke_confirm: 'Révoquer « {name} » ? Il ne pourra plus synchroniser.',
+        no_devices: 'Aucun appareil enregistré.',
     },
     purchases: {
         nav: 'Achats',

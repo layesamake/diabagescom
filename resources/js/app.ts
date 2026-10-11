@@ -5,6 +5,7 @@ import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 import { initializeRequestErrors } from '@/lib/requestErrors';
+import { registerServiceWorker } from '@/offline/serviceWorker';
 
 const appName = import.meta.env.VITE_APP_NAME || 'DIABA GESCOM';
 
@@ -45,3 +46,6 @@ initializeFlashToast();
 
 // Erreurs serveur ou réseau : message clair plutôt que la page brute.
 initializeRequestErrors();
+
+// PWA : cache de l'application pour la vente hors connexion.
+registerServiceWorker();

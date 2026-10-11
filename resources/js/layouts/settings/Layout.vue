@@ -13,6 +13,7 @@ import { t } from '@/i18n';
 import { useAppContext } from '@/composables/useAppContext';
 import { index as auditIndex } from '@/routes/audit';
 import { show as subscriptionShow } from '@/routes/subscription';
+import { index as devicesIndex } from '@/routes/sync/devices';
 import { index as warehousesIndex } from '@/routes/warehouses';
 
 const { context, can } = useAppContext();
@@ -39,6 +40,9 @@ const sidebarNavItems: NavItem[] = [
         : []),
     ...(can('audit.view')
         ? [{ title: t('nav.audit'), href: auditIndex() }]
+        : []),
+    ...(context.value
+        ? [{ title: t('nav.devices'), href: devicesIndex() }]
         : []),
 ];
 
