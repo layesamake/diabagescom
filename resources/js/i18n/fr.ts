@@ -187,6 +187,28 @@ export const fr = {
         keep_note:
             'Les fichiers restent disponibles {days} jours sur le serveur, puis sont supprimés.',
         retry: 'Réessayez ; si le problème continue, contactez le support.',
+        uploaded: 'Envoyée sur Google Drive',
+        drive: {
+            title: 'Sauvegarde automatique sur Google Drive',
+            description:
+                'Votre sauvegarde est déposée automatiquement dans votre Google Drive. Les {keep} plus récentes sont conservées.',
+            privacy:
+                'DIABA GESCOM n’accède qu’au dossier de sauvegardes qu’il crée, jamais au reste de votre Drive.',
+            unavailable:
+                'L’envoi vers Google Drive sera bientôt disponible sur ce service.',
+            connect: 'Connecter Google Drive',
+            connected: 'Relié au compte {email}',
+            frequency: 'Fréquence',
+            daily: 'Chaque jour',
+            weekly: 'Chaque semaine',
+            last_run: 'Dernier envoi : {date}',
+            send_now: 'Envoyer une sauvegarde maintenant',
+            disconnect: 'Déconnecter',
+            disconnect_confirm: 'Oui, déconnecter',
+            disconnect_hint:
+                'L’accès sera retiré chez Google. Les sauvegardes déjà envoyées restent dans votre Drive.',
+            cancel: 'Annuler',
+        },
     },
     settings: {
         title: 'Paramètres',
@@ -746,6 +768,10 @@ export const fr = {
             'backup.export_ready': 'Sauvegarde prête',
             'backup.export_downloaded': 'Sauvegarde téléchargée',
             'backup.restored': 'Entreprise restaurée depuis une sauvegarde',
+            'backup.uploaded': 'Sauvegarde envoyée sur Google Drive',
+            'backup.cloud_connected': 'Google Drive relié',
+            'backup.cloud_updated': 'Fréquence des sauvegardes modifiée',
+            'backup.cloud_disconnected': 'Google Drive déconnecté',
             'sales.document_shared': 'Document partagé',
             'tenant.created': 'Entreprise créée',
             'membership.created': 'Membre ajouté',

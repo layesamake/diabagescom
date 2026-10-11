@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Domain\Audit\AuditLog;
+use App\Domain\Backup\GoogleDrive;
 use App\Http\Controllers\Controller;
 use App\Jobs\BuildTenantExport;
+use App\Models\CloudBackupConnection;
 use App\Models\TenantExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,11 +35,26 @@ class BackupController extends Controller
                 'author' => $e->author->name,
                 'created_at' => $e->created_at?->toIso8601String(),
                 'expires_at' => $e->expires_at?->toIso8601String(),
+                'upload_to' => $e->upload_to,
+                'uploaded_at' => $e->uploaded_at?->toIso8601String(),
+                'upload_error' => $e->upload_error,
             ]);
+        $drive = CloudBackupConnection::query()->where('provider', CloudBackupConnection::GOOGLE_DRIVE)->first();
 
         return Inertia::render('settings/Backup', [
             'exports' => $exports,
             'keepDays' => TenantExport::KEEP_DAYS,
+            'drive' => [
+                'available' => GoogleDrive::configured(),
+                'keep' => CloudBackupConnection::KEEP,
+                'connection' => $drive === null ? null : [
+                    'email' => $drive->account_email,
+                    'frequency' => $drive->frequency,
+                    'last_run_at' => $drive->last_run_at?->toIso8601String(),
+                    'last_status' => $drive->last_status,
+                    'last_error' => $drive->last_error,
+                ],
+            ],
         ]);
     }
 

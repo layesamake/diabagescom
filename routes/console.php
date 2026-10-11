@@ -25,3 +25,9 @@ Schedule::command('diaba:backups:prune')
     ->hourly()
     ->withoutOverlapping()
     ->onOneServer();
+
+// Sauvegardes automatiques vers le Google Drive des entreprises (fréquence choisie par chacune).
+Schedule::command('diaba:backups:cloud')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer();

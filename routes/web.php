@@ -33,6 +33,7 @@ use App\Http\Controllers\Sales\PosController;
 use App\Http\Controllers\Sales\SalesDocumentController;
 use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\Settings\BackupController;
+use App\Http\Controllers\Settings\GoogleDriveController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\WarehouseController;
@@ -73,6 +74,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('settings/backup', [BackupController::class, 'index'])->name('backup.index');
     Route::post('settings/backup', [BackupController::class, 'store'])->middleware('throttle:5,1')->name('backup.store');
     Route::get('settings/backup/{export}/download', [BackupController::class, 'download'])->whereUuid('export')->middleware('throttle:10,1')->name('backup.download');
+    Route::get('settings/backup/google/connect', [GoogleDriveController::class, 'connect'])->middleware('throttle:10,1')->name('backup.google.connect');
+    Route::get('settings/backup/google/callback', [GoogleDriveController::class, 'callback'])->middleware('throttle:10,1')->name('backup.google.callback');
+    Route::put('settings/backup/google', [GoogleDriveController::class, 'update'])->name('backup.google.update');
+    Route::post('settings/backup/google/send', [GoogleDriveController::class, 'send'])->middleware('throttle:5,1')->name('backup.google.send');
+    Route::delete('settings/backup/google', [GoogleDriveController::class, 'destroy'])->name('backup.google.destroy');
 
     // Catalogue
     Route::get('catalog/products', [ProductController::class, 'index'])->name('products.index');

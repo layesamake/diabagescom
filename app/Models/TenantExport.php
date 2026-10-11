@@ -22,6 +22,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $created_by
  * @property CarbonImmutable|null $completed_at
  * @property CarbonImmutable|null $expires_at
+ * @property string|null $upload_to
+ * @property CarbonImmutable|null $uploaded_at
+ * @property string|null $upload_error
  * @property CarbonImmutable|null $created_at
  */
 class TenantExport extends Model
@@ -46,6 +49,7 @@ class TenantExport extends Model
             'summary' => 'array',
             'completed_at' => 'datetime',
             'expires_at' => 'datetime',
+            'uploaded_at' => 'datetime',
         ];
     }
 

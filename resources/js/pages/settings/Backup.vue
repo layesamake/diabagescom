@@ -10,6 +10,8 @@ import {
     ShieldCheck,
 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import GoogleDriveCard from '@/components/GoogleDriveCard.vue';
+import type { DriveState } from '@/components/GoogleDriveCard.vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
@@ -28,6 +30,9 @@ type ExportRow = {
     author: string;
     created_at: string;
     expires_at: string | null;
+    upload_to: string | null;
+    uploaded_at: string | null;
+    upload_error: string | null;
 };
 
 defineOptions({
@@ -36,7 +41,11 @@ defineOptions({
     },
 });
 
-const props = defineProps<{ exports: ExportRow[]; keepDays: number }>();
+const props = defineProps<{
+    exports: ExportRow[];
+    keepDays: number;
+    drive: DriveState;
+}>();
 
 const submitting = ref(false);
 const pending = computed(() =>
@@ -46,7 +55,7 @@ const pending = computed(() =>
 // Tant qu'une sauvegarde est en préparation, la liste se met à jour seule.
 const { start, stop } = usePoll(
     3000,
-    { only: ['exports'] },
+    { only: ['exports', 'drive'] },
     { autoStart: false },
 );
 watch(pending, (value) => (value ? start() : stop()), { immediate: true });
@@ -141,6 +150,8 @@ const badge: Record<ExportRow['status'], string> = {
             >
         </section>
 
+        <GoogleDriveCard :drive="drive" :busy="pending" />
+
         <section class="space-y-3">
             <h3 class="font-semibold">{{ t('backup.list_title') }}</h3>
             <p
@@ -200,6 +211,17 @@ const badge: Record<ExportRow['status'], string> = {
                             class="text-sm text-danger"
                         >
                             {{ t('backup.retry') }}
+                        </p>
+                        <p
+                            v-if="row.uploaded_at"
+                            class="flex items-center gap-1 text-sm text-success"
+                        >
+                            <CircleCheck class="size-4" aria-hidden="true" />{{
+                                t('backup.uploaded')
+                            }}
+                        </p>
+                        <p v-if="row.upload_error" class="text-sm text-danger">
+                            {{ row.upload_error }}
                         </p>
                     </div>
                     <Button
