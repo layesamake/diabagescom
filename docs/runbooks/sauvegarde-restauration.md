@@ -65,7 +65,23 @@ Le script vérifie la somme SHA-256, déchiffre, restaure avec `--exit-on-error`
 
 Validé localement le 2026-10-10 : sauvegarde → archive chiffrée (`age-encryption.org/v1`) → restauration isolée → contrôles OK.
 
-Les contrôles d'intégrité métier (équilibre des écritures, cohérence ledger de stock / balances, séquences de numérotation) seront ajoutés au script à mesure que les modules correspondants existent.
+### Contrôles métier (depuis le 2026-10-11)
+
+Après la restauration, `docker/backup/integrity-checks.sql` vérifie que chaque contrôle renvoie **0 anomalie** ; sinon l'exercice échoue (« sauvegarde NON validée ») :
+
+| Domaine | Contrôle |
+|---|---|
+| Comptabilité | écritures validées équilibrées (≥ 2 lignes) ; balance générale débit = crédit ; écritures automatiques tracées dans `accounting_postings` |
+| Stock | chaque solde = somme de ses mouvements ; aucune opération sans mouvement |
+| Ventes | totaux des documents = somme des lignes ; montant payé = encaissements − remboursements ; montant crédité = avoirs validés |
+| Achats | montant réglé des factures fournisseurs = règlements |
+| Caisse | solde attendu des sessions fermées = fond + mouvements ; chaque paiement en espèces a son mouvement |
+| Numérotation | chaque série (entreprise + préfixe annuel) va de 1 à N sans trou ni doublon |
+| Isolation | lignes et en-têtes appartiennent à la même entreprise |
+
+Un module absent d'une ancienne archive est signalé « module absent » et ignoré. Le test `tests/Feature/Backup/IntegrityChecksTest.php` garantit l'absence de fausse alerte sur des opérations réelles et la détection d'une corruption.
+
+Premier exercice réel sur dev : 2026-10-11, archive `diaba_dev-20261011T093734Z.dump.age`, intégrité OK, 13 migrations, 70 tables (avant ajout des contrôles métier).
 
 ## Procédure d'incident (restauration réelle)
 

@@ -34,3 +34,9 @@ echo "Contrôles :"
 psql -v ON_ERROR_STOP=1 -d "$TARGET_DB" -At -c "SELECT 'migrations=' || count(*) FROM migrations" \
     -c "SELECT 'tables=' || count(*) FROM information_schema.tables WHERE table_schema = 'public'" \
     -c "SELECT 'users=' || count(*) FROM users"
+
+# Cohérence métier : écritures équilibrées, stock = mouvements, paiements,
+# caisse, numérotation continue… Toute anomalie fait échouer l'exercice.
+echo "Contrôles métier :"
+psql -v ON_ERROR_STOP=1 -d "$TARGET_DB" -f /usr/local/share/diaba/integrity-checks.sql
+echo "Sauvegarde validée."
