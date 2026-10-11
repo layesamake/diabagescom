@@ -68,3 +68,33 @@ Les numéros de comptes ci-dessous sont des exemples de mappage, pas une liste d
 - Une période clôturée refuse une nouvelle écriture.
 - Aucune modification ou suppression d’une écriture postée n’est possible via API, interface ou tâche administrative ordinaire.
 - Les rapports utilisent les écritures postées, jamais des documents brouillons.
+
+## Mise en œuvre (EPIC-07, 2026-10-16)
+
+> Tout ce qui suit est un **paramétrage provisoire à faire valider par un expert-comptable** avant usage officiel. L'écran Comptabilité l'affiche tant que la validation (nom de l'expert, date) n'est pas enregistrée.
+
+- **Activation** (Comptabilité › Activer, permission `accounting.settings`, formules Compta uniquement) : copie du modèle `config/syscohada.php` (sous-ensemble SYSCOHADA révisé adapté au commerce), journaux `VT` ventes, `AC` achats, `CA` caisse, `BQ` banque et monnaie électronique, `IN` inventaire, `OD` opérations diverses, `AN` à-nouveaux, comptes de paramétrage et premier exercice de 12 périodes mensuelles. Seules les opérations datées à partir de la date de début choisie sont comptabilisées automatiquement.
+- **Base de données** : écriture validée équilibrée (`SUM(débit) = SUM(crédit)`, au moins deux lignes, contrainte différée vérifiée au COMMIT), numérotée par journal et exercice (`VT-2026-000001`), immuable (triggers) ; aucune validation dans une période verrouillée ou clôturée ; exercices et périodes sans chevauchement (contraintes d'exclusion) ; chaque ligne au débit OU au crédit.
+- **Comptabilisation automatique** (`diaba:accounting:post`, chaque minute, et bouton « Comptabiliser maintenant ») : idempotente grâce à `accounting_postings` (une seule écriture par opération et par nature, même relancée ou concurrente). Une écriture automatique dont la période est verrouillée est reportée au premier jour de la période ouverte suivante ; sans exercice couvrant la date, l'opération reste en attente.
+
+| Événement | Écriture (comptes par défaut) |
+|---|---|
+| Facture / vente comptoir | D 411 (TTC, auxiliaire client) / C 701 ventes de marchandises ou 706 services (HT) / C 4431 TVA |
+| Coût des ventes (articles stockés) | D 6031 / C 311, au coût moyen figé sur la ligne |
+| Avoir client | Inverse de la vente ; articles remis en stock : D 311 / C 6031 |
+| Encaissement / remboursement client | D 571 caisse, 5213 Wave, 5214 Orange Money, 5215 carte, 521 virement, 513 chèque / C 411 (ou inverse) |
+| Réception fournisseur | D 311 / C 4081 factures non parvenues (HT) |
+| Facture fournisseur | D 4081 (marchandises reçues) ou 605 (autres), D 4452 TVA / C 401 (TTC, auxiliaire fournisseur) |
+| Règlement fournisseur | D 401 / C trésorerie |
+| Retour fournisseur | Avec facture : D 401 / C 311, C 4452 ; sans facture : D 4081 / C 311 |
+| Dépense / recette de caisse | D 638 / C 571 ; D 571 / C 758 |
+| Écart de caisse à la fermeture | Manque : D 658 / C 571 ; excédent : D 571 / C 758 |
+| Stock d'ouverture | D 311 / C 4711 (à régulariser par le comptable) |
+| Ajustement, écart d'inventaire | D 311 / C 6031 (gain) ; D 6031 / C 311 (perte) |
+
+- Les ventes comptoir passent par 411 puis par l'encaissement (au lieu de D caisse / C ventes directement) : même résultat, lettrage client plus simple.
+- **Saisie manuelle** (`accounting.manual_entry`) en brouillon, validation par `accounting.post` ; correction uniquement par **extourne** liée (une seule par écriture).
+- **Périodes** : ouverte → verrouillée (réversible) → clôturée (définitif, dans l'ordre) ; **clôture d'exercice** quand toutes les périodes sont clôturées et sans brouillon : à-nouveaux (journal AN) des comptes de classes 1 à 5 et du résultat net en 1301 (bénéfice) / 1309 (perte) au premier jour de l'exercice suivant.
+- **États** (écritures validées uniquement, bornés à l'exercice : les soldes antérieurs arrivent par les à-nouveaux) : balance générale, grand livre, balances clients et fournisseurs ; export CSV journalisé (`accounting.export`).
+- **Rapprochement bancaire** (`bank.reconcile`) sur les comptes rapprochables : lignes cochées une seule fois, rapprochement terminé seulement si le solde rapproché égale le solde du relevé.
+- Reste à faire avec l'expert-comptable : modèle complet SYSCOHADA, déclarations de TVA, états financiers (bilan, compte de résultat), règles d'arrondi.

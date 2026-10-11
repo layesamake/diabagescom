@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Accounting\AccountingController;
+use App\Http\Controllers\Accounting\ChartController;
+use App\Http\Controllers\Accounting\JournalEntryController;
+use App\Http\Controllers\Accounting\ReconciliationController;
+use App\Http\Controllers\Accounting\ReportController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Cash\CashController;
 use App\Http\Controllers\Catalog\PartyController;
@@ -155,6 +160,39 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
         Route::post('invoices/{invoice}/validate', [SupplierInvoiceController::class, 'validateInvoice'])->whereUuid('invoice')->name('invoices.validate');
         Route::post('invoices/{invoice}/cancel', [SupplierInvoiceController::class, 'cancel'])->whereUuid('invoice')->name('invoices.cancel');
         Route::post('invoices/{invoice}/payments', [SupplierInvoiceController::class, 'pay'])->whereUuid('invoice')->name('invoices.payments.store');
+    });
+
+    // Comptabilité : réservée aux formules « Compta »
+    Route::prefix('accounting')->name('accounting.')->middleware('feature:accounting')->group(function () {
+        Route::get('/', [AccountingController::class, 'index'])->name('index');
+        Route::post('setup', [AccountingController::class, 'initialize'])->name('setup');
+        Route::post('post-pending', [AccountingController::class, 'postPending'])->middleware('throttle:10,1')->name('post_pending');
+        Route::post('expert', [AccountingController::class, 'expert'])->name('expert');
+        Route::post('periods/{period}', [AccountingController::class, 'period'])->whereUuid('period')->name('periods.update');
+        Route::post('years', [AccountingController::class, 'createYear'])->name('years.store');
+        Route::post('years/{year}/close', [AccountingController::class, 'closeYear'])->whereUuid('year')->name('years.close');
+
+        Route::get('entries', [JournalEntryController::class, 'index'])->name('entries.index');
+        Route::get('entries/create', [JournalEntryController::class, 'create'])->name('entries.create');
+        Route::post('entries', [JournalEntryController::class, 'store'])->name('entries.store');
+        Route::get('entries/{entry}', [JournalEntryController::class, 'show'])->whereUuid('entry')->name('entries.show');
+        Route::get('entries/{entry}/edit', [JournalEntryController::class, 'edit'])->whereUuid('entry')->name('entries.edit');
+        Route::put('entries/{entry}', [JournalEntryController::class, 'update'])->whereUuid('entry')->name('entries.update');
+        Route::delete('entries/{entry}', [JournalEntryController::class, 'destroy'])->whereUuid('entry')->name('entries.destroy');
+        Route::post('entries/{entry}/post', [JournalEntryController::class, 'post'])->whereUuid('entry')->name('entries.post');
+        Route::post('entries/{entry}/reverse', [JournalEntryController::class, 'reverse'])->whereUuid('entry')->name('entries.reverse');
+
+        Route::get('accounts', [ChartController::class, 'index'])->name('accounts.index');
+        Route::post('accounts', [ChartController::class, 'store'])->name('accounts.store');
+        Route::put('accounts/{account}', [ChartController::class, 'update'])->whereUuid('account')->name('accounts.update');
+        Route::post('mappings', [ChartController::class, 'mapping'])->name('mappings.update');
+
+        Route::get('reports', [ReportController::class, 'index'])->name('reports');
+
+        Route::get('reconciliations', [ReconciliationController::class, 'index'])->name('reconciliations.index');
+        Route::post('reconciliations', [ReconciliationController::class, 'store'])->name('reconciliations.store');
+        Route::post('reconciliations/{reconciliation}/lines', [ReconciliationController::class, 'toggle'])->whereUuid('reconciliation')->name('reconciliations.lines');
+        Route::post('reconciliations/{reconciliation}/complete', [ReconciliationController::class, 'complete'])->whereUuid('reconciliation')->name('reconciliations.complete');
     });
 
     // Tiers

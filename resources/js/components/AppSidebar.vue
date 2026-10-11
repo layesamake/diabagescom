@@ -2,6 +2,7 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Boxes,
+    BookOpen,
     Building2,
     FileText,
     Layers,
@@ -29,6 +30,7 @@ import {
 import { t } from '@/i18n';
 import { useAppContext } from '@/composables/useAppContext';
 import { dashboard } from '@/routes';
+import { index as accountingIndex } from '@/routes/accounting';
 import { index as cashIndex } from '@/routes/cash';
 import { index as customersIndex } from '@/routes/customers';
 import { create as posCreate } from '@/routes/pos';
@@ -94,6 +96,18 @@ const mainNavItems = computed<NavItem[]>(() => [
                   title: t('parties.suppliers'),
                   href: suppliersIndex(),
                   icon: Truck,
+              },
+          ]
+        : []),
+    // Comptabilité : formule « Compta » et permission (le serveur revérifie les deux).
+    ...(can('accounting.view') &&
+    (page.props.subscription as { features?: { accounting?: boolean } } | null)
+        ?.features?.accounting
+        ? [
+              {
+                  title: t('accounting.nav'),
+                  href: accountingIndex(),
+                  icon: BookOpen,
               },
           ]
         : []),
