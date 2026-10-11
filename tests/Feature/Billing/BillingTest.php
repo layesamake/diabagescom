@@ -113,6 +113,41 @@ class BillingTest extends TestCase
         $this->assertSame(1, AuditEvent::query()->where('action', 'subscription.paid')->count());
     }
 
+    public function test_a_webhook_whose_processing_failed_is_applied_when_the_provider_retries(): void
+    {
+        $this->freezeTime();
+        $setup = $this->createTenantWithMember(plan: 'business');
+        $invoice = $this->invoiceFor($setup);
+        $payment = $this->sandboxPayment($setup, $invoice);
+
+        // Panne pendant le traitement de la première livraison.
+        $failOnce = true;
+        SaasInvoice::updating(function () use (&$failOnce): void {
+            if ($failOnce) {
+                $failOnce = false;
+                throw new \RuntimeException('Panne simulée');
+            }
+        });
+
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->webhook('evt_retry', 'payment.succeeded', $payment->external_reference, 25000);
+            $this->fail('The first delivery must fail.');
+        } catch (\RuntimeException) {
+        }
+
+        $this->assertSame(SaasInvoice::OPEN, $invoice->refresh()->status);
+        $this->assertSame(0, PaymentProviderEvent::query()->where('external_event_id', 'evt_retry')->count(), 'Nothing kept from the failed attempt.');
+
+        // Le prestataire renvoie le même événement : il est appliqué, une seule fois.
+        $this->webhook('evt_retry', 'payment.succeeded', $payment->external_reference, 25000)->assertOk()->assertJson(['status' => 'processed']);
+        $this->assertSame(SaasInvoice::PAID, $invoice->refresh()->status);
+        $this->assertSame(Subscription::ACTIVE, $this->subscriptionOf($setup)->status);
+
+        $this->webhook('evt_retry', 'payment.succeeded', $payment->external_reference, 25000)->assertOk()->assertJson(['status' => 'duplicate']);
+    }
+
     public function test_invalid_signatures_and_wrong_amounts_never_change_the_subscription(): void
     {
         $setup = $this->createTenantWithMember(plan: 'business');

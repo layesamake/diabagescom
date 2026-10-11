@@ -200,22 +200,42 @@ final class SaasBilling
             return [200, 'duplicate']; // rejeu : déjà traité, rien n'est refait
         }
 
-        try {
-            // Point de sauvegarde : un doublon concurrent n'annule pas une transaction englobante.
-            /** @var PaymentProviderEvent $record */
-            $record = DB::transaction(fn () => PaymentProviderEvent::query()->create([
-                'provider' => $provider,
-                'external_event_id' => $event->eventId,
-                'event_type' => $event->type,
-                'signature_valid' => true,
-                'payload' => $event->payload,
-                'status' => 'received',
-            ]));
-        } catch (UniqueConstraintViolationException) {
-            return [200, 'duplicate'];
-        }
+        // L'événement est noté dans la même transaction que son effet : si le traitement
+        // échoue, rien n'est conservé et le renvoi du prestataire sera traité (pas
+        // écarté comme doublon d'un événement jamais appliqué).
+        $outcome = DB::transaction(function () use ($provider, $event): ?array {
+            try {
+                // Point de sauvegarde : un doublon concurrent n'annule pas la transaction englobante.
+                /** @var PaymentProviderEvent $record */
+                $record = DB::transaction(fn () => PaymentProviderEvent::query()->create([
+                    'provider' => $provider,
+                    'external_event_id' => $event->eventId,
+                    'event_type' => $event->type,
+                    'signature_valid' => true,
+                    'payload' => $event->payload,
+                    'status' => 'received',
+                ]));
+            } catch (UniqueConstraintViolationException) {
+                return null;
+            }
 
-        [$status, $error, $paymentId] = DB::transaction(function () use ($provider, $event): array {
+            [$status, $error, $paymentId] = $this->applyEvent($provider, $event);
+            $record->update(['status' => $status, 'error' => $error, 'payment_id' => $paymentId, 'processed_at' => now()]);
+
+            return [200, $status];
+        });
+
+        return $outcome ?? [200, 'duplicate'];
+    }
+
+    /**
+     * Effet d'un événement authentifié (dans la transaction de handleWebhook).
+     *
+     * @return array{0: string, 1: string|null, 2: string|null}
+     */
+    private function applyEvent(string $provider, WebhookEvent $event): array
+    {
+        return DB::transaction(function () use ($provider, $event): array {
             /** @var SaasPayment|null $payment */
             $payment = SaasPayment::query()->withoutGlobalScope(TenantScope::class)
                 ->where('provider', $provider)->where('external_reference', $event->reference)->lockForUpdate()->first();
@@ -246,10 +266,6 @@ final class SaasBilling
 
             return ['processed', null, $payment->id];
         });
-
-        $record->update(['status' => $status, 'error' => $error, 'payment_id' => $paymentId, 'processed_at' => now()]);
-
-        return [200, $status];
     }
 
     /**
