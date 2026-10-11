@@ -16,6 +16,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import ShareDocumentDialog from '@/components/ShareDocumentDialog.vue';
 import { t } from '@/i18n';
 import { formatDate } from '@/lib/dates';
 import { formatXof, parseAmount, parseQuantity } from '@/lib/money';
@@ -79,6 +80,7 @@ const props = defineProps<{
         amount_credited: number;
         balance: number;
         author: string;
+        contact: { phone: string | null; email: string | null };
         created_at: string | null;
         source: { id: string; type: DocType; number: string | null } | null;
         derived: {
@@ -112,6 +114,7 @@ const props = defineProps<{
         refund: boolean;
         credit: boolean;
         negative_stock: boolean;
+        share: boolean;
     };
 }>();
 
@@ -329,6 +332,15 @@ const selectClass =
                     ><Printer class="size-4" />{{ t('sales.receipt') }}</a
                 ></Button
             >
+            <ShareDocumentDialog
+                v-if="can.share && doc.number"
+                :document-id="doc.id"
+                :number="doc.number"
+                :type-label="t(`sales.types.${doc.type}`)"
+                :total="doc.total"
+                :receipt="isInvoiceLike"
+                :contact="doc.contact"
+            />
             <Button as-child variant="outline" class="h-11"
                 ><Link :href="posCreate()"
                     ><ShoppingCart class="size-4" />{{
@@ -559,6 +571,15 @@ const selectClass =
                     ><FileDown class="size-4" />{{ t('sales.pdf') }}</a
                 ></Button
             >
+            <ShareDocumentDialog
+                v-if="can.share && doc.number && !fromPos"
+                :document-id="doc.id"
+                :number="doc.number"
+                :type-label="t(`sales.types.${doc.type}`)"
+                :total="doc.total"
+                :receipt="isInvoiceLike"
+                :contact="doc.contact"
+            />
             <Button
                 v-if="isInvoiceLike && doc.number && !fromPos"
                 as-child

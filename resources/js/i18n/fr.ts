@@ -818,6 +818,31 @@ export const fr = {
         cheque: 'Chèque',
     },
     sales: {
+        share: {
+            button: 'Partager',
+            title: 'Partager {number}',
+            description:
+                'Envoyez le document à votre client. Il l’ouvre sans compte, grâce à un lien valable {days} jours.',
+            format: 'Document à envoyer',
+            format_a4: 'Document A4',
+            format_receipt: 'Ticket',
+            whatsapp_title: 'Par WhatsApp',
+            phone: 'Numéro WhatsApp du client',
+            phone_hint:
+                'Laissez vide pour choisir le contact dans WhatsApp. Ex. : 77 123 45 67',
+            whatsapp_send: 'Ouvrir WhatsApp',
+            whatsapp_message:
+                'Bonjour, voici votre {type} n° {number} de {company} ({total}) : {url}',
+            email_title: 'Par email',
+            email: 'Adresse email du client',
+            message: 'Message (facultatif)',
+            email_send: 'Envoyer l’email',
+            email_sent: 'Email en cours d’envoi à {email}.',
+            link_title: 'Copier le lien',
+            link_copy: 'Copier le lien',
+            link_copied: 'Lien copié. Vous pouvez le coller où vous voulez.',
+            failed: 'Le partage n’a pas abouti. Réessayez.',
+        },
         nav: 'Ventes',
         title: 'Ventes',
         description: 'Devis, commandes, factures et avoirs.',

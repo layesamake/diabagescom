@@ -6,6 +6,7 @@ use App\Domain\Inventory\Quantity;
 use App\Domain\Inventory\StockAccess;
 use App\Domain\Sales\CreditNoteService;
 use App\Domain\Sales\PaymentService;
+use App\Domain\Sales\SalesDocumentPdf;
 use App\Domain\Sales\SalesDocumentService;
 use App\Domain\Tenancy\TenantContext;
 use App\Http\Controllers\Controller;
@@ -15,7 +16,6 @@ use App\Models\Payment;
 use App\Models\SalesDocument;
 use App\Models\SalesDocumentLine;
 use App\Models\User;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -134,7 +134,7 @@ class SalesDocumentController extends Controller
         Gate::authorize('sale.view');
         $this->authorizeWarehouse($document, $access);
 
-        $document->load(['lines.product.unit', 'warehouse:id,code,name', 'customer:id,code,name,phone', 'source:id,type,number', 'author:id,name',
+        $document->load(['lines.product.unit', 'warehouse:id,code,name', 'customer:id,code,name,phone,email', 'source:id,type,number', 'author:id,name',
             'payments' => fn ($q) => $q->with('author:id,name')->orderBy('created_at'),
             'derived' => fn ($q) => $q->select(['id', 'type', 'number', 'status', 'total', 'source_document_id'])->orderBy('created_at')]);
 
@@ -160,6 +160,8 @@ class SalesDocumentController extends Controller
                 'amount_credited' => $document->amount_credited,
                 'balance' => $document->balanceDue(),
                 'author' => $document->author->name,
+                // Coordonnées du client pour proposer le partage (WhatsApp, email).
+                'contact' => ['phone' => $document->customer?->phone, 'email' => $document->customer?->email],
                 'source' => $document->source?->only(['id', 'type', 'number']),
                 'derived' => $document->derived->map->only(['id', 'type', 'number', 'status', 'total'])->values(),
                 'lines' => $document->lines->map(function (SalesDocumentLine $l) use ($credited, $showCost) {
@@ -206,6 +208,7 @@ class SalesDocumentController extends Controller
                 'refund' => $isInvoice && $document->balanceDue() < 0 && Gate::allows('cash.refund'),
                 'credit' => $isInvoice && Gate::allows('sale.cancel'),
                 'negative_stock' => Gate::allows('sale.sell_negative_stock'),
+                'share' => $document->number !== null && ! $document->isDraft() && $document->status !== SalesDocument::CANCELLED,
             ],
         ]);
     }
@@ -312,35 +315,16 @@ class SalesDocumentController extends Controller
     /**
      * PDF A4 (devis, commande, facture, avoir) ou ticket 80 mm (?format=receipt).
      */
-    public function pdf(Request $request, SalesDocument $document, StockAccess $access, TenantContext $context): HttpResponse
+    public function pdf(Request $request, SalesDocument $document, StockAccess $access, TenantContext $context, SalesDocumentPdf $renderer): HttpResponse
     {
         Gate::authorize('sale.view');
         $this->authorizeWarehouse($document, $access);
         // Seuls les documents numérotés s'impriment : un brouillon n'a pas de valeur.
         abort_if($document->isDraft() || $document->number === null, 404);
 
-        $document->load(['lines', 'warehouse', 'payments', 'source:id,number', 'author:id,name']);
-        $tenant = $context->tenant();
-        $receipt = $request->query('format') === 'receipt';
-        $taxes = $document->lines->groupBy('tax_rate_basis_points')
-            ->map(fn ($lines, $rate) => ['rate' => (int) $rate, 'base' => $lines->sum('line_excl_tax'), 'tax' => $lines->sum('line_tax')])
-            ->sortKeys()->values();
+        $format = $request->query('format') === SalesDocumentPdf::FORMAT_RECEIPT ? SalesDocumentPdf::FORMAT_RECEIPT : SalesDocumentPdf::FORMAT_A4;
 
-        $pdf = Pdf::loadView($receipt ? 'pdf.receipt' : 'pdf.sales-document', [
-            'document' => $document,
-            'tenant' => $tenant,
-            'taxes' => $taxes,
-            'logo' => public_path('brand/logo-diaba-gescom-horizontal.png'),
-        ]);
-
-        // Ticket : 80 mm de large, hauteur selon le nombre de lignes.
-        $receipt
-            ? $pdf->setPaper([0, 0, 226.77, 340 + 28 * $document->lines->count() + 20 * $document->payments->count()])
-            : $pdf->setPaper('a4');
-
-        $name = ($document->number ?? 'brouillon').($receipt ? '-recu' : '').'.pdf';
-
-        return $pdf->stream($name);
+        return $renderer->render($document, $context->tenant(), $format)->stream($renderer->filename($document, $format));
     }
 
     /**

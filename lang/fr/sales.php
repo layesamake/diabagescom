@@ -84,4 +84,12 @@ return [
         'provisional_rules' => 'Document généré par DIABA GESCOM.',
         'seller' => 'Vendeur',
     ],
+    'share' => [
+        'mail_subject' => ':type :number — :company',
+        'mail_intro' => 'Bonjour,',
+        'mail_body' => 'Veuillez trouver ci-joint votre :type n° :number d’un montant de :total, émis(e) par :company.',
+        'mail_button' => 'Voir le document',
+        'mail_link_note' => 'Ce lien reste valable 30 jours.',
+        'mail_signature' => 'Cordialement,',
+    ],
 ];
