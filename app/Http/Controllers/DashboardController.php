@@ -59,6 +59,19 @@ class DashboardController extends Controller
                 ->count();
         }
 
+        if (Gate::allows('organization.manage')) {
+            $alerts['saas_invoice'] = DB::table('saas_invoices')->where('tenant_id', $context->tenantId())
+                ->where('status', 'open')->value('number');
+        }
+
+        if (Gate::allows('sale.view')) {
+            $alerts['sync_issues'] = DB::table('sync_commands')->where('tenant_id', $context->tenantId())
+                ->where('created_by', auth()->id())
+                ->whereIn('status', ['rejected', 'conflict', 'requires_review'])
+                ->where('created_at', '>=', now()->subDays(7))
+                ->count();
+        }
+
         return Inertia::render('Dashboard', [
             'alerts' => $alerts,
             'shortcuts' => [

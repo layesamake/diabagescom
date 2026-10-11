@@ -6,7 +6,9 @@ use App\Domain\Audit\AuditLog;
 use App\Domain\Tenancy\TenantContext;
 use App\Domain\Tenancy\TenantScope;
 use App\Models\Plan;
+use App\Models\SaasInvoice;
 use App\Models\Subscription;
+use App\Models\SubscriptionAddon;
 use App\Models\Tenant;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -166,6 +168,64 @@ final class SubscriptionLifecycle
             $s->current_period_end = $billingCycle === 'yearly' ? $start->addYear() : $start->addMonth();
             $s->read_only_ends_at = null;
         });
+    }
+
+    /**
+     * Facture SaaS payée et vérifiée (webhook signé ou virement validé) :
+     * formule et cycle de la facture, période prolongée (un renouvellement anticipé
+     * ne fait perdre aucun jour), options achetées actives sur la période.
+     * Appelée uniquement par App\Domain\Billing\SaasBilling, dans sa transaction.
+     *
+     * @return array{start: CarbonImmutable, end: CarbonImmutable}
+     */
+    public function applyPaidInvoice(SaasInvoice $invoice, ?User $actor): array
+    {
+        /** @var Subscription $locked */
+        $locked = Subscription::query()->withoutGlobalScope(TenantScope::class)->with('plan')
+            ->where('tenant_id', $invoice->tenant_id)->lockForUpdate()->firstOrFail();
+
+        $before = $this->snapshot($locked);
+        $now = CarbonImmutable::now();
+        $start = $locked->status === Subscription::ACTIVE && $locked->current_period_end?->isAfter($now)
+            ? $locked->current_period_end
+            : $now;
+        $end = $invoice->billing_cycle === 'yearly' ? $start->addYear() : $start->addMonth();
+
+        $locked->plan_id = $invoice->plan_id;
+        $locked->status = Subscription::ACTIVE;
+        $locked->billing_cycle = $invoice->billing_cycle;
+        $locked->current_period_start = $start;
+        $locked->current_period_end = $end;
+        $locked->read_only_ends_at = null;
+        $locked->status_changed_at = $now;
+        $locked->save();
+        $locked->load('plan');
+
+        foreach ($invoice->lines as $line) {
+            if (in_array($line['code'], [SubscriptionAddon::EXTRA_USER, SubscriptionAddon::EXTRA_WAREHOUSE], true)) {
+                $addon = new SubscriptionAddon;
+                $addon->forceFill([
+                    'tenant_id' => $invoice->tenant_id,
+                    'subscription_id' => $locked->id,
+                    'addon_code' => $line['code'],
+                    'quantity' => $line['quantity'],
+                    'starts_at' => $start,
+                    'ends_at' => $end,
+                ]);
+                $this->context->runAs($this->tenantOf($locked), fn () => $addon->save());
+            }
+        }
+
+        $this->audit->record('subscription.paid', $locked,
+            before: $before,
+            after: $this->snapshot($locked),
+            metadata: ['invoice' => $invoice->number, 'amount' => $invoice->total],
+            actor: $actor,
+            tenant: $this->tenantOf($locked));
+
+        $this->access->forget($this->tenantOf($locked));
+
+        return ['start' => $start, 'end' => $end];
     }
 
     public function suspend(Subscription $subscription, string $reason, User $actor): Subscription

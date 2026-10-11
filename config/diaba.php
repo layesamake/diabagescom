@@ -28,6 +28,15 @@ return [
     ],
 
     /*
+     * Options à la carte (docs/01). Prix en XOF entiers par mois / par an.
+     * À FIXER PAR LE PROPRIÉTAIRE : tant qu'un prix est null, l'option n'est pas proposée.
+     */
+    'addons' => [
+        'extra_user' => ['label' => 'Utilisateur supplémentaire', 'price_monthly' => null, 'price_yearly' => null],
+        'extra_warehouse' => ['label' => 'Dépôt supplémentaire', 'price_monthly' => null, 'price_yearly' => null],
+    ],
+
+    /*
      * Formules créées si absentes (diaba:sync-plans). Une fois en base, elles
      * sont gérées par le super-administrateur et jamais écrasées ici.
      *

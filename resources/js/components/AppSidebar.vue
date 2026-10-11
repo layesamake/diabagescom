@@ -4,10 +4,12 @@ import {
     Boxes,
     BookOpen,
     Building2,
+    ChartColumn,
     FileText,
     Layers,
     LayoutGrid,
     Package,
+    Receipt,
     ShoppingBasket,
     ShoppingCart,
     Truck,
@@ -35,11 +37,13 @@ import { index as cashIndex } from '@/routes/cash';
 import { index as customersIndex } from '@/routes/customers';
 import { create as posCreate } from '@/routes/pos';
 import { index as productsIndex } from '@/routes/products';
+import { index as reportsIndex } from '@/routes/reports';
 import { index as purchaseInvoicesIndex } from '@/routes/purchases/invoices';
 import { index as purchaseOrdersIndex } from '@/routes/purchases/orders';
 import { index as salesIndex } from '@/routes/sales';
 import { index as stockIndex } from '@/routes/stock';
 import { index as suppliersIndex } from '@/routes/suppliers';
+import { index as platformBilling } from '@/routes/platform/billing';
 import { index as platformPlans } from '@/routes/platform/plans';
 import { index as platformTenants } from '@/routes/platform/tenants';
 import type { NavItem } from '@/types';
@@ -99,6 +103,9 @@ const mainNavItems = computed<NavItem[]>(() => [
               },
           ]
         : []),
+    ...(can('report.view_own') || can('report.view_all')
+        ? [{ title: t('reports.nav'), href: reportsIndex(), icon: ChartColumn }]
+        : []),
     // Comptabilité : formule « Compta » et permission (le serveur revérifie les deux).
     ...(can('accounting.view') &&
     (page.props.subscription as { features?: { accounting?: boolean } } | null)
@@ -123,6 +130,11 @@ const mainNavItems = computed<NavItem[]>(() => [
                   title: t('platform.plans_title'),
                   href: platformPlans(),
                   icon: Layers,
+              },
+              {
+                  title: t('billing.console_title'),
+                  href: platformBilling(),
+                  icon: Receipt,
               },
           ]
         : []),

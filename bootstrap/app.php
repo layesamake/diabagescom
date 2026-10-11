@@ -27,6 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AssignRequestId::class);
 
+        // Webhooks des prestataires : authentifiés par signature, pas par session/CSRF.
+        $middleware->validateCsrfTokens(except: ['webhooks/*']);
+
         $middleware->alias([
             'tenant' => ResolveTenantContext::class,
             'mfa.privileged' => RequireMultiFactorForPrivilegedUsers::class,

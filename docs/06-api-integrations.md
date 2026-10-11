@@ -70,3 +70,18 @@ Prévoir `invoice.validated`, `payment.received`, `stock.low`, `subscription.cha
 ## Documentation générée
 
 Produire une spécification OpenAPI à partir des routes/DTO validés. Chaque endpoint de mutation doit documenter permissions, idempotence, effets sur stock/comptabilité, codes erreurs et exemples.
+
+## Mise en œuvre de la facturation SaaS (EPIC-08, 2026-10-17)
+
+> **Aucun paiement réel n'est activé.** Seuls le bac à sable (simulation signée) et le virement validé manuellement sont disponibles. Wave, Orange Money et la carte nécessitent un contrat, des clés officielles (variables d'environnement uniquement, jamais dans le dépôt) et la **validation explicite du propriétaire** avant activation (`config/billing.php`).
+
+- **Factures d'abonnement** (`saas_invoices`, numéro global `DG-AAAA-NNNNNN`) : formule, cycle mensuel ou annuel, options à la carte (`extra_user`, `extra_warehouse`) au tarif fixé dans la console (formules) et dans `config/diaba.php` (options). Pas de tarif = pas de facture (« Tarif communiqué prochainement »). Une seule facture ouverte par entreprise (index unique partiel).
+- **Abstraction `BillingProvider`** : `checkout()` (redirection vers le prestataire) et `parseWebhook()` (vérification cryptographique). Le prestataire de démonstration `sandbox` reproduit le contrat d'un vrai prestataire : page de paiement, webhook `POST /webhooks/billing/{provider}` signé HMAC-SHA256 horodaté (`X-Diaba-Signature: t=…,v1=…`, tolérance 5 min), sans session ni CSRF.
+- **L'état de l'abonnement ne dépend que d'un paiement vérifié** : webhook signé dont le montant correspond, ou virement validé par le super-administrateur avec la référence du justificatif. Le retour du navigateur ne change rien. Le paiement prolonge la période depuis la fin de la période en cours (un renouvellement anticipé ne fait perdre aucun jour), applique la formule et les options de la facture, et lève la lecture seule.
+- **Idempotence et double paiement** : événements dédupliqués par `(prestataire, identifiant)` ; au plus un paiement réussi par facture (index unique partiel) ; un second paiement d'une facture réglée passe « à revoir » (remboursement) sans prolonger ; montant divergent → « à revoir ». Signatures invalides tracées (`payment_provider_events`, charge utile expurgée).
+- **Virement** : référence unique `VIR-<facture>-XXXX` à porter sur le virement ; validation dans Console › Facturation SaaS (`platform.billing.manage`).
+- **Relances et renouvellements** (`diaba:billing:remind`, chaque jour à 8 h, idempotent) : facture de renouvellement émise 7 jours avant la fin de période ; rappels par e-mail aux administrateurs à J-3, à l'échéance et à J+3, une seule fois par étape.
+- **Rapprochement** : la console liste les virements à valider, les paiements à revoir et les webhooks rejetés, ignorés (référence inconnue) ou en erreur.
+- **Accès support** (`platform.support_access`) : ponctuel (15 min à 4 h), motivé, révocable, en lecture seule (abonnement, membres, dépôts, dernières actions, synchronisations à revoir) ; ouverture, consultation et fermeture visibles dans le journal d'audit de l'entreprise.
+- **Rapports** (`/reports`) : chiffre d'affaires TTC net des avoirs, nombre de ventes, panier moyen, par jour, dépôt, vendeur et moyen de paiement, meilleurs articles ; marge, coûts et valeur du stock avec `report.margin_view` ; créances et dettes avec `report.view_all` ; `report.view_own` limite aux ventes de l'utilisateur ; export CSV journalisé (`report.export`).
+- **Alertes d'accueil** : facture d'abonnement à régler, ventes hors connexion à revoir (en plus du stock bas, des factures échues, des caisses à fermer et des transferts).

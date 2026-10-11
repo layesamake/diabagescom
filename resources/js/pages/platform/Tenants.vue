@@ -10,6 +10,7 @@ import { t } from '@/i18n';
 import { formatDate } from '@/lib/dates';
 import { index as tenantsIndex } from '@/routes/platform/tenants';
 import { update as updateSubscription } from '@/routes/platform/subscriptions';
+import { grant as grantSupport } from '@/routes/platform/support';
 import type { SubscriptionSummary } from '@/types';
 
 type TenantRow = {
@@ -246,6 +247,47 @@ function submitSearch(): void {
                     >
                         {{ t('platform.apply') }}
                     </Button>
+                </Form>
+
+                <Form
+                    v-bind="grantSupport.form(tenant.id)"
+                    :options="{ preserveScroll: true }"
+                    v-slot="{ errors, processing }"
+                    class="grid gap-3 border-t pt-3 sm:grid-cols-[1fr_8rem_auto] sm:items-end"
+                >
+                    <div class="grid gap-1">
+                        <Label :for="`support-reason-${tenant.id}`">{{
+                            t('billing.support_reason')
+                        }}</Label>
+                        <Input
+                            :id="`support-reason-${tenant.id}`"
+                            name="reason"
+                            maxlength="500"
+                            class="h-11"
+                        />
+                        <InputError :message="errors.reason" />
+                    </div>
+                    <div class="grid gap-1">
+                        <Label :for="`support-minutes-${tenant.id}`">{{
+                            t('billing.support_minutes')
+                        }}</Label>
+                        <Input
+                            :id="`support-minutes-${tenant.id}`"
+                            name="minutes"
+                            type="number"
+                            min="15"
+                            max="240"
+                            value="30"
+                            class="h-11"
+                        />
+                    </div>
+                    <Button
+                        type="submit"
+                        variant="outline"
+                        class="h-11"
+                        :disabled="processing"
+                        >{{ t('billing.support_grant') }}</Button
+                    >
                 </Form>
             </li>
         </ul>

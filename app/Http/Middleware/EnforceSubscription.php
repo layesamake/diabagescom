@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 class EnforceSubscription
 {
     /** Routes utilisables quel que soit l'état (consulter/régulariser l'abonnement, changer d'entreprise). */
-    private const array ALWAYS_ALLOWED = ['subscription.show', 'context.tenant', 'context.warehouse'];
+    private const array ALWAYS_ALLOWED = ['subscription.show', 'context.tenant', 'context.warehouse', 'billing.*'];
 
     public function __construct(
         private readonly TenantContext $context,

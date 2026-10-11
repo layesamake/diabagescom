@@ -6,6 +6,9 @@ use App\Http\Controllers\Accounting\JournalEntryController;
 use App\Http\Controllers\Accounting\ReconciliationController;
 use App\Http\Controllers\Accounting\ReportController;
 use App\Http\Controllers\AuditController;
+use App\Http\Controllers\Billing\BillingController;
+use App\Http\Controllers\Billing\SandboxCheckoutController;
+use App\Http\Controllers\Billing\WebhookController;
 use App\Http\Controllers\Cash\CashController;
 use App\Http\Controllers\Catalog\PartyController;
 use App\Http\Controllers\Catalog\ProductController;
@@ -17,13 +20,16 @@ use App\Http\Controllers\Inventory\CountController;
 use App\Http\Controllers\Inventory\StockController;
 use App\Http\Controllers\Inventory\TransferController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\Platform\BillingConsoleController;
 use App\Http\Controllers\Platform\PlanController;
+use App\Http\Controllers\Platform\SupportController;
 use App\Http\Controllers\Platform\TenantController;
 use App\Http\Controllers\Purchases\PurchaseOrderController;
 use App\Http\Controllers\Purchases\ReceiptController;
 use App\Http\Controllers\Purchases\SupplierInvoiceController;
 use App\Http\Controllers\Sales\PosController;
 use App\Http\Controllers\Sales\SalesDocumentController;
+use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\WarehouseController;
@@ -43,11 +49,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // puis état de l'abonnement (lecture seule / suspension).
 Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::get('reports', [SalesReportController::class, 'index'])->name('reports.index');
 
     Route::post('context/tenant', [ContextController::class, 'switchTenant'])->name('context.tenant');
     Route::post('context/warehouse', [ContextController::class, 'switchWarehouse'])->name('context.warehouse');
 
     Route::get('settings/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
+    // Facturation de l'abonnement (accessible même suspendu, pour régulariser).
+    Route::post('billing/invoices', [BillingController::class, 'store'])->middleware('throttle:10,1')->name('billing.invoices.store');
+    Route::post('billing/invoices/{invoice}/void', [BillingController::class, 'void'])->whereUuid('invoice')->name('billing.invoices.void');
+    Route::post('billing/invoices/{invoice}/pay', [BillingController::class, 'pay'])->whereUuid('invoice')->middleware('throttle:10,1')->name('billing.invoices.pay');
     Route::get('settings/warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
     Route::post('settings/warehouses', [WarehouseController::class, 'store'])->name('warehouses.store');
     Route::get('settings/audit', [AuditController::class, 'index'])->name('audit.index');
@@ -214,6 +225,24 @@ Route::middleware(['auth', 'verified', 'mfa.privileged'])->prefix('platform')->n
         ->name('subscriptions.update');
     Route::get('plans', [PlanController::class, 'index'])->name('plans.index');
     Route::put('plans/{plan}', [PlanController::class, 'update'])->name('plans.update');
+    Route::get('billing', [BillingConsoleController::class, 'index'])->name('billing.index');
+    Route::post('billing/payments/{payment}/confirm', [BillingConsoleController::class, 'confirmTransfer'])->whereUuid('payment')->name('billing.payments.confirm');
+    Route::post('billing/invoices/{invoice}/void', [BillingConsoleController::class, 'voidInvoice'])->whereUuid('invoice')->name('billing.invoices.void');
+    Route::post('tenants/{tenant}/support', [SupportController::class, 'grant'])->whereUuid('tenant')->middleware('throttle:10,1')->name('support.grant');
+    Route::get('tenants/{tenant}/support', [SupportController::class, 'show'])->whereUuid('tenant')->name('support.show');
+    Route::post('tenants/{tenant}/support/revoke', [SupportController::class, 'revoke'])->whereUuid('tenant')->name('support.revoke');
 });
+
+// Prestataire de paiement de démonstration (désactivé en production).
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('billing/sandbox/{reference}', [SandboxCheckoutController::class, 'show'])->name('billing.sandbox.show');
+    Route::post('billing/sandbox/{reference}', [SandboxCheckoutController::class, 'decide'])->middleware('throttle:20,1')->name('billing.sandbox.decide');
+});
+
+// Webhooks des prestataires : sans session, authentifiés par signature.
+Route::post('webhooks/billing/{provider}', WebhookController::class)
+    ->where('provider', '[a-z_]+')
+    ->middleware('throttle:120,1')
+    ->name('webhooks.billing');
 
 require __DIR__.'/settings.php';

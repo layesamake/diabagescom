@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { Check } from '@lucide/vue';
+import BillingPanel from '@/components/BillingPanel.vue';
 import Heading from '@/components/Heading.vue';
 import { t } from '@/i18n';
 import { formatDate } from '@/lib/dates';
@@ -22,6 +23,16 @@ defineProps<{
     subscription: SubscriptionSummary;
     limits: { warehouses: Limit; users: Limit };
     plans: PlanOption[];
+    addons: {
+        code: string;
+        label: string;
+        price_monthly: number | null;
+        price_yearly: number | null;
+    }[];
+    invoices: InstanceType<typeof BillingPanel>['$props']['invoices'];
+    providers: string[];
+    transferInstructions: string | null;
+    can: { manage: boolean };
 }>();
 
 const limitLabel = (limit: number | null): string =>
@@ -102,7 +113,17 @@ const limitLabel = (limit: number | null): string =>
             </ul>
         </section>
 
+        <BillingPanel
+            v-if="can.manage"
+            :plans="plans"
+            :current-plan="subscription.plan?.code ?? null"
+            :addons="addons"
+            :invoices="invoices"
+            :providers="providers"
+            :transfer-instructions="transferInstructions"
+        />
         <p
+            v-else
             class="rounded-lg border border-dashed p-4 text-sm text-muted-foreground"
         >
             {{ t('subscription.regularize') }}

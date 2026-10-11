@@ -18,6 +18,8 @@ import { create as posCreate } from '@/routes/pos';
 import { index as purchaseOrdersIndex } from '@/routes/purchases/orders';
 import { create as salesCreate, index as salesIndex } from '@/routes/sales';
 import { index as stockIndex } from '@/routes/stock';
+import { show as subscriptionShow } from '@/routes/subscription';
+import { index as syncIndex } from '@/routes/sync';
 import { index as transfersIndex } from '@/routes/transfers';
 
 defineOptions({
@@ -37,6 +39,8 @@ const props = defineProps<{
         transfers_to_receive?: number;
         overdue_invoices?: number;
         cash_to_close?: number;
+        saas_invoice?: string | null;
+        sync_issues?: number;
     };
     shortcuts: {
         sell: boolean;
@@ -50,7 +54,7 @@ const page = usePage();
 const { context } = useAppContext();
 const hasAlertSection = computed(() => Object.keys(props.alerts).length > 0);
 const hasAlert = computed(() =>
-    Object.values(props.alerts).some((count) => (count ?? 0) > 0),
+    Object.values(props.alerts).some((value) => Boolean(value)),
 );
 const tile =
     'flex min-h-20 flex-col items-center justify-center gap-2 rounded-lg border p-4 text-center font-medium hover:bg-accent';
@@ -166,6 +170,38 @@ const tile =
                         {{
                             t('dashboard.cash_to_close', {
                                 count: alerts.cash_to_close,
+                            })
+                        }}
+                    </Link>
+                </li>
+                <li v-if="alerts.saas_invoice">
+                    <Link
+                        :href="subscriptionShow()"
+                        class="flex min-h-16 items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-950 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50"
+                    >
+                        <FileWarning
+                            class="size-5 shrink-0"
+                            aria-hidden="true"
+                        />
+                        {{
+                            t('dashboard.saas_invoice', {
+                                number: alerts.saas_invoice,
+                            })
+                        }}
+                    </Link>
+                </li>
+                <li v-if="alerts.sync_issues">
+                    <Link
+                        :href="syncIndex()"
+                        class="flex min-h-16 items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-950 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50"
+                    >
+                        <TriangleAlert
+                            class="size-5 shrink-0"
+                            aria-hidden="true"
+                        />
+                        {{
+                            t('dashboard.sync_issues', {
+                                count: alerts.sync_issues,
                             })
                         }}
                     </Link>

@@ -13,3 +13,9 @@ Schedule::command('diaba:accounting:post')
     ->everyMinute()
     ->withoutOverlapping()
     ->onOneServer();
+
+// Facturation SaaS : renouvellements et relances (une fois par jour).
+Schedule::command('diaba:billing:remind')
+    ->dailyAt('08:00')
+    ->withoutOverlapping()
+    ->onOneServer();
