@@ -48,7 +48,7 @@ final class TenantExporter
     /** Tables volontairement exclues (voir le commentaire de la classe). */
     public const array EXCLUDED = [
         'subscriptions', 'subscription_addons', 'saas_invoices', 'saas_payments', 'support_grants',
-        'offline_devices', 'sync_commands', 'catalog_imports', 'tenant_exports',
+        'offline_devices', 'sync_commands', 'catalog_imports', 'tenant_exports', 'tenant_restores',
     ];
 
     private const string DISK = 'local';
@@ -88,6 +88,21 @@ final class TenantExporter
                 $files["data/{$table}.jsonl"] = $file;
             }
 
+            // Permissions des rôles personnalisés (table sans tenant_id).
+            $file = "{$work}/role_permissions.jsonl";
+            $handle = fopen($file, 'w') ?: throw new RuntimeException('Écriture impossible : role_permissions');
+            $summary['role_permissions'] = 0;
+
+            foreach (DB::table('role_permissions as rp')->join('roles as r', 'r.id', '=', 'rp.role_id')->where('r.tenant_id', $tenant->id)
+                ->orderBy('rp.role_id')->orderBy('rp.permission_code')->select(['rp.role_id', 'rp.permission_code'])->cursor() as $row) {
+                fwrite($handle, json_encode(['role_id' => $row->role_id, 'permission_code' => $row->permission_code], JSON_THROW_ON_ERROR).'
+');
+                $summary['role_permissions']++;
+            }
+
+            fclose($handle);
+            $files['data/role_permissions.jsonl'] = $file;
+
             $members = "{$work}/members.json";
             file_put_contents($members, json_encode(DB::table('tenant_memberships as m')->join('users as u', 'u.id', '=', 'm.user_id')
                 ->where('m.tenant_id', $tenant->id)->orderBy('u.name')->get(['u.id', 'u.name', 'u.email'])->all(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -116,7 +131,10 @@ final class TenantExporter
                 $zip->addFile($path, $name);
             }
 
-            $zip->addFromString('manifest.json', (string) json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            $manifestJson = (string) json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $zip->addFromString('manifest.json', $manifestJson);
+            // Signature du serveur : seules ses propres archives, intactes, sont restaurables.
+            $zip->addFromString('manifest.sig', ArchiveSignature::sign($manifestJson));
             $zip->addFromString('LISEZ-MOI.txt', $this->readme($tenant));
 
             if (! $zip->close()) {

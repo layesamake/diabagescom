@@ -256,4 +256,37 @@
     select option:disabled {
         color: var(--muted-foreground);
     }
+
+    /* Barres de défilement fines et discrètes, aux couleurs du thème
+       (la barre native de Windows, grise avec flèches, jure en mode sombre). */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(
+                in oklab,
+                var(--muted-foreground) 45%,
+                transparent
+            )
+            transparent;
+    }
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        border-radius: 9999px;
+        background: color-mix(
+            in oklab,
+            var(--muted-foreground) 45%,
+            transparent
+        );
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--muted-foreground);
+    }
+    ::-webkit-scrollbar-button {
+        display: none;
+    }
 }

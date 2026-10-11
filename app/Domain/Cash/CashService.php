@@ -231,7 +231,7 @@ final class CashService
     {
         $byMethod = Payment::query()->where('cash_session_id', $session->id)
             ->selectRaw("method, SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END) AS total")
-            ->groupBy('method')->pluck('total', 'method')->map(fn ($v) => (int) $v)->all();
+            ->groupBy('method')->orderBy('method')->pluck('total', 'method')->map(fn ($v) => (int) $v)->all();
         $byType = CashMovement::query()->where('session_id', $session->id)
             ->selectRaw('type, SUM(amount) AS total')->groupBy('type')->pluck('total', 'type')->map(fn ($v) => (int) $v);
 

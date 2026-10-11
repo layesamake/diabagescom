@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router, usePoll } from '@inertiajs/vue3';
+import { Head, Link, router, usePoll } from '@inertiajs/vue3';
 import {
     CircleAlert,
     CircleCheck,
@@ -18,6 +18,7 @@ import {
     index as backupIndex,
     store as backupStore,
 } from '@/routes/backup';
+import { create as restoreCreate } from '@/routes/restore';
 
 type ExportRow = {
     id: string;
@@ -133,6 +134,11 @@ const badge: Record<ExportRow['status'], string> = {
             <p class="text-sm text-muted-foreground">
                 {{ t('backup.keep_note', { days: keepDays }) }}
             </p>
+            <Link
+                :href="restoreCreate()"
+                class="inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline"
+                >{{ t('restore.from_backup_page') }}</Link
+            >
         </section>
 
         <section class="space-y-3">

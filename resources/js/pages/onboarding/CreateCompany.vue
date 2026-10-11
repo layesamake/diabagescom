@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { t } from '@/i18n';
 import { store } from '@/routes/onboarding';
+import { create as restoreCreate } from '@/routes/restore';
 import type { PlanOption } from '@/types';
 
 defineOptions({
@@ -240,6 +241,11 @@ const selectClass =
             <p class="text-center text-sm text-muted-foreground">
                 {{ t('onboarding.mfa_notice') }}
             </p>
+            <Link
+                :href="restoreCreate()"
+                class="inline-flex min-h-11 items-center justify-center text-sm font-medium text-primary underline-offset-4 hover:underline"
+                >{{ t('restore.link') }}</Link
+            >
         </div>
     </Form>
 </template>

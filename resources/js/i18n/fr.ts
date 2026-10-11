@@ -127,6 +127,37 @@ export const fr = {
             separator: 'Ou continuer avec votre e-mail',
         },
     },
+    restore: {
+        page_title: 'Restaurer une sauvegarde',
+        title: 'Restaurer une sauvegarde',
+        description:
+            'Recréez une entreprise à partir d’un fichier de sauvegarde DIABA GESCOM. Vos données actuelles ne sont jamais modifiées.',
+        link: 'Vous avez une sauvegarde ? Restaurez-la',
+        from_backup_page:
+            'Restaurer une sauvegarde dans une nouvelle entreprise',
+        how_title: 'Comment ça marche ?',
+        how_new:
+            'Une nouvelle entreprise est créée avec toutes les données de la sauvegarde.',
+        how_safe:
+            'Rien n’est modifié ni supprimé dans vos entreprises existantes.',
+        how_members:
+            'Vous en devenez l’administrateur ; invitez ensuite vos collaborateurs.',
+        how_check:
+            'Seules les sauvegardes créées par DIABA GESCOM, intactes, sont acceptées.',
+        file: 'Fichier de sauvegarde (.zip, {max} Mo maximum)',
+        submit: 'Restaurer',
+        uploading: 'Envoi du fichier… {percent} %',
+        list_title: 'Vos restaurations',
+        status: {
+            pending: 'En cours…',
+            done: 'Terminée',
+            failed: 'Échec',
+        },
+        from: 'Sauvegarde de « {name} »',
+        rows: '{count} enregistrements restaurés',
+        open: 'Ouvrir l’entreprise',
+        back: 'Retour à la création d’entreprise',
+    },
     backup: {
         nav: 'Sauvegarde',
         page_title: 'Sauvegarde des données',
@@ -714,6 +745,7 @@ export const fr = {
             'backup.export_requested': 'Sauvegarde demandée',
             'backup.export_ready': 'Sauvegarde prête',
             'backup.export_downloaded': 'Sauvegarde téléchargée',
+            'backup.restored': 'Entreprise restaurée depuis une sauvegarde',
             'sales.document_shared': 'Document partagé',
             'tenant.created': 'Entreprise créée',
             'membership.created': 'Membre ajouté',

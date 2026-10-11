@@ -27,6 +27,7 @@ use App\Http\Controllers\Platform\TenantController;
 use App\Http\Controllers\Purchases\PurchaseOrderController;
 use App\Http\Controllers\Purchases\ReceiptController;
 use App\Http\Controllers\Purchases\SupplierInvoiceController;
+use App\Http\Controllers\RestoreController;
 use App\Http\Controllers\Sales\DocumentShareController;
 use App\Http\Controllers\Sales\PosController;
 use App\Http\Controllers\Sales\SalesDocumentController;
@@ -45,6 +46,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('onboarding', [OnboardingController::class, 'store'])
         ->middleware('throttle:5,1')
         ->name('onboarding.store');
+    // Restaurer une sauvegarde dans une nouvelle entreprise.
+    Route::get('onboarding/restore', [RestoreController::class, 'create'])->name('restore.create');
+    Route::post('onboarding/restore', [RestoreController::class, 'store'])
+        ->middleware('throttle:5,10')
+        ->name('restore.store');
 });
 
 // Espace entreprise : contexte tenant résolu côté serveur, MFA des administrateurs,
