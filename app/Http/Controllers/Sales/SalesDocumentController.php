@@ -295,7 +295,7 @@ class SalesDocumentController extends Controller
             'idempotency_key' => ['required', 'uuid'],
             'reason' => ['required', 'string', 'min:3', 'max:500'],
             'lines' => ['required', 'array', 'min:1', 'max:200'],
-            'lines.*.line_id' => ['required', 'uuid'],
+            'lines.*.line_id' => ['required', 'uuid', 'distinct'],
             'lines.*.quantity' => ['required', 'string', 'max:20'],
             'lines.*.restock' => ['boolean'],
         ], attributes: ['reason' => 'motif']);

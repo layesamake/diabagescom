@@ -27,7 +27,7 @@ final class PointOfSale
      */
     public function checkout(array $data, User $actor, string $idempotencyKey): SalesDocument
     {
-        $existing = SalesDocument::query()->where('idempotency_key', $idempotencyKey)->first();
+        $existing = $this->existing($idempotencyKey);
 
         if ($existing !== null) {
             return $existing;
@@ -62,7 +62,22 @@ final class PointOfSale
                 return $invoice->refresh();
             });
         } catch (UniqueConstraintViolationException $e) {
-            return SalesDocument::query()->where('idempotency_key', $idempotencyKey)->first() ?? throw $e;
+            return $this->existing($idempotencyKey) ?? throw $e;
         }
+    }
+
+    /**
+     * Vente comptoir déjà enregistrée avec cette clé ; une clé portée par un autre
+     * type de document (avoir, brouillon de bureau) est refusée.
+     */
+    private function existing(string $idempotencyKey): ?SalesDocument
+    {
+        $existing = SalesDocument::query()->where('idempotency_key', $idempotencyKey)->first();
+
+        if ($existing !== null && ($existing->type !== SalesDocument::INVOICE || $existing->channel !== 'pos')) {
+            throw new InvalidSalesOperation(__('sales.errors.idempotency_conflict'));
+        }
+
+        return $existing;
     }
 }

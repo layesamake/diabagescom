@@ -39,7 +39,7 @@ final class SupplierPaymentService
             throw new InvalidPurchaseOperation(__('purchases.errors.invalid_payment'));
         }
 
-        $existing = Payment::query()->where('idempotency_key', $idempotencyKey)->first();
+        $existing = $this->existing($idempotencyKey, $invoice);
 
         if ($existing !== null) {
             return $existing;
@@ -93,7 +93,21 @@ final class SupplierPaymentService
                 return $payment;
             });
         } catch (UniqueConstraintViolationException $e) {
-            return Payment::query()->where('idempotency_key', $idempotencyKey)->first() ?? throw $e;
+            return $this->existing($idempotencyKey, $invoice) ?? throw $e;
         }
+    }
+
+    /**
+     * Règlement déjà enregistré avec cette clé ; refusé s'il concerne une autre facture.
+     */
+    private function existing(string $idempotencyKey, SupplierInvoice $invoice): ?Payment
+    {
+        $existing = Payment::query()->where('idempotency_key', $idempotencyKey)->first();
+
+        if ($existing !== null && ($existing->supplier_invoice_id !== $invoice->id || $existing->kind !== 'supplier_payment')) {
+            throw new InvalidPurchaseOperation(__('purchases.errors.idempotency_conflict'));
+        }
+
+        return $existing;
     }
 }

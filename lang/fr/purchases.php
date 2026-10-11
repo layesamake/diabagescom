@@ -24,6 +24,7 @@ return [
         'overpayment' => 'Le règlement dépasse le reste dû (:max XOF).',
         'cash_needs_session' => 'Un règlement en espèces nécessite une caisse ouverte.',
         'return_exceeds' => 'Quantité retournée trop élevée pour « :product » : :max au maximum.',
+        'idempotency_conflict' => 'Cette opération porte un identifiant déjà utilisé pour un autre document. Rechargez la page et recommencez.',
     ],
     'saved' => [
         'order_draft' => 'Commande enregistrée (brouillon).',

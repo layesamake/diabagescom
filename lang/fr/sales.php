@@ -34,6 +34,7 @@ return [
         'credit_invoice_only' => 'Un avoir se crée uniquement depuis une facture validée.',
         'unknown_line' => 'Ligne de facture introuvable.',
         'credit_exceeds' => 'Quantité trop élevée pour « :product » : :max au maximum restant à créditer.',
+        'idempotency_conflict' => 'Cette opération porte un identifiant déjà utilisé pour un autre document. Rechargez la page et recommencez.',
     ],
     'saved' => [
         'draft' => 'Brouillon enregistré.',

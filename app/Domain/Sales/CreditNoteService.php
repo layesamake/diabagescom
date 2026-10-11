@@ -47,7 +47,7 @@ final class CreditNoteService
 
         try {
             return DB::transaction(function () use ($invoice, $lines, $reason, $actor, $idempotencyKey): SalesDocument {
-                $existing = SalesDocument::query()->where('idempotency_key', $idempotencyKey)->first();
+                $existing = $this->existing($idempotencyKey, $invoice);
 
                 if ($existing !== null) {
                     return $existing;
@@ -111,6 +111,9 @@ final class CreditNoteService
                     $exclTax = Pricing::exclusiveFromInclusive($total, $source->tax_rate_basis_points);
                     $returnsToStock = $input['restock'] && $source->product_type !== 'service';
 
+                    // Une même ligne citée deux fois dans la requête consomme le même reste.
+                    $credited[$source->id] = ['quantity' => $previous['quantity']->add($quantity), 'total' => $previous['total'] + $total];
+
                     $line = new SalesDocumentLine;
                     $line->forceFill([
                         'document_id' => $credit->id,
@@ -167,8 +170,23 @@ final class CreditNoteService
                 return $credit;
             });
         } catch (UniqueConstraintViolationException $e) {
-            return SalesDocument::query()->where('idempotency_key', $idempotencyKey)->first() ?? throw $e;
+            return $this->existing($idempotencyKey, $invoice) ?? throw $e;
         }
+    }
+
+    /**
+     * Avoir déjà créé avec cette clé. Une clé réutilisée pour une autre facture est
+     * une erreur du client : on la refuse au lieu de renvoyer l'avoir d'un autre document.
+     */
+    private function existing(string $idempotencyKey, SalesDocument $invoice): ?SalesDocument
+    {
+        $existing = SalesDocument::query()->where('idempotency_key', $idempotencyKey)->first();
+
+        if ($existing !== null && ($existing->type !== SalesDocument::CREDIT_NOTE || $existing->source_document_id !== $invoice->id)) {
+            throw new InvalidSalesOperation(__('sales.errors.idempotency_conflict'));
+        }
+
+        return $existing;
     }
 
     /**

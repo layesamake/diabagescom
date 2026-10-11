@@ -61,7 +61,7 @@ final class PaymentService
 
         try {
             return DB::transaction(function () use ($invoice, $tenders, $sessionId, $actor, $idempotencyKey, $note): array {
-                $existing = $this->existing($idempotencyKey);
+                $existing = $this->existing($idempotencyKey, $invoice, 'customer_payment');
 
                 if ($existing !== []) {
                     return $existing;
@@ -101,7 +101,7 @@ final class PaymentService
                 return $payments;
             });
         } catch (UniqueConstraintViolationException $e) {
-            return $this->existing($idempotencyKey) ?: throw $e;
+            return $this->existing($idempotencyKey, $invoice, 'customer_payment') ?: throw $e;
         }
     }
 
@@ -119,7 +119,7 @@ final class PaymentService
 
         try {
             return DB::transaction(function () use ($invoice, $amount, $method, $sessionId, $reason, $actor, $idempotencyKey): Payment {
-                $existing = $this->existing($idempotencyKey);
+                $existing = $this->existing($idempotencyKey, $invoice, 'customer_refund');
 
                 if ($existing !== []) {
                     return $existing[0];
@@ -149,7 +149,7 @@ final class PaymentService
                 return $payment;
             });
         } catch (UniqueConstraintViolationException $e) {
-            return $this->existing($idempotencyKey)[0] ?? throw $e;
+            return $this->existing($idempotencyKey, $invoice, 'customer_refund')[0] ?? throw $e;
         }
     }
 
@@ -182,13 +182,25 @@ final class PaymentService
     }
 
     /**
+     * Paiements déjà enregistrés avec cette clé. Une clé réutilisée pour une autre
+     * facture ou une autre opération est refusée : renvoyer ces paiements ferait
+     * croire au client que sa facture est réglée.
+     *
      * @return list<Payment>
      */
-    private function existing(string $idempotencyKey): array
+    private function existing(string $idempotencyKey, SalesDocument $invoice, string $kind): array
     {
-        return array_values(Payment::query()
+        $payments = array_values(Payment::query()
             ->where('idempotency_key', 'like', addcslashes($idempotencyKey, '%_\\').':%')
             ->orderBy('idempotency_key')->get()->all());
+
+        foreach ($payments as $payment) {
+            if ($payment->sales_document_id !== $invoice->id || $payment->kind !== $kind) {
+                throw new InvalidSalesOperation(__('sales.errors.idempotency_conflict'));
+            }
+        }
+
+        return $payments;
     }
 
     private function expectInvoice(SalesDocument $invoice): void
