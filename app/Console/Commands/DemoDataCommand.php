@@ -91,7 +91,7 @@ class DemoDataCommand extends Command
             $start = CarbonImmutable::now()->subDays(6)->setTime(8, 0);
             CarbonImmutable::setTestNow($start);
             app(StockLedger::class)->post('initial', (string) Str::uuid(),
-                $products->map(fn (Product $p) => new MovementLine($warehouse->id, $p->id, Quantity::of('60'), $p->standard_cost))->all(), $user);
+                array_values($products->map(fn (Product $p) => new MovementLine($warehouse->id, $p->id, Quantity::of('60'), $p->standard_cost))->all()), $user);
 
             $customer = new Customer;
             $customer->forceFill(['code' => 'C-001', 'name' => 'Restaurant Teranga', 'credit_limit' => 200000, 'payment_term_days' => 0])->save();
@@ -104,6 +104,7 @@ class DemoDataCommand extends Command
                     CarbonImmutable::setTestNow($start->addDays($day)->addHours($n));
                     $picked = $products->shuffle()->take(random_int(1, 3));
                     $lines = $picked->map(fn (Product $p) => ['product_id' => $p->id, 'quantity' => (string) random_int(1, 3), 'unit_price' => null, 'discount' => 0])->values()->all();
+                    $lines = array_values($lines);
                     $total = collect($lines)->sum(fn (array $l) => (int) $l['quantity'] * $products->firstWhere('id', $l['product_id'])->sale_price);
                     $credit = $day === 2 && $n === 1;
                     $pos->checkout([
