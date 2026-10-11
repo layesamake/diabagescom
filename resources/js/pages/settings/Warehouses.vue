@@ -90,7 +90,7 @@ const canWrite = computed(() => page.props.subscription?.can_write ?? false);
 
             <p
                 v-if="limitReached"
-                class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50"
+                class="rounded-lg border border-warning-border bg-warning-soft p-4 text-sm text-warning-soft-foreground"
             >
                 {{ t('warehouses.limit_reached') }}
             </p>

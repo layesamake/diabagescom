@@ -36,10 +36,8 @@ defineOptions({
 
 const badge: Record<Transfer['status'], string> = {
     draft: 'bg-muted text-foreground',
-    in_transit:
-        'bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-50',
-    received:
-        'bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50',
+    in_transit: 'bg-warning-soft text-warning-soft-foreground',
+    received: 'bg-success-soft text-success-soft-foreground',
     cancelled: 'bg-muted text-muted-foreground line-through',
 };
 </script>

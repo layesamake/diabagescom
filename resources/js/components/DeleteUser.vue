@@ -30,9 +30,9 @@ const passwordInput = useTemplateRef('passwordInput');
             :description="t('settings.close_account.description')"
         />
         <div
-            class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
+            class="space-y-4 rounded-lg border border-danger-border bg-danger-soft p-4"
         >
-            <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
+            <div class="relative space-y-0.5 text-danger">
                 <p class="font-medium">
                     {{ t('settings.close_account.warning') }}
                 </p>

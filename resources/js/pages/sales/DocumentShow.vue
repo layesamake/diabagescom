@@ -289,10 +289,8 @@ const statusClass = computed(
     () =>
         ({
             draft: 'bg-muted text-foreground',
-            validated:
-                'bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50',
-            converted:
-                'bg-sky-100 text-sky-950 dark:bg-sky-950 dark:text-sky-50',
+            validated: 'bg-success-soft text-success-soft-foreground',
+            converted: 'bg-info-soft text-info-soft-foreground',
             cancelled: 'bg-muted text-muted-foreground line-through',
         })[doc.value.status],
 );
@@ -314,13 +312,10 @@ const selectClass =
         <!-- Vente comptoir terminée : reçu et vente suivante -->
         <div
             v-if="fromPos"
-            class="flex flex-wrap items-center gap-3 rounded-lg border border-emerald-300 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950"
+            class="flex flex-wrap items-center gap-3 rounded-lg border border-success-border bg-success-soft p-4"
             role="status"
         >
-            <CheckCircle2
-                class="size-6 text-emerald-700 dark:text-emerald-400"
-                aria-hidden="true"
-            />
+            <CheckCircle2 class="size-6 text-success" aria-hidden="true" />
             <p class="flex-1 font-medium">
                 {{ title }} · {{ formatXof(doc.total) }}
             </p>
@@ -416,7 +411,7 @@ const selectClass =
         </p>
         <p
             v-if="doc.negative_stock_reason"
-            class="rounded-md bg-amber-50 p-2 text-sm dark:bg-amber-950"
+            class="rounded-md bg-warning-soft p-2 text-sm"
         >
             {{
                 t('sales.negative_stock_used', {

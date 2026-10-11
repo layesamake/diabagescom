@@ -228,7 +228,7 @@ const formatQty = (raw: string | null) =>
         <p
             v-if="lowCount > 0"
             role="status"
-            class="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50"
+            class="flex items-center gap-2 rounded-lg border border-warning-border bg-warning-soft p-3 text-sm text-warning-soft-foreground"
         >
             <TriangleAlert class="size-4 shrink-0" aria-hidden="true" />{{
                 t('stock.low_count', { count: lowCount })
@@ -412,7 +412,7 @@ const formatQty = (raw: string | null) =>
                     >
                     <span
                         v-else-if="row.low"
-                        class="inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-400"
+                        class="inline-flex items-center gap-1 text-xs font-medium text-warning"
                         ><TriangleAlert class="size-3" aria-hidden="true" />{{
                             t('stock.low')
                         }}</span

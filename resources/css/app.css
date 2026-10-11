@@ -51,6 +51,23 @@
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
 
+    --color-success: var(--success);
+    --color-success-soft: var(--success-soft);
+    --color-success-soft-foreground: var(--success-soft-foreground);
+    --color-success-border: var(--success-border);
+    --color-warning: var(--warning);
+    --color-warning-soft: var(--warning-soft);
+    --color-warning-soft-foreground: var(--warning-soft-foreground);
+    --color-warning-border: var(--warning-border);
+    --color-info: var(--info);
+    --color-info-soft: var(--info-soft);
+    --color-info-soft-foreground: var(--info-soft-foreground);
+    --color-info-border: var(--info-border);
+    --color-danger: var(--danger);
+    --color-danger-soft: var(--danger-soft);
+    --color-danger-soft-foreground: var(--danger-soft-foreground);
+    --color-danger-border: var(--danger-border);
+
     --color-sidebar: var(--sidebar-background);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar-primary: var(--sidebar-primary);
@@ -99,76 +116,119 @@
     --color-ink: #10213d;
     --color-surface: #f7f9fc;
 
-    --background: hsl(0 0% 100%);
-    --foreground: hsl(0 0% 3.9%);
-    --card: hsl(0 0% 100%);
-    --card-foreground: hsl(0 0% 3.9%);
-    --popover: hsl(0 0% 100%);
-    --popover-foreground: hsl(0 0% 3.9%);
+    /* Thème clair : fond légèrement bleuté, texte encre, actions en bleu nuit. */
+    --background: #f6f8fb;
+    --foreground: #10213d;
+    --card: #ffffff;
+    --card-foreground: #10213d;
+    --popover: #ffffff;
+    --popover-foreground: #10213d;
     --primary: var(--color-brand-navy);
-    --primary-foreground: hsl(0 0% 98%);
-    --secondary: hsl(0 0% 92.1%);
-    --secondary-foreground: hsl(0 0% 9%);
-    --muted: hsl(0 0% 96.1%);
-    --muted-foreground: hsl(0 0% 45.1%);
-    --accent: hsl(0 0% 96.1%);
-    --accent-foreground: hsl(0 0% 9%);
-    --destructive: hsl(0 84.2% 60.2%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(0 0% 92.8%);
-    --input: hsl(0 0% 89.8%);
+    --primary-foreground: #ffffff;
+    --secondary: #e9eef5;
+    --secondary-foreground: #10213d;
+    --muted: #eef2f7;
+    --muted-foreground: #5b6577;
+    --accent: #e9eef5;
+    --accent-foreground: #10213d;
+    --destructive: #c8352e;
+    --destructive-foreground: #ffffff;
+    --border: #dfe5ee;
+    --input: #c9d2df;
     --ring: var(--color-brand-teal);
-    --chart-1: hsl(12 76% 61%);
-    --chart-2: hsl(173 58% 39%);
-    --chart-3: hsl(197 37% 24%);
-    --chart-4: hsl(43 74% 66%);
-    --chart-5: hsl(27 87% 67%);
-    --radius: 0.5rem;
-    --sidebar-background: hsl(0 0% 98%);
-    --sidebar-foreground: hsl(240 5.3% 26.1%);
+    --chart-1: #018270;
+    --chart-2: #002456;
+    --chart-3: #e8a304;
+    --chart-4: #3b82c4;
+    --chart-5: #c8552e;
+    --radius: 0.625rem;
+
+    /* États (succès, attention, information, erreur) : fond doux + texte contrasté. */
+    --success: #0b7a5c;
+    --success-soft: #e3f6ee;
+    --success-soft-foreground: #0b5c47;
+    --success-border: #a7dcc6;
+    --warning: #b07a00;
+    --warning-soft: #fff6dc;
+    --warning-soft-foreground: #6b4a00;
+    --warning-border: #f1d27a;
+    --info: #1f5fa8;
+    --info-soft: #e5f0fc;
+    --info-soft-foreground: #123f73;
+    --info-border: #b5d2f3;
+    --danger: #c8352e;
+    --danger-soft: #fdeaea;
+    --danger-soft-foreground: #8a1f1a;
+    --danger-border: #f2b8b5;
+
+    --sidebar-background: #ffffff;
+    --sidebar-foreground: #33415a;
     --sidebar-primary: var(--color-brand-navy);
-    --sidebar-primary-foreground: hsl(0 0% 98%);
-    --sidebar-accent: hsl(0 0% 94%);
-    --sidebar-accent-foreground: hsl(0 0% 30%);
-    --sidebar-border: hsl(0 0% 91%);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
-    --sidebar: hsl(0 0% 98%);
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #eaf4f2;
+    --sidebar-accent-foreground: #0b5c50;
+    --sidebar-border: #e3e8ef;
+    --sidebar-ring: var(--color-brand-teal);
+    --sidebar: #ffffff;
 }
 
+/*
+  Thème sombre « DIABA nuit » : bleu-gris doux plutôt que noir pur, texte
+  légèrement adouci (pas de blanc pur) pour limiter la fatigue visuelle sur
+  une journée de travail ; contrastes vérifiés WCAG AA (texte ≥ 4,5:1).
+*/
 .dark {
-    --background: hsl(0 0% 3.9%);
-    --foreground: hsl(0 0% 98%);
-    --card: hsl(0 0% 3.9%);
-    --card-foreground: hsl(0 0% 98%);
-    --popover: hsl(0 0% 3.9%);
-    --popover-foreground: hsl(0 0% 98%);
-    --primary: hsl(0 0% 98%);
-    --primary-foreground: hsl(0 0% 9%);
-    --secondary: hsl(0 0% 14.9%);
-    --secondary-foreground: hsl(0 0% 98%);
-    --muted: hsl(0 0% 16.08%);
-    --muted-foreground: hsl(0 0% 63.9%);
-    --accent: hsl(0 0% 14.9%);
-    --accent-foreground: hsl(0 0% 98%);
-    --destructive: hsl(0 84% 60%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(0 0% 14.9%);
-    --input: hsl(0 0% 14.9%);
-    --ring: hsl(0 0% 83.1%);
-    --chart-1: hsl(220 70% 50%);
-    --chart-2: hsl(160 60% 45%);
-    --chart-3: hsl(30 80% 55%);
-    --chart-4: hsl(280 65% 60%);
-    --chart-5: hsl(340 75% 55%);
-    --sidebar-background: hsl(0 0% 7%);
-    --sidebar-foreground: hsl(0 0% 95.9%);
-    --sidebar-primary: hsl(360, 100%, 100%);
-    --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(0 0% 15.9%);
-    --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-    --sidebar-border: hsl(0 0% 15.9%);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
-    --sidebar: hsl(240 5.9% 10%);
+    --background: #121a26;
+    --foreground: #dbe2ec;
+    --card: #182231;
+    --card-foreground: #dbe2ec;
+    --popover: #1c2738;
+    --popover-foreground: #dbe2ec;
+    --primary: #34b89c;
+    --primary-foreground: #04201a;
+    --secondary: #223044;
+    --secondary-foreground: #dbe2ec;
+    --muted: #1e2a3b;
+    --muted-foreground: #9aa6b8;
+    --accent: #223044;
+    --accent-foreground: #e6ebf2;
+    --destructive: #d0463f;
+    --destructive-foreground: #ffffff;
+    --border: #2a3546;
+    --input: #46546a;
+    --ring: #34b89c;
+    --chart-1: #34b89c;
+    --chart-2: #6aa6e8;
+    --chart-3: #e8b33a;
+    --chart-4: #b48ae0;
+    --chart-5: #ec7c6c;
+
+    --success: #4cc9a0;
+    --success-soft: #11291f;
+    --success-soft-foreground: #9fe3c4;
+    --success-border: #1f5a43;
+    --warning: #e8b33a;
+    --warning-soft: #2b2414;
+    --warning-soft-foreground: #f3d58a;
+    --warning-border: #6b5418;
+    --info: #6aa6e8;
+    --info-soft: #14243a;
+    --info-soft-foreground: #a9cdf5;
+    --info-border: #284c75;
+    --danger: #ec7c6c;
+    --danger-soft: #2f1719;
+    --danger-soft-foreground: #f5b0ab;
+    --danger-border: #6e2b2b;
+
+    --sidebar-background: #0e1520;
+    --sidebar-foreground: #c3ccd9;
+    --sidebar-primary: #34b89c;
+    --sidebar-primary-foreground: #04201a;
+    --sidebar-accent: #1c2738;
+    --sidebar-accent-foreground: #e6ebf2;
+    --sidebar-border: #222d3d;
+    --sidebar-ring: #34b89c;
+    --sidebar: #0e1520;
 }
 
 @layer base {

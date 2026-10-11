@@ -211,7 +211,7 @@ function toggle(line: { id: string; checked: boolean }): void {
                         :class="
                             difference
                                 ? 'font-medium text-destructive'
-                                : 'font-medium text-emerald-700 dark:text-emerald-400'
+                                : 'font-medium text-success'
                         "
                         >{{
                             t('accounting.to_reconcile', {

@@ -58,16 +58,15 @@ function filter(changes: Partial<typeof props.filters>): void {
 
 const statusBadge: Record<SalesDoc['status'], string> = {
     draft: 'bg-muted text-foreground',
-    validated:
-        'bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50',
-    converted: 'bg-sky-100 text-sky-950 dark:bg-sky-950 dark:text-sky-50',
+    validated: 'bg-success-soft text-success-soft-foreground',
+    converted: 'bg-info-soft text-info-soft-foreground',
     cancelled: 'bg-muted text-muted-foreground line-through',
 };
 const paymentBadge: Record<string, string> = {
-    unpaid: 'bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-50',
-    partial: 'bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-50',
-    paid: 'bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50',
-    refund_due: 'bg-red-100 text-red-950 dark:bg-red-950 dark:text-red-50',
+    unpaid: 'bg-warning-soft text-warning-soft-foreground',
+    partial: 'bg-warning-soft text-warning-soft-foreground',
+    paid: 'bg-success-soft text-success-soft-foreground',
+    refund_due: 'bg-danger-soft text-danger-soft-foreground',
 };
 </script>
 

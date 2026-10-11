@@ -47,7 +47,7 @@ const isWarning = computed(() =>
         class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-4 py-2 text-sm"
         :class="
             isWarning
-                ? 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50'
+                ? 'border-warning-border bg-warning-soft text-warning-soft-foreground'
                 : 'border-sidebar-border/70 bg-[var(--color-surface)] text-foreground dark:bg-muted'
         "
     >

@@ -19,6 +19,7 @@ import {
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
+import type { NavGroup } from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
     Sidebar,
@@ -51,94 +52,144 @@ import type { NavItem } from '@/types';
 const page = usePage();
 const { can } = useAppContext();
 
-const mainNavItems = computed<NavItem[]>(() => [
-    ...(page.props.context
-        ? [{ title: t('nav.dashboard'), href: dashboard(), icon: LayoutGrid }]
-        : []),
-    // Rubriques métier : affichées selon les permissions (le serveur revérifie tout).
-    ...(can('sale.create') && can('sale.validate')
-        ? [{ title: t('sales.pos'), href: posCreate(), icon: ShoppingCart }]
-        : []),
-    ...(can('sale.view')
-        ? [{ title: t('sales.nav'), href: salesIndex(), icon: FileText }]
-        : []),
-    ...(can('cash.view_own') || can('cash.view_all')
-        ? [{ title: t('cash.nav'), href: cashIndex(), icon: Wallet }]
-        : []),
-    ...(can('purchase.view')
-        ? [
-              {
-                  title: t('purchases.nav'),
-                  href: purchaseOrdersIndex(),
-                  icon: ShoppingBasket,
-              },
-              {
-                  title: t('purchases.invoices'),
-                  href: purchaseInvoicesIndex(),
-                  icon: FileText,
-              },
-          ]
-        : []),
-    ...(can('catalog.view')
-        ? [{ title: t('catalog.nav'), href: productsIndex(), icon: Package }]
-        : []),
-    ...(can('inventory.view')
-        ? [{ title: t('stock.nav'), href: stockIndex(), icon: Boxes }]
-        : []),
-    ...(can('customer.view')
-        ? [
-              {
-                  title: t('parties.customers'),
-                  href: customersIndex(),
-                  icon: Users,
-              },
-          ]
-        : []),
-    ...(can('supplier.view')
-        ? [
-              {
-                  title: t('parties.suppliers'),
-                  href: suppliersIndex(),
-                  icon: Truck,
-              },
-          ]
-        : []),
-    ...(can('report.view_own') || can('report.view_all')
-        ? [{ title: t('reports.nav'), href: reportsIndex(), icon: ChartColumn }]
-        : []),
-    // Comptabilité : formule « Compta » et permission (le serveur revérifie les deux).
-    ...(can('accounting.view') &&
-    (page.props.subscription as { features?: { accounting?: boolean } } | null)
-        ?.features?.accounting
-        ? [
-              {
-                  title: t('accounting.nav'),
-                  href: accountingIndex(),
-                  icon: BookOpen,
-              },
-          ]
-        : []),
-    // Console plateforme : super-administrateur uniquement (vérifié côté serveur).
-    ...(page.props.platform?.can_access
-        ? [
-              {
-                  title: t('platform.tenants_title'),
-                  href: platformTenants(),
-                  icon: Building2,
-              },
-              {
-                  title: t('platform.plans_title'),
-                  href: platformPlans(),
-                  icon: Layers,
-              },
-              {
-                  title: t('billing.console_title'),
-                  href: platformBilling(),
-                  icon: Receipt,
-              },
-          ]
-        : []),
-]);
+// Rubriques regroupées par métier, affichées selon les permissions
+// (le serveur revérifie tout) ; un groupe vide n'est pas affiché.
+const navGroups = computed<NavGroup[]>(() => {
+    const item = (
+        show: boolean,
+        title: string,
+        href: NavItem['href'],
+        icon: NavItem['icon'],
+    ) => (show ? [{ title, href, icon }] : []);
+    const accounting = Boolean(
+        (
+            page.props.subscription as {
+                features?: { accounting?: boolean };
+            } | null
+        )?.features?.accounting,
+    );
+
+    return [
+        {
+            items: item(
+                Boolean(page.props.context),
+                t('nav.dashboard'),
+                dashboard(),
+                LayoutGrid,
+            ),
+        },
+        {
+            label: t('nav.group_sell'),
+            items: [
+                ...item(
+                    can('sale.create') && can('sale.validate'),
+                    t('sales.pos'),
+                    posCreate(),
+                    ShoppingCart,
+                ),
+                ...item(
+                    can('sale.view'),
+                    t('sales.nav'),
+                    salesIndex(),
+                    FileText,
+                ),
+                ...item(
+                    can('cash.view_own') || can('cash.view_all'),
+                    t('cash.nav'),
+                    cashIndex(),
+                    Wallet,
+                ),
+                ...item(
+                    can('customer.view'),
+                    t('parties.customers'),
+                    customersIndex(),
+                    Users,
+                ),
+            ],
+        },
+        {
+            label: t('nav.group_buy'),
+            items: [
+                ...item(
+                    can('purchase.view'),
+                    t('purchases.nav'),
+                    purchaseOrdersIndex(),
+                    ShoppingBasket,
+                ),
+                ...item(
+                    can('purchase.view'),
+                    t('purchases.invoices'),
+                    purchaseInvoicesIndex(),
+                    Receipt,
+                ),
+                ...item(
+                    can('supplier.view'),
+                    t('parties.suppliers'),
+                    suppliersIndex(),
+                    Truck,
+                ),
+            ],
+        },
+        {
+            label: t('nav.group_stock'),
+            items: [
+                ...item(
+                    can('catalog.view'),
+                    t('catalog.nav'),
+                    productsIndex(),
+                    Package,
+                ),
+                ...item(
+                    can('inventory.view'),
+                    t('stock.nav'),
+                    stockIndex(),
+                    Boxes,
+                ),
+            ],
+        },
+        {
+            label: t('nav.group_manage'),
+            items: [
+                ...item(
+                    can('report.view_own') || can('report.view_all'),
+                    t('reports.nav'),
+                    reportsIndex(),
+                    ChartColumn,
+                ),
+                // Comptabilité : formule « Compta » et permission (revérifiées côté serveur).
+                ...item(
+                    can('accounting.view') && accounting,
+                    t('accounting.nav'),
+                    accountingIndex(),
+                    BookOpen,
+                ),
+            ],
+        },
+        {
+            // Console plateforme : super-administrateur uniquement (vérifié côté serveur).
+            label: t('nav.group_platform'),
+            items: page.props.platform?.can_access
+                ? [
+                      {
+                          title: t('platform.tenants_title'),
+                          href: platformTenants(),
+                          icon: Building2,
+                      },
+                      {
+                          title: t('platform.plans_title'),
+                          href: platformPlans(),
+                          icon: Layers,
+                      },
+                      {
+                          title: t('billing.console_title'),
+                          href: platformBilling(),
+                          icon: Receipt,
+                      },
+                  ]
+                : [],
+        },
+    ];
+});
 </script>
 
 <template>
@@ -156,7 +207,7 @@ const mainNavItems = computed<NavItem[]>(() => [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :groups="navGroups" />
         </SidebarContent>
 
         <SidebarFooter>

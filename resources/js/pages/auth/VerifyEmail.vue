@@ -24,7 +24,7 @@ defineProps<{
 
     <div
         v-if="status === 'verification-link-sent'"
-        class="mb-4 text-center text-sm font-medium text-green-700"
+        class="mb-4 text-center text-sm font-medium text-success"
     >
         {{ t('auth.verify.sent') }}
     </div>

@@ -140,7 +140,7 @@ const example =
                         class="size-5"
                         :class="
                             batch.errors?.length
-                                ? 'text-amber-600'
+                                ? 'text-warning'
                                 : 'text-[var(--color-brand-teal)]'
                         "
                         aria-hidden="true"
@@ -196,7 +196,7 @@ const example =
             <section v-if="batch.errors?.length" class="space-y-2">
                 <h2 class="font-semibold">{{ t('import.errors_title') }}</h2>
                 <ul
-                    class="divide-y rounded-lg border border-amber-300 text-sm dark:border-amber-700"
+                    class="divide-y rounded-lg border border-warning-border text-sm"
                 >
                     <li
                         v-for="e in batch.errors"

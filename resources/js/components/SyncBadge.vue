@@ -33,7 +33,7 @@ const state = computed(() => {
         return {
             label: t('offline.attention'),
             icon: TriangleAlert,
-            class: 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50',
+            class: 'border-warning-border bg-warning-soft text-warning-soft-foreground',
         };
     }
 
@@ -49,14 +49,14 @@ const state = computed(() => {
         return {
             label: t('offline.syncing'),
             icon: RefreshCw,
-            class: 'border-sky-300 bg-sky-50 text-sky-950 dark:border-sky-700 dark:bg-sky-950 dark:text-sky-50',
+            class: 'border-info-border bg-info-soft text-info-soft-foreground',
         };
     }
 
     return {
         label: t('offline.online'),
         icon: Wifi,
-        class: 'border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-50',
+        class: 'border-success-border bg-success-soft text-success-soft-foreground',
     };
 });
 </script>

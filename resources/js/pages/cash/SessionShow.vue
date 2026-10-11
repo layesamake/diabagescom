@@ -401,7 +401,7 @@ function close(): void {
                         :class="
                             difference !== 0
                                 ? 'text-destructive'
-                                : 'text-emerald-700 dark:text-emerald-400'
+                                : 'text-success'
                         "
                     >
                         {{ t('cash.difference') }} : {{ formatXof(difference) }}

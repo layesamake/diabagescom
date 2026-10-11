@@ -88,7 +88,7 @@ const user = computed(() => page.props.auth.user);
 
                 <div
                     v-if="page.props.status === 'verification-link-sent'"
-                    class="mt-2 text-sm font-medium text-green-700"
+                    class="mt-2 text-sm font-medium text-success"
                 >
                     {{ t('settings.profile.link_sent') }}
                 </div>

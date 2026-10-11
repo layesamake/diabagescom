@@ -120,7 +120,7 @@ function toggleArchive(): void {
         <p
             v-if="product?.archived"
             role="status"
-            class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50"
+            class="rounded-lg border border-warning-border bg-warning-soft p-4 text-sm text-warning-soft-foreground"
         >
             {{ t('catalog.archived_notice') }}
         </p>

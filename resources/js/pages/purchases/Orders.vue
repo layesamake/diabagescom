@@ -60,11 +60,9 @@ function filter(status: string): void {
 
 const badge: Record<Status, string> = {
     draft: 'bg-muted text-foreground',
-    confirmed: 'bg-sky-100 text-sky-950 dark:bg-sky-950 dark:text-sky-50',
-    partially_received:
-        'bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-50',
-    received:
-        'bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50',
+    confirmed: 'bg-info-soft text-info-soft-foreground',
+    partially_received: 'bg-warning-soft text-warning-soft-foreground',
+    received: 'bg-success-soft text-success-soft-foreground',
     closed: 'bg-muted text-muted-foreground',
     cancelled: 'bg-muted text-muted-foreground line-through',
 };

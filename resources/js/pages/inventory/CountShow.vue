@@ -235,7 +235,7 @@ function validateCount(): void {
                     class="text-sm font-semibold tabular-nums"
                     :class="
                         line.has_variance
-                            ? 'text-amber-700 dark:text-amber-400'
+                            ? 'text-warning'
                             : 'text-muted-foreground'
                     "
                     >{{ t('counts.variance') }} : {{ line.variance }}</span

@@ -124,8 +124,8 @@ function cancel(invoice: Invoice): void {
 }
 
 const statusClass: Record<Invoice['status'], string> = {
-    open: 'bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-50',
-    paid: 'bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50',
+    open: 'bg-warning-soft text-warning-soft-foreground',
+    paid: 'bg-success-soft text-success-soft-foreground',
     void: 'bg-muted text-muted-foreground line-through',
 };
 </script>
@@ -137,7 +137,7 @@ const statusClass: Record<Invoice['status'], string> = {
         <!-- Facture en attente : paiement -->
         <article
             v-if="open"
-            class="space-y-3 rounded-lg border border-amber-300 p-4 dark:border-amber-700"
+            class="space-y-3 rounded-lg border border-warning-border p-4"
         >
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <p class="font-semibold">

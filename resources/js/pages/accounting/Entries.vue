@@ -149,7 +149,7 @@ function apply(): void {
                     }}</span>
                     <span
                         v-if="entry.automatic"
-                        class="rounded bg-sky-100 px-2 py-0.5 text-xs text-sky-950 dark:bg-sky-950 dark:text-sky-50"
+                        class="rounded bg-info-soft px-2 py-0.5 text-xs text-info-soft-foreground"
                         >{{ t('accounting.automatic') }}</span
                     >
                     <span

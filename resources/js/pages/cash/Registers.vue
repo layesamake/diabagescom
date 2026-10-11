@@ -160,7 +160,7 @@ function createRegister(): void {
                             class="rounded px-2 py-0.5 text-xs font-medium"
                             :class="
                                 register.session
-                                    ? 'bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50'
+                                    ? 'bg-success-soft text-success-soft-foreground'
                                     : 'bg-muted text-muted-foreground'
                             "
                             >{{
@@ -257,7 +257,7 @@ function createRegister(): void {
                             class="rounded px-2 py-0.5 text-xs font-medium"
                             :class="
                                 s.status === 'open'
-                                    ? 'bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50'
+                                    ? 'bg-success-soft text-success-soft-foreground'
                                     : 'bg-muted'
                             "
                             >{{

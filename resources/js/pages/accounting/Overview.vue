@@ -99,8 +99,8 @@ function closeYear(id: string, name: string): void {
 }
 
 const badge: Record<PeriodStatus, string> = {
-    open: 'bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50',
-    locked: 'bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-50',
+    open: 'bg-success-soft text-success-soft-foreground',
+    locked: 'bg-warning-soft text-warning-soft-foreground',
     closed: 'bg-muted text-muted-foreground',
 };
 const links = [
@@ -169,7 +169,7 @@ const links = [
             <!-- Validation de l'expert-comptable (docs/05) -->
             <div
                 v-if="!settings.expert_validated_at"
-                class="space-y-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50"
+                class="space-y-3 rounded-lg border border-warning-border bg-warning-soft p-4 text-warning-soft-foreground"
                 role="alert"
             >
                 <p class="text-sm">{{ t('accounting.expert_missing') }}</p>

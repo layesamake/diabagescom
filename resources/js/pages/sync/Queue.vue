@@ -103,15 +103,12 @@ async function abandon(command: LocalCommand): Promise<void> {
 }
 
 const badge: Record<string, string> = {
-    queued: 'bg-sky-100 text-sky-950 dark:bg-sky-950 dark:text-sky-50',
-    sending: 'bg-sky-100 text-sky-950 dark:bg-sky-950 dark:text-sky-50',
-    accepted:
-        'bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50',
-    rejected: 'bg-red-100 text-red-950 dark:bg-red-950 dark:text-red-50',
-    conflict:
-        'bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-50',
-    requires_review:
-        'bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-50',
+    queued: 'bg-info-soft text-info-soft-foreground',
+    sending: 'bg-info-soft text-info-soft-foreground',
+    accepted: 'bg-success-soft text-success-soft-foreground',
+    rejected: 'bg-danger-soft text-danger-soft-foreground',
+    conflict: 'bg-warning-soft text-warning-soft-foreground',
+    requires_review: 'bg-warning-soft text-warning-soft-foreground',
 };
 </script>
 
@@ -147,7 +144,7 @@ const badge: Record<string, string> = {
 
         <p
             v-if="syncState.problem"
-            class="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-700 dark:bg-amber-950"
+            class="rounded-lg border border-warning-border bg-warning-soft p-3 text-sm"
             role="alert"
         >
             {{ t(`offline.problem.${syncState.problem}`) }}

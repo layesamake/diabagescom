@@ -336,7 +336,7 @@ function checkout(): void {
             <!-- Caisse : obligatoire pour vendre -->
             <div
                 v-if="sessions.length === 0"
-                class="space-y-3 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950"
+                class="space-y-3 rounded-lg border border-warning-border bg-warning-soft p-4"
                 role="alert"
             >
                 <p class="font-medium">{{ t('pos.no_session_title') }}</p>
@@ -390,7 +390,7 @@ function checkout(): void {
 
             <div
                 v-if="provisional"
-                class="space-y-2 rounded-lg border border-sky-300 bg-sky-50 p-4 dark:border-sky-800 dark:bg-sky-950"
+                class="space-y-2 rounded-lg border border-info-border bg-info-soft p-4"
                 role="status"
             >
                 <p class="flex items-center justify-between gap-2 font-medium">
@@ -742,7 +742,7 @@ function checkout(): void {
                 </div>
                 <p
                     v-if="plan.change > 0"
-                    class="text-right text-sm font-medium text-emerald-700 dark:text-emerald-400"
+                    class="text-right text-sm font-medium text-success"
                 >
                     {{ t('pos.change', { amount: formatXof(plan.change) }) }}
                 </p>

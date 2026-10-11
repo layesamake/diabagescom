@@ -43,7 +43,7 @@ function decide(outcome: 'succeeded' | 'failed'): void {
             </h1>
         </div>
         <p
-            class="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50"
+            class="rounded-lg border border-warning-border bg-warning-soft p-3 text-sm text-warning-soft-foreground"
         >
             {{ t('billing.sandbox_hint') }}
         </p>
