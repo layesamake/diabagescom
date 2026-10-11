@@ -6,7 +6,6 @@ import {
     FileDown,
     Pencil,
     Plus,
-    Printer,
     ShoppingCart,
     X,
 } from '@lucide/vue';
@@ -16,6 +15,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import PrintTicketButton from '@/components/PrintTicketButton.vue';
 import ShareDocumentDialog from '@/components/ShareDocumentDialog.vue';
 import { t } from '@/i18n';
 import { formatDate } from '@/lib/dates';
@@ -322,16 +322,7 @@ const selectClass =
             <p class="flex-1 font-medium">
                 {{ title }} · {{ formatXof(doc.total) }}
             </p>
-            <Button as-child class="h-11"
-                ><a
-                    :href="
-                        pdfRoute(doc.id, { query: { format: 'receipt' } }).url
-                    "
-                    target="_blank"
-                    rel="noopener"
-                    ><Printer class="size-4" />{{ t('sales.receipt') }}</a
-                ></Button
-            >
+            <PrintTicketButton :document-id="doc.id" />
             <ShareDocumentDialog
                 v-if="can.share && doc.number"
                 :document-id="doc.id"
@@ -580,20 +571,11 @@ const selectClass =
                 :receipt="isInvoiceLike"
                 :contact="doc.contact"
             />
-            <Button
+            <PrintTicketButton
                 v-if="isInvoiceLike && doc.number && !fromPos"
-                as-child
+                :document-id="doc.id"
                 variant="outline"
-                class="h-11"
-                ><a
-                    :href="
-                        pdfRoute(doc.id, { query: { format: 'receipt' } }).url
-                    "
-                    target="_blank"
-                    rel="noopener"
-                    ><Printer class="size-4" />{{ t('sales.receipt') }}</a
-                ></Button
-            >
+            />
             <Button
                 v-if="can.credit"
                 variant="outline"

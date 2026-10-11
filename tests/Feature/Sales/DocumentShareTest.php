@@ -94,4 +94,20 @@ class DocumentShareTest extends TestCase
 
         $this->actingAs($other['user'])->postJson(route('sales.share', $invoice), ['format' => 'a4', 'channel' => 'link'])->assertNotFound();
     }
+
+    public function test_the_thermal_ticket_prints_at_58_or_80_mm(): void
+    {
+        [$setup, $invoice] = $this->invoice();
+        $this->actingAs($setup['user']);
+
+        $this->get(route('sales.ticket', ['document' => $invoice, 'width' => 58, 'print' => 1]))->assertOk()
+            ->assertSee('size: 58mm auto', false)->assertSee($invoice->number)->assertSee('window.print()', false);
+        // Largeur inconnue : 80 mm par défaut, sans impression automatique.
+        $this->get(route('sales.ticket', ['document' => $invoice, 'width' => 99]))->assertOk()
+            ->assertSee('size: 80mm auto', false)->assertDontSee("addEventListener('load'", false);
+
+        foreach (['receipt', 'receipt_58', 'a4'] as $format) {
+            $this->get(route('sales.pdf', ['document' => $invoice, 'format' => $format]))->assertOk()->assertHeader('content-type', 'application/pdf');
+        }
+    }
 }

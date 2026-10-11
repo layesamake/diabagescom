@@ -131,6 +131,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::post('sales/{document}/refunds', [SalesDocumentController::class, 'refund'])->whereUuid('document')->name('sales.refunds.store');
     Route::post('sales/{document}/credit-notes', [SalesDocumentController::class, 'creditNote'])->whereUuid('document')->name('sales.credit_notes.store');
     Route::get('sales/{document}/pdf', [SalesDocumentController::class, 'pdf'])->whereUuid('document')->middleware('throttle:60,1')->name('sales.pdf');
+    Route::get('sales/{document}/ticket', [SalesDocumentController::class, 'ticket'])->whereUuid('document')->middleware('throttle:60,1')->name('sales.ticket');
     Route::post('sales/{document}/share', [DocumentShareController::class, 'link'])->whereUuid('document')->middleware('throttle:30,1')->name('sales.share');
     Route::post('sales/{document}/email', [DocumentShareController::class, 'email'])->whereUuid('document')->middleware('throttle:10,1')->name('sales.email');
 

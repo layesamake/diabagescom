@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAppContext } from '@/composables/useAppContext';
+import { useTicketWidth } from '@/composables/useTicketWidth';
 import { t } from '@/i18n';
 import { postJson } from '@/lib/http';
 import { formatXof } from '@/lib/money';
@@ -32,6 +33,14 @@ const props = defineProps<{
 
 const LINK_DAYS = 30;
 const { context } = useAppContext();
+const { width } = useTicketWidth();
+// Format envoyé : A4, ou ticket à la largeur de l'imprimante de cet appareil.
+const apiFormat = () =>
+    format.value === 'a4'
+        ? 'a4'
+        : width.value === 58
+          ? 'receipt_58'
+          : 'receipt';
 const format = ref<'a4' | 'receipt'>('a4');
 const phone = ref(props.contact.phone ?? '');
 const email = ref(props.contact.email ?? '');
@@ -51,7 +60,7 @@ async function createLink(
 ): Promise<string | null> {
     const { ok, data } = await postJson<{ url: string }>(
         shareRoute(props.documentId).url,
-        { format: format.value, channel },
+        { format: apiFormat(), channel },
     );
 
     if (!ok) {
@@ -100,7 +109,7 @@ async function sendEmail(): Promise<void> {
         errors?: Record<string, string[]>;
     }>(emailRoute(props.documentId).url, {
         email: email.value,
-        format: format.value,
+        format: apiFormat(),
         message: message.value || null,
     });
     busy.value = null;
@@ -161,7 +170,7 @@ async function copyLink(): Promise<void> {
                             :value="option"
                             class="sr-only"
                         />
-                        {{ t(`sales.share.format_${option}`) }}
+                        {{ t(`sales.share.format_${option}`, { width }) }}
                     </label>
                 </div>
             </fieldset>

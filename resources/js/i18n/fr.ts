@@ -818,6 +818,10 @@ export const fr = {
         cheque: 'Chèque',
     },
     sales: {
+        ticket: {
+            print: 'Imprimer le ticket',
+            width: 'Largeur du papier de l’imprimante',
+        },
         share: {
             button: 'Partager',
             title: 'Partager {number}',
@@ -825,7 +829,7 @@ export const fr = {
                 'Envoyez le document à votre client. Il l’ouvre sans compte, grâce à un lien valable {days} jours.',
             format: 'Document à envoyer',
             format_a4: 'Document A4',
-            format_receipt: 'Ticket',
+            format_receipt: 'Ticket ({width} mm)',
             whatsapp_title: 'Par WhatsApp',
             phone: 'Numéro WhatsApp du client',
             phone_hint:

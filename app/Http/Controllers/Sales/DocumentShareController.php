@@ -75,7 +75,7 @@ class DocumentShareController extends Controller
         // signé, puis tout le rendu se fait dans le contexte de son entreprise.
         $found = SalesDocument::query()->withoutGlobalScope(TenantScope::class)->with('tenant')->findOrFail($document);
         abort_if($found->isDraft() || $found->number === null || $found->status === SalesDocument::CANCELLED, 404);
-        $format = $request->query('format') === SalesDocumentPdf::FORMAT_RECEIPT ? SalesDocumentPdf::FORMAT_RECEIPT : SalesDocumentPdf::FORMAT_A4;
+        $format = SalesDocumentPdf::format($request->query('format'));
 
         return $context->runAs($found->tenant, fn () => $renderer->render($found, $found->tenant, $format)
             ->stream($renderer->filename($found, $format)))

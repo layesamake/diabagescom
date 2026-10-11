@@ -84,6 +84,10 @@ return [
         'provisional_rules' => 'Document généré par DIABA GESCOM.',
         'seller' => 'Vendeur',
     ],
+    'ticket' => [
+        'print' => 'Imprimer',
+        'close' => 'Fermer',
+    ],
     'share' => [
         'mail_subject' => ':type :number — :company',
         'mail_intro' => 'Bonjour,',

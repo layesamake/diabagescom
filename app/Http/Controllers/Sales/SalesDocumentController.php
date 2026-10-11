@@ -313,7 +313,7 @@ class SalesDocumentController extends Controller
     }
 
     /**
-     * PDF A4 (devis, commande, facture, avoir) ou ticket 80 mm (?format=receipt).
+     * PDF A4 (devis, commande, facture, avoir) ou ticket (?format=receipt|receipt_58).
      */
     public function pdf(Request $request, SalesDocument $document, StockAccess $access, TenantContext $context, SalesDocumentPdf $renderer): HttpResponse
     {
@@ -322,9 +322,27 @@ class SalesDocumentController extends Controller
         // Seuls les documents numérotés s'impriment : un brouillon n'a pas de valeur.
         abort_if($document->isDraft() || $document->number === null, 404);
 
-        $format = $request->query('format') === SalesDocumentPdf::FORMAT_RECEIPT ? SalesDocumentPdf::FORMAT_RECEIPT : SalesDocumentPdf::FORMAT_A4;
+        $format = SalesDocumentPdf::format($request->query('format'));
 
         return $renderer->render($document, $context->tenant(), $format)->stream($renderer->filename($document, $format));
+    }
+
+    /**
+     * Ticket à imprimer depuis le navigateur sur imprimante thermique 58 ou 80 mm
+     * (largeur exacte, impression directe à l'ouverture si ?print=1).
+     */
+    public function ticket(Request $request, SalesDocument $document, StockAccess $access, TenantContext $context, SalesDocumentPdf $renderer): HttpResponse
+    {
+        Gate::authorize('sale.view');
+        $this->authorizeWarehouse($document, $access);
+        abort_if($document->isDraft() || $document->number === null, 404);
+        $width = (int) $request->query('width', '80');
+
+        return response()->view('print.ticket', [
+            ...$renderer->viewData($document, $context->tenant()),
+            'width' => in_array($width, SalesDocumentPdf::TICKET_WIDTHS, true) ? $width : 80,
+            'autoprint' => $request->boolean('print'),
+        ])->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
     /**
