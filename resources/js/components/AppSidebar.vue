@@ -10,6 +10,7 @@ import {
     LayoutGrid,
     Package,
     Receipt,
+    Settings,
     ShoppingBasket,
     ShoppingCart,
     Truck,
@@ -38,6 +39,7 @@ import { index as cashIndex } from '@/routes/cash';
 import { index as customersIndex } from '@/routes/customers';
 import { create as posCreate } from '@/routes/pos';
 import { index as productsIndex } from '@/routes/products';
+import { edit as editProfile } from '@/routes/profile';
 import { index as reportsIndex } from '@/routes/reports';
 import { index as purchaseInvoicesIndex } from '@/routes/purchases/invoices';
 import { index as purchaseOrdersIndex } from '@/routes/purchases/orders';
@@ -162,6 +164,13 @@ const navGroups = computed<NavGroup[]>(() => {
                     t('accounting.nav'),
                     accountingIndex(),
                     BookOpen,
+                ),
+                // Paramètres (profil, sécurité, dépôts, sauvegarde…) : visibles de tous.
+                ...item(
+                    Boolean(page.props.context),
+                    t('nav.settings'),
+                    editProfile(),
+                    Settings,
                 ),
             ],
         },
