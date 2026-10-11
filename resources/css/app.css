@@ -178,4 +178,22 @@
     body {
         @apply bg-background text-foreground;
     }
+
+    /* Contrôles natifs (listes déroulantes, dates…) aux couleurs du thème :
+       sans cela, en mode sombre, le menu d'un <select> s'ouvre sur fond blanc
+       avec un texte clair, illisible. */
+    :root {
+        color-scheme: light;
+    }
+    .dark {
+        color-scheme: dark;
+    }
+    select option,
+    select optgroup {
+        background-color: var(--popover);
+        color: var(--popover-foreground);
+    }
+    select option:disabled {
+        color: var(--muted-foreground);
+    }
 }
