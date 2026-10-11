@@ -65,7 +65,12 @@ services:
 
   caddy:
     image: caddy:2.10-alpine
-    ports: ["80:80", "443:443", "443:443/udp"]
+    # Port 80 partagé avec un autre site sur le même VPS : DIABA_HTTP_BIND=127.0.0.1:8081
+    # (le certificat est alors obtenu par le défi TLS-ALPN sur 443).
+    ports:
+      - "${DIABA_HTTP_BIND:-80}:80"
+      - "443:443"
+      - "443:443/udp"
     environment:
       DIABA_DOMAIN: ${DIABA_DOMAIN:?}
       ACME_EMAIL: ${ACME_EMAIL:?}
