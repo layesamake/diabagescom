@@ -19,6 +19,7 @@ import {
     store as orderStore,
     update as orderUpdate,
 } from '@/routes/purchases/orders';
+import SearchSelect from '@/components/SearchSelect.vue';
 
 type Line = { product: PickedProduct; quantity: string; unit_cost: string };
 
@@ -49,6 +50,9 @@ defineOptions({
 const page = usePage();
 const errors = computed(() => page.props.errors as Record<string, string>);
 const supplierId = ref(props.order?.supplier_id ?? '');
+const supplierOptions = computed(() =>
+    props.suppliers.map((s) => ({ value: s.id, label: s.name, hint: s.code })),
+);
 const warehouseId = ref(
     props.order?.warehouse_id ?? props.warehouses[0]?.id ?? '',
 );
@@ -127,14 +131,12 @@ function submit(): void {
         <div class="grid gap-4 sm:grid-cols-3">
             <div class="grid gap-1">
                 <Label for="supplier">{{ t('purchases.supplier') }}</Label>
-                <select id="supplier" v-model="supplierId" :class="selectClass">
-                    <option value="" disabled>
-                        {{ t('purchases.choose_supplier') }}
-                    </option>
-                    <option v-for="s in suppliers" :key="s.id" :value="s.id">
-                        {{ s.name }} ({{ s.code }})
-                    </option>
-                </select>
+                <SearchSelect
+                    v-model="supplierId"
+                    input-id="supplier"
+                    :options="supplierOptions"
+                    :placeholder="t('purchases.choose_supplier')"
+                />
                 <InputError :message="errors.supplier_id" />
             </div>
             <div class="grid gap-1">

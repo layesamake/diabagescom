@@ -136,6 +136,11 @@ export const fr = {
             'Créez une commande pour un fournisseur, puis réceptionnez la marchandise : le stock se met à jour tout seul.',
         cash: 'Ouvrez la caisse en indiquant le fond de caisse pour commencer à encaisser.',
     },
+    combobox: {
+        none: 'Aucun résultat.',
+        clear: 'Effacer le choix',
+        browse: 'Afficher la liste',
+    },
     confirm: {
         ok: 'Confirmer',
         cancel: 'Non, revenir',

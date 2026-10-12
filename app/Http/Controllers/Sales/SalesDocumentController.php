@@ -359,7 +359,7 @@ class SalesDocumentController extends Controller
                 ->whereRaw('diaba_search_text(name) LIKE diaba_search_text(?)', [$like])
                 ->orWhereRaw('upper(code) LIKE upper(?)', [$like])
                 ->orWhere('phone', 'like', $like)))
-            ->orderBy('name')->limit(10)
+            ->orderBy('name')->limit($term === '' ? 30 : 10)
             ->get(['id', 'code', 'name', 'phone', 'credit_limit'])
             ->map(fn (Customer $c) => [
                 ...$c->only(['id', 'code', 'name', 'phone', 'credit_limit']),

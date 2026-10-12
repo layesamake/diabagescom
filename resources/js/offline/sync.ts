@@ -467,14 +467,18 @@ export async function searchProductsOffline(
 
     const needle = normalize(query.trim());
 
-    return (await getAll<OfflineProduct>(db, 'products'))
-        .filter(
-            (p) =>
-                (!stockedOnly || p.type !== 'service') &&
-                p.search.includes(needle),
-        )
-        .slice(0, 10)
-        .map(toPicked);
+    return (
+        (await getAll<OfflineProduct>(db, 'products'))
+            .filter(
+                (p) =>
+                    (!stockedOnly || p.type !== 'service') &&
+                    p.search.includes(needle),
+            )
+            .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
+            // Liste complète à parcourir (champ vide) : 30 premiers ; recherche : 10.
+            .slice(0, needle === '' ? 30 : 10)
+            .map(toPicked)
+    );
 }
 
 export async function lookupOffline(
@@ -505,7 +509,8 @@ export async function searchCustomersOffline(
 
     return (await getAll<OfflineCustomer>(db, 'customers'))
         .filter((c) => c.search.includes(needle))
-        .slice(0, 10);
+        .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
+        .slice(0, needle === '' ? 30 : 10);
 }
 
 /**

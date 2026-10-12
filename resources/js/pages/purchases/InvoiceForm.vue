@@ -16,6 +16,7 @@ import {
     store as invoiceStore,
     update as invoiceUpdate,
 } from '@/routes/purchases/invoices';
+import SearchSelect from '@/components/SearchSelect.vue';
 
 type InvoiceLine = {
     product_id: string | null;
@@ -61,6 +62,9 @@ const page = usePage();
 const errors = computed(() => page.props.errors as Record<string, string>);
 const base = props.invoice ?? props.prefill;
 const supplierId = ref(base?.supplier_id ?? '');
+const supplierOptions = computed(() =>
+    props.suppliers.map((s) => ({ value: s.id, label: s.name, hint: s.code })),
+);
 const warehouseId = ref(base?.warehouse_id ?? props.warehouses[0]?.id ?? '');
 const reference = ref(props.invoice?.supplier_reference ?? '');
 const issueDate = ref(
@@ -165,19 +169,13 @@ function submit(): void {
         <div class="grid gap-4 sm:grid-cols-2">
             <div class="grid gap-1">
                 <Label for="supplier">{{ t('purchases.supplier') }}</Label>
-                <select
-                    id="supplier"
+                <SearchSelect
                     v-model="supplierId"
-                    :class="selectClass"
+                    input-id="supplier"
+                    :options="supplierOptions"
+                    :placeholder="t('purchases.choose_supplier')"
                     :disabled="Boolean(prefill)"
-                >
-                    <option value="" disabled>
-                        {{ t('purchases.choose_supplier') }}
-                    </option>
-                    <option v-for="s in suppliers" :key="s.id" :value="s.id">
-                        {{ s.name }} ({{ s.code }})
-                    </option>
-                </select>
+                />
                 <InputError :message="errors.supplier_id" />
             </div>
             <div class="grid gap-1">

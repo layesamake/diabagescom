@@ -114,7 +114,8 @@ class ProductController extends Controller
             ->when($request->boolean('stocked'), fn ($q) => $q->whereIn('type', ['stockable', 'consumable']))
             ->search((string) $request->query('q', ''))
             ->orderBy('name')
-            ->limit(10)
+            // Champ vide : liste à parcourir (menu déroulant) ; sinon les 10 meilleurs résultats.
+            ->limit(trim((string) $request->query('q', '')) === '' ? 30 : 10)
             ->get();
 
         $available = $stock !== null

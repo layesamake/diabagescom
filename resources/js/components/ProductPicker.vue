@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ScanBarcode } from '@lucide/vue';
+import { ChevronDown, ScanBarcode } from '@lucide/vue';
 import { ref, watch } from 'vue';
+import { highlight, useCombobox } from '@/composables/useCombobox';
 import { Input } from '@/components/ui/input';
 import { t } from '@/i18n';
 import { lookupOffline, searchProductsOffline } from '@/offline/sync';
@@ -10,8 +11,10 @@ import { lookup, search } from '@/routes/products';
 export type PickedProduct = CatalogPickedProduct;
 
 /**
- * Sélection d'un article par recherche (nom, référence) ou par scan :
- * un lecteur de codes-barres « tape » le code puis Entrée → sélection directe.
+ * Sélection d'un article : liste déroulante au clic, recherche dès deux
+ * lettres (la première réponse est présélectionnée, Entrée la choisit),
+ * flèches du clavier, ou scan : un lecteur de codes-barres « tape » le code
+ * puis Entrée → sélection directe.
  */
 const props = defineProps<{
     inputId: string;
@@ -22,8 +25,11 @@ const emit = defineEmits<{ select: [product: PickedProduct] }>();
 
 const query = ref('');
 const results = ref<PickedProduct[]>([]);
-const open = ref(false);
 const notFound = ref(false);
+const { open, active, move, chooseActive, close } = useCombobox(
+    results,
+    (product) => choose(product),
+);
 let timer: ReturnType<typeof setTimeout> | undefined;
 
 async function fetchJson<T>(url: string): Promise<T | null> {
@@ -38,14 +44,9 @@ async function fetchJson<T>(url: string): Promise<T | null> {
 }
 
 async function runSearch(): Promise<void> {
-    const q = query.value.trim();
-
-    if (q.length < 2) {
-        results.value = [];
-        open.value = false;
-
-        return;
-    }
+    const typed = query.value.trim();
+    // Moins de deux lettres : toute la liste (par ordre alphabétique) à parcourir.
+    const q = typed.length < 2 ? '' : typed;
 
     // Hors connexion (ou réseau coupé) : catalogue local synchronisé.
     const data = navigator.onLine
@@ -65,10 +66,37 @@ async function runSearch(): Promise<void> {
         data?.products ?? (await searchProductsOffline(q, props.stockedOnly));
     notFound.value = results.value.length === 0;
     open.value = true;
+    // Texte saisi (pas un code numérique) : la première réponse est présélectionnée.
+    active.value =
+        q !== '' && !/^\d+$/.test(q) && results.value.length > 0 ? 0 : -1;
 }
 
-watch(query, () => {
+function browse(): void {
+    if (open.value) {
+        close();
+
+        return;
+    }
+
+    void runSearch();
+}
+
+function onBlur(): void {
+    // Laisse le temps au clic sur un article d'être pris en compte.
+    setTimeout(close, 150);
+}
+
+watch(query, (value) => {
     clearTimeout(timer);
+    // Chaque frappe annule la présélection : un scan ne prend jamais un article survolé.
+    active.value = -1;
+
+    if (value.trim() === '') {
+        close();
+
+        return;
+    }
+
     timer = setTimeout(runSearch, 250);
 });
 
@@ -78,7 +106,7 @@ function choose(product: PickedProduct, clear = true): void {
     if (clear) {
         query.value = '';
         results.value = [];
-        open.value = false;
+        close();
     }
 }
 
@@ -87,6 +115,11 @@ function choose(product: PickedProduct, clear = true): void {
 // rapide ne se colle pas au premier, et la réponse du premier n'efface pas la
 // saisie du second.
 async function onEnter(): Promise<void> {
+    // Un article mis en évidence (flèches ou première réponse) : on le prend.
+    if (chooseActive()) {
+        return;
+    }
+
     const code = query.value.trim();
 
     if (code === '') {
@@ -95,7 +128,7 @@ async function onEnter(): Promise<void> {
 
     clearTimeout(timer);
     query.value = '';
-    open.value = false;
+    close();
     const online = navigator.onLine
         ? await fetchJson<{
               product: PickedProduct & { unit_decimals: boolean };
@@ -152,54 +185,83 @@ async function onEnter(): Promise<void> {
             type="search"
             autocomplete="off"
             enterkeyhint="search"
-            class="h-11 pl-10"
+            class="h-11 pr-11 pl-10"
             role="combobox"
             :aria-expanded="open"
             :aria-controls="`${inputId}-list`"
+            :aria-activedescendant="
+                active >= 0 ? `${inputId}-opt-${active}` : undefined
+            "
             :placeholder="t('stock.picker')"
+            @click="open || runSearch()"
+            @blur="onBlur"
+            @keydown.down.prevent="open ? move(1) : runSearch()"
+            @keydown.up.prevent="move(-1)"
             @keydown.enter.prevent="onEnter"
-            @keydown.escape="open = false"
+            @keydown.escape="close()"
         />
+        <button
+            type="button"
+            tabindex="-1"
+            class="absolute top-1/2 right-1 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+            :aria-label="t('combobox.browse')"
+            @mousedown.prevent="browse"
+        >
+            <ChevronDown
+                class="size-4 transition-transform"
+                :class="{ 'rotate-180': open }"
+            />
+        </button>
         <ul
             v-if="open"
             :id="`${inputId}-list`"
             role="listbox"
-            class="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-md border bg-popover shadow-md"
+            class="absolute z-20 mt-1 max-h-80 w-full overflow-auto rounded-md border bg-popover py-1 text-popover-foreground shadow-md"
         >
             <li v-if="notFound" class="p-3 text-sm text-muted-foreground">
                 {{ t('stock.picker_none') }}
             </li>
             <li
-                v-for="product in results"
+                v-for="(product, index) in results"
+                :id="`${inputId}-opt-${index}`"
                 :key="product.id"
                 role="option"
-                :aria-selected="false"
+                :aria-selected="index === active"
+                :data-combobox-active="index === active"
+                class="flex min-h-11 cursor-pointer items-center gap-3 px-3 text-sm"
+                :class="index === active ? 'bg-accent' : 'hover:bg-accent/60'"
+                @mousedown.prevent="choose(product)"
+                @mouseenter="active = index"
             >
-                <button
-                    type="button"
-                    class="flex min-h-11 w-full items-center gap-3 px-3 text-left text-sm hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
-                    @click="choose(product)"
-                >
-                    <span class="min-w-0 flex-1 truncate">{{
-                        product.name
-                    }}</span>
-                    <span class="text-xs text-muted-foreground"
-                        >{{ product.sku }} · {{ product.unit
-                        }}<template
-                            v-if="
-                                product.available !== null &&
-                                product.available !== undefined
-                            "
-                        >
-                            ·
-                            {{
-                                t('pos.available', {
-                                    quantity: product.available,
-                                })
-                            }}</template
-                        ></span
+                <span class="min-w-0 flex-1 truncate">
+                    <template
+                        v-for="(part, i) in highlight(product.name, query)"
+                        :key="i"
                     >
-                </button>
+                        <mark
+                            v-if="part.match"
+                            class="rounded-sm bg-primary/25 font-semibold text-inherit"
+                            >{{ part.text }}</mark
+                        >
+                        <template v-else>{{ part.text }}</template>
+                    </template>
+                </span>
+                <span class="text-xs text-muted-foreground"
+                    >{{ product.sku }} · {{ product.unit
+                    }}<template
+                        v-if="
+                            product.available !== null &&
+                            product.available !== undefined
+                        "
+                    >
+                        ·
+                        {{
+                            t('pos.available', {
+                                quantity: product.available,
+                            })
+                        }}</template
+                    ></span
+                >
             </li>
         </ul>
     </div>
