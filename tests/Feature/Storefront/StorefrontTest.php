@@ -59,6 +59,14 @@ class StorefrontTest extends TestCase
                 ->where('products.data.0.category', 'Informatique'));
 
         $this->assertFalse(app(TenantContext::class)->has());
+
+        $this->get(route('storefront.show', ['slug' => 'tsi-informatique', 'q' => 'ordinateur']))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->count('products.data', 1)
+                ->where('products.data.0.id', $product->id));
+
+        $this->assertFalse(app(TenantContext::class)->has());
     }
 
     public function test_public_catalog_uses_its_owner_and_restores_the_previous_context(): void

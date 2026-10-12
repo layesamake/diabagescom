@@ -28,17 +28,20 @@ class PublicStorefrontController extends Controller
         $listings = StorefrontProduct::query()
             ->where('storefront_id', $storefront->id)->where('visible', true)
             ->orderBy('sort_order')->orderBy('id')->get();
-        $productQuery = Product::query()->withoutGlobalScopes()->with(['unit:id,code', 'category:id,name'])
-            ->where('tenant_id', $storefront->tenant_id)->where('active', true)->whereNull('archived_at')
-            ->whereIn('id', $listings->pluck('product_id'));
-        if ($q !== '') {
-            $productQuery->search($q);
-        }
         // Les relations unités/catégories restent filtrées par l'entreprise de la boutique,
         // même pour un visiteur sans session ou connecté à une autre entreprise.
         $productsById = app(TenantContext::class)->runAs(
             $storefront->tenant,
-            fn () => $productQuery->get()->keyBy('id'),
+            function () use ($storefront, $listings, $q) {
+                $productQuery = Product::query()->with(['unit:id,code', 'category:id,name'])
+                    ->where('tenant_id', $storefront->tenant_id)->where('active', true)->whereNull('archived_at')
+                    ->whereIn('id', $listings->pluck('product_id'));
+                if ($q !== '') {
+                    $productQuery->search($q);
+                }
+
+                return $productQuery->get()->keyBy('id');
+            },
         );
         $products = $listings->filter(fn (StorefrontProduct $listing) => $productsById->has($listing->product_id))
             ->map(function (StorefrontProduct $listing) use ($productsById, $slug): array {
