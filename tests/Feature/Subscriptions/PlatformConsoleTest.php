@@ -60,7 +60,7 @@ class PlatformConsoleTest extends TestCase
     {
         $this->actingAs($this->superAdmin())
             ->get(route('dashboard'))
-            ->assertRedirect(route('onboarding.create'));
+            ->assertRedirect(route('platform.dashboard'));
     }
 
     public function test_manual_actions_require_a_reason_and_are_audited_in_the_company_log(): void

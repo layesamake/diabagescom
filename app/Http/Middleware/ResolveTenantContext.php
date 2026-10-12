@@ -9,6 +9,7 @@ use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Context;
+use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -51,7 +52,8 @@ class ResolveTenantContext
 
             return $request->expectsJson()
                 ? response()->json(['message' => __('tenancy.no_company')], Response::HTTP_FORBIDDEN)
-                : redirect()->route('onboarding.create');
+                // Le propriétaire de la plateforme n'a pas d'entreprise : il atterrit sur sa console.
+                : redirect()->route(Gate::forUser($user)->allows('platform.tenants.manage') ? 'platform.dashboard' : 'onboarding.create');
         }
 
         $warehouseId = $request->session()->get(self::SESSION_WAREHOUSE);

@@ -22,6 +22,7 @@ use App\Http\Controllers\Inventory\TransferController;
 use App\Http\Controllers\Marketing\WelcomeController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\Platform\BillingConsoleController;
+use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
 use App\Http\Controllers\Platform\PlanController;
 use App\Http\Controllers\Platform\SupportController;
 use App\Http\Controllers\Platform\TenantController;
@@ -253,6 +254,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
 Route::bind('platformSubscription', fn (string $value) => TenantController::resolveSubscription($value));
 
 Route::middleware(['auth', 'verified', 'mfa.privileged'])->prefix('platform')->name('platform.')->group(function () {
+    Route::get('/', PlatformDashboardController::class)->name('dashboard');
     Route::get('tenants', [TenantController::class, 'index'])->name('tenants.index');
     Route::post('subscriptions/{platformSubscription}', [TenantController::class, 'updateSubscription'])
         ->middleware('throttle:30,1')

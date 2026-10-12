@@ -47,6 +47,7 @@ import { index as purchaseOrdersIndex } from '@/routes/purchases/orders';
 import { index as salesIndex } from '@/routes/sales';
 import { index as stockIndex } from '@/routes/stock';
 import { index as suppliersIndex } from '@/routes/suppliers';
+import { dashboard as platformDashboard } from '@/routes/platform';
 import { index as platformBilling } from '@/routes/platform/billing';
 import { index as platformPlans } from '@/routes/platform/plans';
 import { index as platformTenants } from '@/routes/platform/tenants';
@@ -194,6 +195,11 @@ const navGroups = computed<NavGroup[]>(() => {
             label: t('nav.group_platform'),
             items: page.props.platform?.can_access
                 ? [
+                      {
+                          title: t('platform.dashboard_title'),
+                          href: platformDashboard(),
+                          icon: LayoutGrid,
+                      },
                       {
                           title: t('platform.tenants_title'),
                           href: platformTenants(),
