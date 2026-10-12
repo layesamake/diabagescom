@@ -53,12 +53,11 @@ class PublicStorefrontController extends Controller
             $available = $available->filter(fn (StorefrontProduct $listing) => $productsById->get($listing->product_id)->category_id === $categoryId);
         }
         $products = $available->map(function (StorefrontProduct $listing) use ($productsById, $slug): array {
-                /** @var Product $product */
-                $product = $productsById->get($listing->product_id);
+            /** @var Product $product */
+            $product = $productsById->get($listing->product_id);
 
-                return $this->productData($listing, $product, $slug);
-            })
-            ->values();
+            return $this->productData($listing, $product, $slug);
+        })->values();
 
         return Inertia::render('storefront/Public', [
             'storefront' => ['name' => $storefront->tenant->display_name, ...$storefront->only(['slug', 'tagline', 'description', 'phone', 'email', 'whatsapp', 'address', 'opening_hours', 'accepts_orders', 'delivery_enabled'])],
