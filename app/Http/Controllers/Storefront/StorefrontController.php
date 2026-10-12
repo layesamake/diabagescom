@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers\Storefront;
 
+use App\Domain\Audit\AuditLog;
+use App\Domain\Sales\InvalidSalesOperation;
 use App\Domain\Storefront\StorefrontCatalog;
+use App\Domain\Storefront\StorefrontOrderConverter;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Http\Controllers\Controller;
@@ -11,8 +14,10 @@ use App\Models\Product;
 use App\Models\Storefront;
 use App\Models\StorefrontOrder;
 use App\Models\StorefrontProduct;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -118,17 +123,37 @@ class StorefrontController extends Controller
         ]);
     }
 
-    public function updateOrder(Request $request, StorefrontOrder $order, TenantContext $context, FeatureAccess $access): RedirectResponse
+    public function updateOrder(Request $request, StorefrontOrder $order, TenantContext $context, FeatureAccess $access, StorefrontOrderConverter $converter): RedirectResponse
     {
         Gate::authorize('sale.update_draft');
         $access->assertFeature($context->tenant(), FeatureAccess::FEATURE_ONLINE_STORE);
         abort_unless($order->storefront->tenant_id === $context->tenant()->id, 404);
         $data = $request->validate(['status' => ['required', 'in:'.implode(',', StorefrontOrder::STATUSES)]]);
-        $order->update([
-            'status' => $data['status'],
-            'confirmed_at' => in_array($data['status'], ['confirmed', 'preparing', 'ready', 'completed'], true) ? ($order->confirmed_at ?? now()) : $order->confirmed_at,
-            'completed_at' => $data['status'] === 'completed' ? now() : $order->completed_at,
-        ]);
+        /** @var User $actor */
+        $actor = $request->user();
+        $previous = $order->status;
+        $confirms = in_array($data['status'], ['confirmed', 'preparing', 'ready', 'completed'], true);
+
+        try {
+            DB::transaction(function () use ($order, $data, $previous, $confirms, $converter, $actor): void {
+                $order->update([
+                    'status' => $data['status'],
+                    'confirmed_at' => $confirms ? ($order->confirmed_at ?? now()) : $order->confirmed_at,
+                    'completed_at' => $data['status'] === 'completed' ? now() : $order->completed_at,
+                ]);
+
+                // Une commande confirmée entre dans le cœur de gestion : client + commande client en brouillon.
+                if ($confirms) {
+                    $converter->convert($order, $actor);
+                }
+
+                if ($previous !== $data['status']) {
+                    app(AuditLog::class)->record('storefront.order_status_changed', $order, before: ['status' => $previous], after: ['status' => $data['status']], actor: $actor);
+                }
+            });
+        } catch (InvalidSalesOperation $e) {
+            return back(303)->withErrors(['status' => $e->getMessage()]);
+        }
 
         return back(303);
     }

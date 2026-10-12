@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
+import { show as showSale } from '@/routes/sales';
 import {
     index as storefrontIndex,
     orders as storefrontOrders,
@@ -16,6 +17,7 @@ type Order = {
     customer_name: string;
     customer_phone: string;
     total: number;
+    sales_document_id: string | null;
     items_count: number;
     created_at: string;
 };
@@ -68,14 +70,20 @@ defineOptions({
                         {{ order.items_count }} article(s) ·
                         {{ order.total }} XOF
                     </p>
+                    <Link
+                        v-if="order.sales_document_id"
+                        :href="showSale(order.sales_document_id)"
+                        class="text-sm underline"
+                        >{{ t('storefront.open_sales_order') }}</Link
+                    >
                 </div>
                 <span class="text-sm font-medium">{{
                     statusLabel(order.status)
                 }}</span>
                 <Form
                     v-bind="updateOrder.form(order.id)"
-                    v-slot="{ processing }"
-                    class="flex items-center gap-2"
+                    v-slot="{ processing, errors }"
+                    class="flex flex-wrap items-center gap-2"
                     ><select
                         name="status"
                         :value="order.status"
@@ -94,7 +102,14 @@ defineOptions({
                         class="h-10"
                         :disabled="processing"
                         >{{ t('storefront.update_status') }}</Button
-                    ></Form
+                    >
+                    <p
+                        v-if="errors.status"
+                        class="w-full text-sm text-destructive"
+                        role="alert"
+                    >
+                        {{ errors.status }}
+                    </p></Form
                 >
             </div>
         </div>

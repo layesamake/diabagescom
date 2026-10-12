@@ -1091,6 +1091,7 @@ export const fr = {
         total: 'Total indicatif',
         status: 'Statut',
         update_status: 'Mettre à jour',
+        open_sales_order: 'Voir la commande client',
         order_new: 'Nouvelle',
         order_confirmed: 'Confirmée',
         order_preparing: 'En préparation',

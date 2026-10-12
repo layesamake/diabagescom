@@ -14,7 +14,7 @@ class StorefrontOrder extends Model
     public const array STATUSES = ['new', 'confirmed', 'preparing', 'ready', 'completed', 'rejected', 'cancelled'];
 
     protected $fillable = [
-        'tenant_id', 'storefront_id', 'number', 'status', 'customer_name', 'customer_phone',
+        'tenant_id', 'storefront_id', 'customer_id', 'sales_document_id', 'number', 'status', 'customer_name', 'customer_phone',
         'customer_email', 'delivery_address', 'fulfillment', 'notes', 'total', 'currency',
         'confirmed_at', 'completed_at',
     ];

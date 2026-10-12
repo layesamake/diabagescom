@@ -7,10 +7,14 @@ use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Http\Controllers\Storefront\PublicStorefrontController;
 use App\Http\Requests\Storefront\UpdateStorefrontRequest;
+use App\Domain\Storefront\StorefrontOrderConverter;
+use App\Models\Customer;
 use App\Models\Plan;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Storefront;
+use App\Models\SalesDocument;
+use App\Models\StorefrontOrder;
 use App\Models\StorefrontProduct;
 use App\Models\TaxRate;
 use App\Models\Tenant;
@@ -177,5 +181,62 @@ class StorefrontTest extends TestCase
                 ->count('products.data', 1)
                 ->where('products.data.0.id', $food->id));
         $this->assertNotSame($computer->id, $food->id);
+    }
+
+    public function test_confirmed_web_order_becomes_a_customer_order_once(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $product = $this->publish($setup['tenant'], 'tsi-informatique');
+        $context = app(TenantContext::class);
+        $context->set($setup['tenant'], $setup['membership'], $setup['warehouse']);
+        $order = StorefrontOrder::query()->create([
+            'tenant_id' => $setup['tenant']->id,
+            'storefront_id' => Storefront::query()->where('slug', 'tsi-informatique')->value('id'),
+            'number' => 'WEB-000001', 'status' => 'confirmed', 'customer_name' => 'Awa Ndiaye',
+            'customer_phone' => '771234567', 'fulfillment' => 'pickup', 'total' => 500000,
+        ]);
+        $order->items()->create([
+            'tenant_id' => $setup['tenant']->id, 'product_id' => $product->id, 'product_name' => 'Ordinateur',
+            'sku' => 'PC-001', 'quantity' => 2, 'unit_price' => 250000, 'subtotal' => 500000,
+        ]);
+        $converter = app(StorefrontOrderConverter::class);
+
+        $document = $converter->convert($order, $setup['user']);
+        $again = $converter->convert($order->fresh(), $setup['user']);
+
+        $this->assertSame($document->id, $again->id);
+        $this->assertSame(SalesDocument::ORDER, $document->type);
+        $this->assertSame(SalesDocument::DRAFT, $document->status);
+        $this->assertSame(500000, $document->total);
+        $this->assertSame(1, SalesDocument::query()->count());
+        $this->assertSame(1, Customer::query()->where('phone', '771234567')->count());
+        $fresh = $order->fresh();
+        $this->assertSame($document->id, $fresh->sales_document_id);
+        $this->assertSame($document->customer_id, $fresh->customer_id);
+    }
+
+    public function test_web_order_reuses_the_existing_customer_with_the_same_phone(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $product = $this->publish($setup['tenant'], 'tsi-informatique');
+        $context = app(TenantContext::class);
+        $context->set($setup['tenant'], $setup['membership'], $setup['warehouse']);
+        $customer = new Customer;
+        $customer->forceFill(['code' => 'C-001', 'name' => 'Awa Ndiaye', 'phone' => '771234567'])->save();
+        $order = StorefrontOrder::query()->create([
+            'tenant_id' => $setup['tenant']->id,
+            'storefront_id' => Storefront::query()->where('slug', 'tsi-informatique')->value('id'),
+            'number' => 'WEB-000002', 'status' => 'confirmed', 'customer_name' => 'A. Ndiaye',
+            'customer_phone' => '771234567', 'fulfillment' => 'pickup', 'total' => 250000,
+        ]);
+        $order->items()->create([
+            'tenant_id' => $setup['tenant']->id, 'product_id' => $product->id, 'product_name' => 'Ordinateur',
+            'sku' => 'PC-001', 'quantity' => 1, 'unit_price' => 250000, 'subtotal' => 250000,
+        ]);
+
+        $document = app(StorefrontOrderConverter::class)->convert($order, $setup['user']);
+
+        $this->assertSame($customer->id, $document->customer_id);
+        $this->assertSame(1, Customer::query()->count());
     }
 }
