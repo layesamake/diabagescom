@@ -254,6 +254,10 @@ function planFeatures(plan: Plan): { ok: boolean; text: string }[] {
 const pricesKnown = computed(() =>
     props.plans.some((plan) => plan.price_monthly !== null),
 );
+// Bascule mensuel/annuel seulement si au moins un prix annuel est fixé.
+const yearlyKnown = computed(() =>
+    props.plans.some((plan) => plan.price_yearly !== null),
+);
 </script>
 
 <template>
@@ -566,7 +570,7 @@ const pricesKnown = computed(() =>
                     </div>
 
                     <div
-                        v-if="pricesKnown"
+                        v-if="yearlyKnown"
                         class="mb-8 flex justify-center"
                         role="radiogroup"
                         aria-label="Période de facturation"
