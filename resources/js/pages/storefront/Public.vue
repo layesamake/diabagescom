@@ -15,6 +15,7 @@ type Product = {
     price: number;
     unit: string;
     image_url: string | null;
+    max_quantity: number | null;
 };
 type Storefront = {
     name: string;
@@ -48,6 +49,14 @@ onBeforeUnmount(() => {
     }
 });
 const cart = reactive<Record<string, number>>({});
+// Clé unique par commande : un double clic ou un renvoi ne crée qu'une commande.
+const idempotencyKey = crypto.randomUUID();
+// Piège à robots : champ caché, toujours vide pour une vraie personne.
+const website = ref('');
+const errors = ref<Record<string, string>>({});
+const canAdd = (product: Product) =>
+    product.max_quantity === null ||
+    (cart[product.id] ?? 0) < product.max_quantity;
 const customer = reactive({
     customer_name: '',
     customer_phone: '',
@@ -82,13 +91,22 @@ const browse = (category: string) =>
     );
 const submitSearch = () => browse(props.filters.category);
 const submitOrder = () =>
-    router.post(order(props.storefront.slug), {
-        ...customer,
-        items: cartLines.value.map((line) => ({
-            product_id: line.product.id,
-            quantity: line.quantity,
-        })),
-    });
+    router.post(
+        order(props.storefront.slug),
+        {
+            ...customer,
+            idempotency_key: idempotencyKey,
+            website: website.value,
+            items: cartLines.value.map((line) => ({
+                product_id: line.product.id,
+                quantity: line.quantity,
+            })),
+        },
+        {
+            onStart: () => (errors.value = {}),
+            onError: (bag) => (errors.value = bag),
+        },
+    );
 const whatsappUrl = computed(() =>
     props.storefront.whatsapp
         ? `https://wa.me/${props.storefront.whatsapp.replace(/\D/g, '')}`
@@ -202,8 +220,15 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                                 {{ format(product.price) }} XOF /
                                 {{ product.unit }}
                             </p>
+                            <p
+                                v-if="product.max_quantity === 0"
+                                class="text-sm font-medium text-red-700"
+                            >
+                                {{ t('storefront.public.out_of_stock') }}
+                            </p>
                             <Button
                                 class="h-10 w-full"
+                                :disabled="!canAdd(product)"
                                 @click="
                                     cart[product.id] =
                                         (cart[product.id] ?? 0) + 1
@@ -252,6 +277,15 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                         {{ t('storefront.total') }} : {{ format(total) }} XOF
                     </p>
                     <form class="mt-4 space-y-3" @submit.prevent="submitOrder">
+                        <input
+                            v-model="website"
+                            type="text"
+                            name="website"
+                            tabindex="-1"
+                            autocomplete="off"
+                            aria-hidden="true"
+                            class="absolute -left-[9999px] h-0 w-0 opacity-0"
+                        />
                         <div>
                             <Label for="customer_name">{{
                                 t('storefront.public.customer_name')
@@ -306,7 +340,16 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                             v-model="customer.notes"
                             :placeholder="t('storefront.public.notes')"
                             class="min-h-20 w-full rounded-md border bg-transparent p-3 text-sm"
-                        /><Button type="submit" class="h-11 w-full">{{
+                        />
+                        <p
+                            v-for="(message, field) in errors"
+                            :key="field"
+                            class="text-sm text-red-700"
+                            role="alert"
+                        >
+                            {{ message }}
+                        </p>
+                        <Button type="submit" class="h-11 w-full">{{
                             t('storefront.public.submit')
                         }}</Button>
                     </form>

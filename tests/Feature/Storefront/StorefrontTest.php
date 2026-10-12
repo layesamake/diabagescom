@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Storefront;
 
+use App\Domain\Inventory\MovementLine;
+use App\Domain\Inventory\Quantity;
+use App\Domain\Inventory\StockLedger;
 use App\Domain\Storefront\StorefrontCatalog;
 use App\Domain\Storefront\StorefrontOrderConverter;
 use App\Domain\Subscriptions\FeatureAccess;
@@ -22,6 +25,7 @@ use App\Models\Unit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class StorefrontTest extends TestCase
@@ -86,7 +90,7 @@ class StorefrontTest extends TestCase
         $request = Request::create(route('storefront.show', 'tsi-informatique'));
         $request->headers->set('X-Inertia', 'true');
 
-        $response = app(PublicStorefrontController::class)->show($request, 'tsi-informatique', app(FeatureAccess::class));
+        $response = app(PublicStorefrontController::class)->show($request, 'tsi-informatique', app(FeatureAccess::class), app(StorefrontStock::class));
         $data = json_decode($response->toResponse($request)->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
         $this->assertCount(1, $data['props']['products']['data']);
@@ -238,5 +242,95 @@ class StorefrontTest extends TestCase
 
         $this->assertSame($customer->id, $document->customer_id);
         $this->assertSame(1, Customer::query()->count());
+    }
+
+    /** @return array<string, mixed> */
+    private function orderPayload(Product $product, array $override = []): array
+    {
+        return array_merge([
+            'idempotency_key' => (string) Str::uuid(),
+            'customer_name' => 'Awa Ndiaye', 'customer_phone' => '771234567',
+            'fulfillment' => 'pickup', 'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ], $override);
+    }
+
+    private function stock(array $setup, Product $product, string $quantity): void
+    {
+        $context = app(TenantContext::class);
+        $context->set($setup['tenant'], $setup['membership'], $setup['warehouse']);
+        app(StockLedger::class)->post('initial', (string) Str::uuid(),
+            [new MovementLine($setup['warehouse']->id, $product->id, Quantity::of($quantity), 1000)], $setup['user']);
+        $context->clear();
+    }
+
+    public function test_order_is_refused_beyond_available_stock_and_stock_is_shown_publicly(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $product = $this->publish($setup['tenant'], 'tsi-informatique');
+        $this->stock($setup, $product, '3');
+
+        $this->get(route('storefront.show', 'tsi-informatique'))
+            ->assertInertia(fn ($page) => $page->where('products.data.0.max_quantity', 3));
+
+        $this->post(route('storefront.orders.store', 'tsi-informatique'), $this->orderPayload($product, ['items' => [['product_id' => $product->id, 'quantity' => 4]]]))
+            ->assertSessionHasErrors('items');
+        $this->assertSame(0, StorefrontOrder::query()->count());
+
+        $this->post(route('storefront.orders.store', 'tsi-informatique'), $this->orderPayload($product, ['items' => [['product_id' => $product->id, 'quantity' => 3]]]))
+            ->assertRedirect();
+        $this->assertSame(1, StorefrontOrder::query()->count());
+    }
+
+    public function test_out_of_stock_product_cannot_be_ordered(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $product = $this->publish($setup['tenant'], 'tsi-informatique');
+
+        $this->get(route('storefront.show', 'tsi-informatique'))
+            ->assertInertia(fn ($page) => $page->where('products.data.0.max_quantity', 0));
+        $this->post(route('storefront.orders.store', 'tsi-informatique'), $this->orderPayload($product))
+            ->assertSessionHasErrors('items');
+        $this->assertSame(0, StorefrontOrder::query()->count());
+    }
+
+    public function test_resubmitting_the_same_order_key_creates_a_single_order(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $product = $this->publish($setup['tenant'], 'tsi-informatique');
+        $this->stock($setup, $product, '10');
+        $payload = $this->orderPayload($product);
+
+        $first = $this->post(route('storefront.orders.store', 'tsi-informatique'), $payload);
+        $second = $this->post(route('storefront.orders.store', 'tsi-informatique'), $payload);
+
+        $this->assertSame(1, StorefrontOrder::query()->count());
+        $this->assertSame($first->headers->get('Location'), $second->headers->get('Location'));
+    }
+
+    public function test_honeypot_field_silently_discards_bot_orders(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $product = $this->publish($setup['tenant'], 'tsi-informatique');
+        $this->stock($setup, $product, '10');
+
+        $this->post(route('storefront.orders.store', 'tsi-informatique'), $this->orderPayload($product, ['website' => 'http://spam.example']))
+            ->assertRedirect(route('storefront.show', 'tsi-informatique'));
+        $this->assertSame(0, StorefrontOrder::query()->count());
+    }
+
+    public function test_a_phone_number_cannot_flood_the_storefront(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $product = $this->publish($setup['tenant'], 'tsi-informatique');
+        $this->stock($setup, $product, '100');
+        config(['diaba.storefront.orders_per_phone_per_hour' => 2]);
+
+        foreach (range(1, 2) as $ignored) {
+            $this->post(route('storefront.orders.store', 'tsi-informatique'), $this->orderPayload($product))->assertRedirect();
+        }
+        $this->post(route('storefront.orders.store', 'tsi-informatique'), $this->orderPayload($product))
+            ->assertSessionHasErrors('customer_phone');
+
+        $this->assertSame(2, StorefrontOrder::query()->count());
     }
 }

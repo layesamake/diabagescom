@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Storefront;
 
+use App\Domain\Storefront\StorefrontStock;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Http\Controllers\Catalog\CatalogImages;
@@ -11,6 +12,7 @@ use App\Models\Product;
 use App\Models\Storefront;
 use App\Models\StorefrontOrder;
 use App\Models\StorefrontProduct;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +23,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PublicStorefrontController extends Controller
 {
-    public function show(Request $request, string $slug, FeatureAccess $access): Response
+    public function show(Request $request, string $slug, FeatureAccess $access, StorefrontStock $stock): Response
     {
         $storefront = $this->activeStorefront($slug, $access);
         $q = trim((string) $request->query('q', ''));
@@ -52,11 +54,12 @@ class PublicStorefrontController extends Controller
         if ($categoryId !== '') {
             $available = $available->filter(fn (StorefrontProduct $listing) => $productsById->get($listing->product_id)->category_id === $categoryId);
         }
-        $products = $available->map(function (StorefrontProduct $listing) use ($productsById, $slug): array {
+        $availability = $stock->availability($storefront->tenant_id, $productsById->values()->all());
+        $products = $available->map(function (StorefrontProduct $listing) use ($productsById, $slug, $availability): array {
             /** @var Product $product */
             $product = $productsById->get($listing->product_id);
 
-            return $this->productData($listing, $product, $slug);
+            return $this->productData($listing, $product, $slug, $availability[$product->id] ?? null);
         })->values();
 
         return Inertia::render('storefront/Public', [
@@ -67,12 +70,29 @@ class PublicStorefrontController extends Controller
         ]);
     }
 
-    public function order(CreateStorefrontOrderRequest $request, string $slug, FeatureAccess $access): RedirectResponse
+    public function order(CreateStorefrontOrderRequest $request, string $slug, FeatureAccess $access, StorefrontStock $stock): RedirectResponse
     {
         $storefront = $this->activeStorefront($slug, $access);
         abort_unless($storefront->accepts_orders, 404);
-        /** @var array{customer_name: string, customer_phone: string, customer_email?: string|null, delivery_address?: string|null, fulfillment: string, notes?: string|null, items: list<array{product_id: string, quantity: int|float|string}>} $data */
+        // Piège à robots : ce champ caché reste vide pour un humain. On répond comme si tout allait bien, sans rien créer.
+        if (filled($request->input('website'))) {
+            return to_route('storefront.show', ['slug' => $slug]);
+        }
+        /** @var array{idempotency_key: string, customer_name: string, customer_phone: string, customer_email?: string|null, delivery_address?: string|null, fulfillment: string, notes?: string|null, items: list<array{product_id: string, quantity: int|float|string}>} $data */
         $data = $request->validated();
+        $key = $data['idempotency_key'];
+        // Double clic ou renvoi du formulaire : la même clé retrouve la commande déjà créée.
+        $existing = StorefrontOrder::query()->where('storefront_id', $storefront->id)->where('idempotency_key', $key)->first();
+        if ($existing !== null) {
+            return to_route('storefront.order.confirmation', ['slug' => $slug, 'order' => $existing->number]);
+        }
+
+        $recent = StorefrontOrder::query()->where('storefront_id', $storefront->id)
+            ->where('customer_phone', $data['customer_phone'])->where('created_at', '>=', now()->subHour())->count();
+        if ($recent >= (int) config('diaba.storefront.orders_per_phone_per_hour', 5)) {
+            throw ValidationException::withMessages(['customer_phone' => 'Trop de commandes avec ce numéro. Réessayez plus tard ou contactez la boutique.']);
+        }
+
         $ids = collect(array_values(array_unique(array_map(
             fn (array $item): string => $item['product_id'],
             $data['items'],
@@ -86,7 +106,38 @@ class PublicStorefrontController extends Controller
             throw ValidationException::withMessages(['items' => 'Un article sélectionné n’est plus disponible.']);
         }
 
-        $order = DB::transaction(function () use ($storefront, $data, $listings, $products): StorefrontOrder {
+        $available = $stock->availability($storefront->tenant_id, $products->values()->all());
+        $requested = [];
+        foreach ($data['items'] as $line) {
+            $requested[$line['product_id']] = ($requested[$line['product_id']] ?? 0) + (float) $line['quantity'];
+        }
+        foreach ($requested as $productId => $quantity) {
+            $max = $available[$productId] ?? null;
+            if ($max !== null && $quantity > $max) {
+                $name = $listings->get($productId)?->public_name ?: $products->get($productId)?->name;
+                throw ValidationException::withMessages(['items' => $max <= 0
+                    ? "{$name} est en rupture de stock."
+                    : "{$name} : seulement ".rtrim(rtrim(number_format($max, 3, '.', ''), '0'), '.').' disponible(s).']);
+            }
+        }
+
+        try {
+            $order = $this->createOrder($storefront, $data, $key, $listings, $products);
+        } catch (UniqueConstraintViolationException $e) {
+            $order = StorefrontOrder::query()->where('storefront_id', $storefront->id)->where('idempotency_key', $key)->first() ?? throw $e;
+        }
+
+        return to_route('storefront.order.confirmation', ['slug' => $slug, 'order' => $order->number]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  \Illuminate\Support\Collection<string, StorefrontProduct>  $listings
+     * @param  \Illuminate\Support\Collection<string, Product>  $products
+     */
+    private function createOrder(Storefront $storefront, array $data, string $key, $listings, $products): StorefrontOrder
+    {
+        return DB::transaction(function () use ($storefront, $data, $key, $listings, $products): StorefrontOrder {
             $number = $this->nextNumber($storefront->tenant_id);
             $items = [];
             $total = 0;
@@ -106,7 +157,7 @@ class PublicStorefrontController extends Controller
             }
             $order = StorefrontOrder::query()->create([
                 'tenant_id' => $storefront->tenant_id, 'storefront_id' => $storefront->id,
-                'number' => $number, 'status' => 'new', 'customer_name' => $data['customer_name'],
+                'number' => $number, 'idempotency_key' => $key, 'status' => 'new', 'customer_name' => $data['customer_name'],
                 'customer_phone' => $data['customer_phone'], 'customer_email' => $data['customer_email'] ?? null,
                 'delivery_address' => $data['delivery_address'] ?? null, 'fulfillment' => $data['fulfillment'],
                 'notes' => $data['notes'] ?? null, 'total' => $total,
@@ -115,8 +166,6 @@ class PublicStorefrontController extends Controller
 
             return $order;
         });
-
-        return to_route('storefront.order.confirmation', ['slug' => $slug, 'order' => $order->number]);
     }
 
     public function confirmation(string $slug, string $order, FeatureAccess $access): Response
@@ -147,7 +196,7 @@ class PublicStorefrontController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function productData(StorefrontProduct $listing, Product $product, string $slug): array
+    private function productData(StorefrontProduct $listing, Product $product, string $slug, ?float $available): array
     {
         return [
             'id' => $product->id, 'sku' => $product->sku,
@@ -156,6 +205,8 @@ class PublicStorefrontController extends Controller
             'category' => $product->category?->name,
             'price' => $listing->public_price ?? $product->sale_price,
             'unit' => $product->unit->code,
+            // null = pas de limite de stock (service) ; sinon quantité encore disponible (0 = rupture).
+            'max_quantity' => $available,
             'image_url' => $product->image_path ? route('storefront.products.image', [$slug, $product->id]) : null,
         ];
     }

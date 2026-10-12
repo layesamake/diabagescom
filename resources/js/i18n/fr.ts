@@ -1123,6 +1123,7 @@ export const fr = {
             cart_empty:
                 'Votre panier est vide. Touchez « Commander » sur un article.',
             all_categories: 'Toutes les catégories',
+            out_of_stock: 'Rupture de stock',
             categories: 'Catégories',
         },
     },

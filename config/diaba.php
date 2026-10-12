@@ -97,4 +97,8 @@ return [
         'testimonials' => [],
     ],
 
+    // Boutique en ligne publique : limite anti-spam par numéro de téléphone et par heure.
+    'storefront' => [
+        'orders_per_phone_per_hour' => 5,
+    ],
 ];
