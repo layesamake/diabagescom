@@ -34,4 +34,18 @@ class DashboardFiguresTest extends TestCase
             ->where('figures.receivables', 3500)
             ->has('figures.week', 7));
     }
+
+    public function test_the_start_checklist_ticks_itself_and_is_only_for_admins(): void
+    {
+        $setup = $this->createTenantWithMember();
+
+        $this->actingAs($setup['user'])->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page
+            ->where('checklist.0.key', 'product')->where('checklist.0.done', false));
+
+        $this->makeProduct($setup);
+        $this->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page->where('checklist.0.done', true));
+
+        $cashier = $this->member($setup, 'cashier');
+        $this->actingAs($cashier['user'])->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page->where('checklist', null));
+    }
 }

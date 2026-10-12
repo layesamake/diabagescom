@@ -26,6 +26,8 @@ import { index as stockIndex } from '@/routes/stock';
 import { show as subscriptionShow } from '@/routes/subscription';
 import { index as syncIndex } from '@/routes/sync';
 import { index as transfersIndex } from '@/routes/transfers';
+import StartChecklist from '@/components/StartChecklist.vue';
+import type { ChecklistStep } from '@/components/StartChecklist.vue';
 
 defineOptions({
     layout: {
@@ -48,6 +50,7 @@ const props = defineProps<{
         month: number;
         receivables: number | null;
     } | null;
+    checklist: ChecklistStep[] | null;
     alerts: {
         low_stock?: number;
         transfers_to_receive?: number;
@@ -225,6 +228,8 @@ const card = 'rounded-xl border bg-card p-5 text-card-foreground shadow-xs';
                 {{ t('dashboard.role', { role: context.role.name }) }}
             </p>
         </header>
+
+        <StartChecklist v-if="checklist" :steps="checklist" />
 
         <!-- Chiffres clés : rôles autorisés aux rapports uniquement -->
         <section

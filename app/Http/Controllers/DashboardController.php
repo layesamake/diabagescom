@@ -76,6 +76,7 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'figures' => $this->figures($context, $access),
+            'checklist' => $this->checklist($context),
             'alerts' => $alerts,
             'shortcuts' => [
                 'sell' => Gate::allows('sale.create') && Gate::allows('sale.validate'),
@@ -127,5 +128,33 @@ class DashboardController extends Controller
                 ->where('type', 'invoice')->where('status', 'validated')->whereIn('warehouse_id', $access->accessibleIds())
                 ->sum(DB::raw('GREATEST(total - amount_paid - amount_credited, 0)')) : null,
         ];
+    }
+
+    /**
+     * Premiers pas d'une nouvelle entreprise (administrateur) : chaque étape
+     * se coche d'elle-même dès qu'elle est réalisée. Null une fois tout fait.
+     *
+     * @return list<array{key: string, done: bool}>|null
+     */
+    private function checklist(TenantContext $context): ?array
+    {
+        if (! Gate::allows('organization.manage')) {
+            return null;
+        }
+
+        $tenant = $context->tenantId();
+        $exists = fn (string $table, ?callable $where = null): bool => DB::table($table)->where('tenant_id', $tenant)
+            ->when($where !== null, fn (Builder $q) => $where($q))->exists();
+
+        $steps = [
+            ['key' => 'product', 'done' => $exists('products')],
+            ['key' => 'stock', 'done' => $exists('inventory_movements')],
+            ['key' => 'cash', 'done' => $exists('cash_sessions')],
+            ['key' => 'sale', 'done' => $exists('sales_documents', fn (Builder $q) => $q->where('status', '<>', 'draft'))],
+            ['key' => 'team', 'done' => DB::table('tenant_memberships')->where('tenant_id', $tenant)->count() > 1],
+            ['key' => 'backup', 'done' => $exists('tenant_exports', fn (Builder $q) => $q->whereIn('status', ['ready', 'expired'])) || $exists('cloud_backup_connections')],
+        ];
+
+        return collect($steps)->every(fn (array $s) => $s['done']) ? null : $steps;
     }
 }

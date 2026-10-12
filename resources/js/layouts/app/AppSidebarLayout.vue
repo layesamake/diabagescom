@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppContent from '@/components/AppContent.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import MobileBottomNav from '@/components/MobileBottomNav.vue';
 import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
@@ -20,12 +21,17 @@ withDefaults(defineProps<Props>(), {
 <template>
     <AppShell variant="sidebar">
         <AppSidebar />
-        <AppContent variant="sidebar" class="min-w-0 overflow-x-clip">
+        <!-- Espace réservé en bas sur téléphone pour la barre de navigation. -->
+        <AppContent
+            variant="sidebar"
+            class="min-w-0 overflow-x-clip pb-20 md:pb-0"
+        >
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
             <SubscriptionBanner />
             <slot />
         </AppContent>
         <Toaster />
         <ConfirmDialog />
+        <MobileBottomNav />
     </AppShell>
 </template>

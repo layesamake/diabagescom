@@ -127,6 +127,98 @@ export const fr = {
             separator: 'Ou continuer avec votre e-mail',
         },
     },
+    help: {
+        button: 'Aide sur cette page',
+        title: 'À quoi sert cette page ?',
+        Dashboard:
+            'Votre tableau de bord : les ventes du jour, les actions les plus fréquentes et ce qui demande votre attention (stock bas, factures en retard, caisse à fermer).\nCliquez sur une alerte pour aller directement à la liste concernée.',
+        'sales/Pos':
+            "La vente au comptoir. Cherchez ou scannez un article : il s'ajoute au panier. Ajustez la quantité, choisissez le mode de paiement (espèces, Wave, Orange Money…), puis cliquez sur « Encaisser ».\nUne vente à crédit demande de choisir le client. Après l'encaissement, vous pouvez imprimer le ticket ou l'envoyer par WhatsApp.",
+        'sales/Documents':
+            "Tous vos documents de vente : factures, devis, commandes et avoirs. Utilisez les onglets pour passer de l'un à l'autre et la recherche pour retrouver un numéro ou un client.\n« Non soldées » affiche les factures qui restent à encaisser.",
+        'sales/DocumentForm':
+            'Préparez un devis, une commande ou une facture : choisissez le client, ajoutez les articles, puis enregistrez le brouillon.\nUn brouillon reste modifiable ; il reçoit un numéro définitif seulement quand vous le validez.',
+        'sales/DocumentShow':
+            "Le détail d'un document. Une facture validée ne se modifie plus : pour la corriger, créez un avoir.\nVous pouvez y enregistrer un paiement, imprimer le ticket, télécharger le PDF ou le partager par WhatsApp ou e-mail.",
+        'cash/Registers':
+            "Vos caisses. Ouvrez une caisse en début de journée en indiquant le fond de caisse ; toutes les ventes en espèces s'y ajoutent.\nEn fin de journée, fermez-la en comptant l'argent : l'écart éventuel est enregistré.",
+        'cash/SessionShow':
+            'Le suivi de la caisse ouverte : encaissements par mode de paiement, dépenses et argent attendu dans le tiroir.\nPour fermer la caisse, comptez les billets et pièces et saisissez le total.',
+        'catalog/Products':
+            "Vos articles. Ajoutez-les un par un avec « Nouvel article », ou importez votre liste depuis un fichier Excel (CSV).\nUn article archivé n'apparaît plus à la vente mais reste dans l'historique.",
+        'catalog/ProductForm':
+            "La fiche d'un article : nom, prix de vente, unité, taxe et photo. Le code-barres permet de le retrouver en le scannant.\nLe coût d'achat se calcule tout seul à partir de vos réceptions.",
+        'catalog/Parties':
+            "Vos clients ou vos fournisseurs. Le plafond de crédit d'un client limite ce qu'il peut acheter sans payer tout de suite.",
+        'catalog/ProductImport':
+            "Importez vos articles depuis un fichier Excel enregistré en CSV. Un aperçu vérifie chaque ligne avant d'enregistrer quoi que ce soit.",
+        'inventory/Stock':
+            "Les quantités en stock par dépôt. Utilisez « Entrée de stock » pour saisir votre stock de départ ou une réception sans commande.\nLes articles sous leur seuil d'alerte sont signalés.",
+        'inventory/Movements':
+            "L'historique de tout ce qui est entré ou sorti du stock : ventes, achats, transferts, inventaires et corrections. Rien n'y est jamais effacé.",
+        'inventory/Transfers':
+            "Les transferts entre dépôts. Le dépôt de départ expédie, celui d'arrivée réceptionne : le stock ne bouge qu'à ces deux moments.",
+        'inventory/Counts':
+            "Les inventaires. Comptez ce qu'il y a réellement en rayon ; à la validation, les écarts sont corrigés dans le stock.",
+        'purchases/Orders':
+            'Vos commandes aux fournisseurs. Une commande confirmée est ensuite réceptionnée, en une ou plusieurs fois : le stock augmente à la réception.',
+        'purchases/OrderForm':
+            "Préparez une commande : choisissez le fournisseur, le dépôt de livraison et les articles avec leur prix d'achat.",
+        'purchases/Invoices':
+            'Les factures de vos fournisseurs. Une facture validée peut être réglée en une ou plusieurs fois.',
+        'reports/Sales':
+            "Vos chiffres de vente sur la période choisie : chiffre d'affaires, ventes par jour, par dépôt, par vendeur et par mode de paiement, meilleurs articles.\nVous pouvez exporter les ventes par jour dans Excel.",
+        'accounting/Overview':
+            "La comptabilité de l'entreprise. Les ventes, achats et paiements y sont enregistrés automatiquement. Faites valider les réglages par votre expert-comptable.",
+        'settings/Members':
+            "Les personnes qui utilisent l'application avec vous. Chacune a son propre compte, un rôle qui définit ce qu'elle peut faire, et les dépôts où elle travaille.\nUne personne suspendue ne peut plus se connecter, mais son historique reste.",
+        'settings/Backup':
+            "Téléchargez une copie complète de vos données, ou reliez votre Google Drive pour une sauvegarde automatique.\nUne sauvegarde peut être restaurée dans une nouvelle entreprise, sans toucher à l'existante.",
+        'settings/Warehouses':
+            'Vos dépôts et points de vente. Chaque dépôt a son propre stock et sa propre caisse.',
+        'settings/Audit':
+            'Le journal de toutes les actions importantes : qui a fait quoi et quand. Il ne peut pas être modifié.',
+        'sync/Queue':
+            'Les ventes faites sans connexion Internet. Elles sont envoyées automatiquement dès que la connexion revient.\nSi une vente est refusée (stock insuffisant, par exemple), vous pouvez la corriger ici.',
+    },
+    mobile_nav: {
+        label: 'Navigation principale',
+        sell: 'Vendre',
+        menu: 'Menu',
+    },
+    checklist: {
+        title: 'Bien démarrer avec DIABA GESCOM',
+        progress: '{done} étape(s) sur {total} terminée(s)',
+        hide: 'Masquer cette liste',
+        done: 'terminé',
+        todo: 'à faire',
+        steps: {
+            product: {
+                title: 'Ajouter vos articles',
+                hint: 'Nom, prix de vente, et photo si vous voulez.',
+            },
+            stock: {
+                title: 'Saisir votre stock',
+                hint: 'Indiquez les quantités que vous avez en magasin.',
+            },
+            cash: {
+                title: 'Ouvrir la caisse',
+                hint: 'Comptez le fond de caisse du jour.',
+            },
+            sale: {
+                title: 'Faire votre première vente',
+                hint: 'Au comptoir : cherchez l’article, encaissez, imprimez le ticket.',
+            },
+            team: {
+                title: 'Inviter un collaborateur',
+                hint: 'Vendeur, gestionnaire de stock ou comptable.',
+            },
+            backup: {
+                title: 'Sauvegarder vos données',
+                hint: 'Une copie sur votre ordinateur ou votre Google Drive.',
+            },
+        },
+    },
     team: {
         nav: 'Collaborateurs',
         page_title: 'Collaborateurs',
