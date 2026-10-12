@@ -140,10 +140,7 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
             <ul
                 class="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3 text-sm"
             >
-                <li
-                    v-for="item in menu"
-                    :key="item.id"
-                >
+                <li v-for="item in menu" :key="item.id">
                     <button
                         type="button"
                         class="inline-flex min-h-11 items-center whitespace-nowrap rounded-full border px-4"
