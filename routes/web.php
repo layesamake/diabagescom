@@ -19,6 +19,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Inventory\CountController;
 use App\Http\Controllers\Inventory\StockController;
 use App\Http\Controllers\Inventory\TransferController;
+use App\Http\Controllers\Marketing\WelcomeController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\Platform\BillingConsoleController;
 use App\Http\Controllers\Platform\PlanController;
@@ -40,7 +41,9 @@ use App\Http\Controllers\SyncController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'Welcome')->name('home');
+Route::get('/', WelcomeController::class)->name('home');
+Route::get('sitemap.xml', [WelcomeController::class, 'sitemap'])->name('sitemap');
+Route::get('robots.txt', [WelcomeController::class, 'robots'])->name('robots');
 
 // Pages légales publiques (versions provisoires, à faire valider par un juriste).
 Route::inertia('confidentialite', 'legal/Privacy')->name('legal.privacy');

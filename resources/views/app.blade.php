@@ -38,6 +38,17 @@
         <meta name="theme-color" content="#002456">
         <meta name="application-name" content="DIABA GESCOM">
         <meta property="og:site_name" content="DIABA GESCOM">
+        @isset($meta)
+            {{-- Pages publiques : lues par Google et par les aperçus WhatsApp/Facebook sans JavaScript. --}}
+            <meta name="description" content="{{ $meta['description'] }}">
+            <link rel="canonical" href="{{ $meta['canonical'] }}">
+            <meta property="og:type" content="website">
+            <meta property="og:locale" content="fr_SN">
+            <meta property="og:title" content="{{ $meta['title'] }}">
+            <meta property="og:description" content="{{ $meta['description'] }}">
+            <meta property="og:url" content="{{ $meta['canonical'] }}">
+            <meta name="twitter:card" content="summary_large_image">
+        @endisset
         <meta property="og:image" content="{{ url('/brand/og-diaba-gescom.png') }}">
         <meta property="og:image:alt" content="DIABA GESCOM">
         <meta property="og:image:width" content="1200">
@@ -47,7 +58,7 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         <x-inertia::head>
-            <title>{{ config('app.name', 'Laravel') }}</title>
+            <title>{{ $meta['title'] ?? config('app.name', 'Laravel') }}</title>
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

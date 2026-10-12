@@ -75,4 +75,22 @@ return [
         ],
     ],
 
+    /*
+     * Page d'accueil publique. Coordonnées commerciales à fournir par le
+     * propriétaire : tant qu'elles sont vides, le bouton correspondant est masqué.
+     */
+    'marketing' => [
+        // Numéro WhatsApp au format international sans « + » (ex. 221771234567).
+        'whatsapp' => env('DIABA_SALES_WHATSAPP'),
+        'email' => env('DIABA_CONTACT_EMAIL', 'etiennesamake@gmail.com'),
+
+        // Indexation par les moteurs de recherche : à activer en production
+        // seulement, pour que dev.diaba.cloud n'apparaisse jamais dans Google.
+        'indexable' => (bool) env('DIABA_SEARCH_INDEXING', false),
+
+        // Témoignages réels fournis par le propriétaire (aucun témoignage
+        // inventé) : ['quote' => '…', 'name' => '…', 'business' => '…'].
+        'testimonials' => [],
+    ],
+
 ];
