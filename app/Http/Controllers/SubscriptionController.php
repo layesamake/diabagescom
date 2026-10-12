@@ -6,6 +6,7 @@ use App\Domain\Billing\ProviderRegistry;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Models\Plan;
+use App\Models\SaasCreditNote;
 use App\Models\SaasInvoice;
 use App\Models\SaasPayment;
 use Illuminate\Support\Facades\Gate;
@@ -43,7 +44,7 @@ class SubscriptionController extends Controller
                 ->filter(fn ($a) => is_array($a) && ($a['price_monthly'] !== null || $a['price_yearly'] !== null))
                 ->map(fn (array $a, string $code) => ['code' => $code, 'label' => $a['label'], 'price_monthly' => $a['price_monthly'], 'price_yearly' => $a['price_yearly']])
                 ->values(),
-            'invoices' => $canManage ? SaasInvoice::query()->with('plan:id,name')->latest()->limit(12)->get()
+            'invoices' => $canManage ? SaasInvoice::query()->with(['plan:id,name', 'creditNotes'])->latest()->limit(12)->get()
                 ->map(fn (SaasInvoice $i) => [
                     'id' => $i->id,
                     'number' => $i->number,
@@ -56,11 +57,16 @@ class SubscriptionController extends Controller
                     'paid_at' => $i->paid_at?->toIso8601String(),
                     'period_end' => $i->period_end?->toIso8601String(),
                     'payments' => SaasPayment::query()->where('invoice_id', $i->id)->latest()->get()
-                        ->map(fn (SaasPayment $p) => ['provider' => $p->provider, 'status' => $p->status, 'reference' => $p->external_reference, 'amount' => $p->amount])
+                        ->map(fn (SaasPayment $p) => [
+                            'id' => $p->id, 'provider' => $p->provider, 'status' => $p->status, 'reference' => $p->external_reference, 'amount' => $p->amount,
+                            'declared_reference' => $p->declared_reference, 'declared_at' => $p->declared_at?->toIso8601String(), 'has_proof' => $p->proof_path !== null,
+                        ])
                         ->values(),
+                    'credit_notes' => $i->creditNotes->map(fn (SaasCreditNote $n) => ['id' => $n->id, 'number' => $n->number, 'amount' => $n->amount, 'reason' => $n->reason])->values(),
                 ]) : [],
             'providers' => $providers->available(),
             'transferInstructions' => config('billing.transfer_instructions'),
+            'waveNumber' => config('billing.wave_number'),
             'can' => ['manage' => $canManage],
         ]);
     }

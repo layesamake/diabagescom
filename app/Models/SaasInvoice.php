@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Domain\Tenancy\BelongsToTenant;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,6 +35,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonImmutable|null $created_at
  * @property-read Plan $plan
  * @property-read Tenant $tenant
+ * @property-read Collection<int, SaasCreditNote> $creditNotes
  */
 class SaasInvoice extends Model
 {
@@ -77,5 +79,13 @@ class SaasInvoice extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(SaasPayment::class, 'invoice_id');
+    }
+
+    /**
+     * @return HasMany<SaasCreditNote, $this>
+     */
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(SaasCreditNote::class, 'invoice_id');
     }
 }

@@ -47,7 +47,7 @@ final class TenantExporter
 
     /** Tables volontairement exclues (voir le commentaire de la classe). */
     public const array EXCLUDED = [
-        'subscriptions', 'subscription_addons', 'saas_invoices', 'saas_payments', 'support_grants',
+        'subscriptions', 'subscription_addons', 'saas_invoices', 'saas_payments', 'saas_credit_notes', 'support_grants',
         'offline_devices', 'sync_commands', 'catalog_imports', 'tenant_exports', 'tenant_restores', 'cloud_backup_connections',
     ];
 

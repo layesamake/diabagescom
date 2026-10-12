@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { router, usePage } from '@inertiajs/vue3';
-import { CreditCard, FileText } from '@lucide/vue';
+import { router, useForm, usePage } from '@inertiajs/vue3';
+import { CreditCard, Download, FileText, Smartphone } from '@lucide/vue';
 import { computed, reactive, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -9,11 +9,14 @@ import { Label } from '@/components/ui/label';
 import { t } from '@/i18n';
 import { formatDate } from '@/lib/dates';
 import { formatXof } from '@/lib/money';
+import { show as creditNoteRoute } from '@/routes/billing/credit-notes';
 import {
     pay as payRoute,
+    receipt as receiptRoute,
     store as invoiceStore,
     voidMethod as voidRoute,
 } from '@/routes/billing/invoices';
+import { declare as declareRoute } from '@/routes/billing/payments';
 import type { PlanOption } from '@/types';
 import { askText } from '@/composables/useConfirm';
 
@@ -34,12 +37,24 @@ type Invoice = {
     paid_at: string | null;
     period_end: string | null;
     payments: {
+        id: string;
         provider: string;
         status: string;
         reference: string;
         amount: number;
+        declared_reference: string | null;
+        declared_at: string | null;
+        has_proof: boolean;
+    }[];
+    credit_notes: {
+        id: string;
+        number: string;
+        amount: number;
+        reason: string;
     }[];
 };
+
+type Payment = Invoice['payments'][number];
 
 const props = defineProps<{
     plans: PlanOption[];
@@ -53,6 +68,7 @@ const props = defineProps<{
     invoices: Invoice[];
     providers: string[];
     transferInstructions: string | null;
+    waveNumber: string | null;
 }>();
 
 const page = usePage();
@@ -78,6 +94,30 @@ const form = reactive({
 const open = computed(
     () => props.invoices.find((i) => i.status === 'open') ?? null,
 );
+// Virement ou envoi Wave en attente : le client déclare sa transaction.
+const pendingManual = computed<Payment[]>(
+    () =>
+        open.value?.payments.filter(
+            (p) => p.status === 'pending_manual_review',
+        ) ?? [],
+);
+const declareForm = useForm<{ reference: string; proof: File | null }>({
+    reference: '',
+    proof: null,
+});
+
+function declarePayment(payment: Payment): void {
+    declareForm.post(declareRoute(payment.id).url, {
+        forceFormData: true,
+        preserveScroll: true,
+        onSuccess: () => declareForm.reset(),
+    });
+}
+
+function onProof(event: Event): void {
+    declareForm.proof = (event.target as HTMLInputElement).files?.[0] ?? null;
+}
+
 const selected = computed(() => priced.value.find((p) => p.code === form.plan));
 const estimate = computed(() => {
     const plan = selected.value;
@@ -159,24 +199,89 @@ const statusClass: Record<Invoice['status'], string> = {
                     {{ formatXof(line.amount) }}
                 </li>
             </ul>
-            <p
-                v-for="payment in open.payments.filter(
-                    (p) => p.status === 'pending_manual_review',
-                )"
-                :key="payment.reference"
-                class="rounded-md bg-muted p-2 text-sm"
+            <div
+                v-for="payment in pendingManual"
+                :key="payment.id"
+                class="space-y-2 rounded-md bg-muted p-3 text-sm"
             >
-                {{
-                    t('billing.transfer_pending', {
-                        reference: payment.reference,
-                    })
-                }}
-                <span
-                    v-if="transferInstructions"
-                    class="block whitespace-pre-line"
-                    >{{ transferInstructions }}</span
+                <p v-if="payment.provider === 'wave_manual' && waveNumber">
+                    {{
+                        t('billing.wave_pending', {
+                            amount: formatXof(payment.amount),
+                            number: waveNumber,
+                            reference: payment.reference,
+                        })
+                    }}
+                </p>
+                <p v-else>
+                    {{
+                        t('billing.transfer_pending', {
+                            reference: payment.reference,
+                        })
+                    }}
+                    <span
+                        v-if="transferInstructions"
+                        class="block whitespace-pre-line"
+                        >{{ transferInstructions }}</span
+                    >
+                </p>
+                <p
+                    v-if="payment.declared_at"
+                    class="font-medium text-success-soft-foreground"
                 >
-            </p>
+                    {{
+                        t('billing.declared', {
+                            date: formatDate(payment.declared_at),
+                            reference: payment.declared_reference ?? '',
+                        })
+                    }}
+                </p>
+                <form
+                    v-else
+                    class="grid gap-2 sm:grid-cols-2"
+                    @submit.prevent="declarePayment(payment)"
+                >
+                    <p class="font-medium sm:col-span-2">
+                        {{ t('billing.declare_title') }}
+                    </p>
+                    <div class="grid gap-1">
+                        <Label :for="`declare-ref-${payment.id}`">{{
+                            t('billing.declare_reference')
+                        }}</Label>
+                        <Input
+                            :id="`declare-ref-${payment.id}`"
+                            v-model="declareForm.reference"
+                            class="h-11 bg-background"
+                            required
+                            minlength="3"
+                            maxlength="120"
+                        />
+                        <InputError :message="declareForm.errors.reference" />
+                    </div>
+                    <div class="grid gap-1">
+                        <Label :for="`declare-proof-${payment.id}`">{{
+                            t('billing.declare_proof')
+                        }}</Label>
+                        <Input
+                            :id="`declare-proof-${payment.id}`"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                            class="h-11 bg-background"
+                            @change="onProof"
+                        />
+                        <span class="text-xs text-muted-foreground">{{
+                            t('billing.declare_proof_hint')
+                        }}</span>
+                        <InputError :message="declareForm.errors.proof" />
+                    </div>
+                    <Button
+                        type="submit"
+                        class="h-11 sm:col-span-2 sm:justify-self-start"
+                        :disabled="declareForm.processing"
+                        >{{ t('billing.declare_submit') }}</Button
+                    >
+                </form>
+            </div>
             <div class="flex flex-wrap gap-2">
                 <Button
                     v-for="provider in providers"
@@ -186,10 +291,12 @@ const statusClass: Record<Invoice['status'], string> = {
                     :disabled="processing"
                     @click="pay(open, provider)"
                 >
-                    <CreditCard
-                        v-if="provider !== 'transfer'"
+                    <FileText v-if="provider === 'transfer'" class="size-4" />
+                    <Smartphone
+                        v-else-if="provider === 'wave_manual'"
                         class="size-4"
-                    /><FileText v-else class="size-4" />
+                    />
+                    <CreditCard v-else class="size-4" />
                     {{
                         t(
                             `billing.providers.${provider}` as 'billing.providers.transfer',
@@ -304,6 +411,25 @@ const statusClass: Record<Invoice['status'], string> = {
                     class="rounded px-2 py-0.5 text-xs"
                     :class="statusClass[invoice.status]"
                     >{{ t(`billing.status.${invoice.status}`) }}</span
+                >
+                <a
+                    v-if="invoice.status === 'paid'"
+                    :href="receiptRoute(invoice.id).url"
+                    class="inline-flex min-h-10 items-center gap-1 text-primary underline-offset-4 hover:underline"
+                    ><Download class="size-4" />{{ t('billing.receipt') }}</a
+                >
+                <a
+                    v-for="note in invoice.credit_notes"
+                    :key="note.id"
+                    :href="creditNoteRoute(note.id).url"
+                    :title="note.reason"
+                    class="inline-flex min-h-10 items-center gap-1 text-primary underline-offset-4 hover:underline"
+                    ><Download class="size-4" />{{
+                        t('billing.credit_note_label', {
+                            number: note.number,
+                            amount: formatXof(note.amount),
+                        })
+                    }}</a
                 >
             </li>
         </ul>

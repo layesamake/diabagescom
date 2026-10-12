@@ -32,6 +32,7 @@ defineProps<{
     invoices: InstanceType<typeof BillingPanel>['$props']['invoices'];
     providers: string[];
     transferInstructions: string | null;
+    waveNumber: string | null;
     can: { manage: boolean };
 }>();
 
@@ -121,6 +122,7 @@ const limitLabel = (limit: number | null): string =>
             :invoices="invoices"
             :providers="providers"
             :transfer-instructions="transferInstructions"
+            :wave-number="waveNumber"
         />
         <p
             v-else

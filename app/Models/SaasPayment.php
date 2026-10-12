@@ -10,7 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Tentative de paiement d'une facture SaaS auprès d'un prestataire
- * (bac à sable, Wave, Orange Money, carte) ou par virement validé manuellement.
+ * (bac à sable, Wave, Orange Money, carte) ou par paiement manuel (virement,
+ * envoi Wave au numéro de DIABA GESCOM) déclaré par le client puis validé par
+ * le super-administrateur.
  *
  * @property string $id
  * @property string $tenant_id
@@ -26,6 +28,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $created_by
  * @property string|null $verified_by
  * @property CarbonImmutable|null $verified_at
+ * @property string|null $declared_reference
+ * @property string|null $proof_path
+ * @property CarbonImmutable|null $declared_at
+ * @property string|null $declared_by
  * @property CarbonImmutable|null $created_at
  * @property-read SaasInvoice $invoice
  */
@@ -45,13 +51,16 @@ class SaasPayment extends Model
 
     public const string REQUIRES_REVIEW = 'requires_review';
 
+    /** Moyens réglés hors prestataire, validés à la main avec justificatif. */
+    public const array MANUAL_PROVIDERS = ['transfer', 'wave_manual'];
+
     protected $guarded = [];
 
     protected $attributes = ['status' => self::PENDING];
 
     protected function casts(): array
     {
-        return ['amount' => 'integer', 'verified_at' => 'datetime'];
+        return ['amount' => 'integer', 'verified_at' => 'datetime', 'declared_at' => 'datetime'];
     }
 
     /**

@@ -26,6 +26,16 @@ return [
     // Comptes de virement affichés au client (à renseigner par le propriétaire).
     'transfer_instructions' => env('BILLING_TRANSFER_INSTRUCTIONS'),
 
+    // Numéro Wave du propriétaire : le client y envoie le montant avec la référence,
+    // puis déclare son paiement ; validation manuelle (vide = moyen non proposé).
+    'wave_number' => env('BILLING_WAVE_NUMBER'),
+
+    // Émetteur affiché sur les reçus et avoirs.
+    'issuer' => [
+        'name' => env('BILLING_ISSUER_NAME', 'DIABA GESCOM'),
+        'details' => env('BILLING_ISSUER_DETAILS'),
+    ],
+
     'providers' => [
         // Simulation complète du parcours (paiement, webhook signé, rejeu) sans argent réel.
         'sandbox' => [

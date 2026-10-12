@@ -136,7 +136,7 @@ class TenantController extends Controller
                 ]),
             'history' => AuditEvent::query()->with('actor:id,name')->where('tenant_id', $tenant->id)
                 ->where(fn ($q) => $q->where('action', 'like', 'subscription.%')->orWhere('action', 'like', 'support.access_%'))
-                ->latest('created_at')->limit(50)->get()
+                ->latest('created_at')->orderByDesc('id')->limit(50)->get()
                 ->map(fn (AuditEvent $e) => [
                     'id' => $e->id,
                     'action' => $e->action,

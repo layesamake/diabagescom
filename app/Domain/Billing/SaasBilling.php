@@ -8,6 +8,7 @@ use App\Domain\Tenancy\TenantContext;
 use App\Domain\Tenancy\TenantScope;
 use App\Models\PaymentProviderEvent;
 use App\Models\Plan;
+use App\Models\SaasCreditNote;
 use App\Models\SaasInvoice;
 use App\Models\SaasPayment;
 use App\Models\Tenant;
@@ -15,7 +16,9 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -154,9 +157,10 @@ final class SaasBilling
             'created_by' => $actor?->id,
         ]);
 
-        if ($provider === 'transfer') {
-            // Virement : référence unique à indiquer, validation manuelle du super-administrateur.
-            $payment->external_reference = 'VIR-'.$invoice->number.'-'.Str::upper(Str::random(4));
+        if (in_array($provider, SaasPayment::MANUAL_PROVIDERS, true)) {
+            // Virement ou envoi Wave : référence unique à indiquer, validation manuelle du super-administrateur.
+            $prefix = $provider === 'wave_manual' ? 'WAV-' : 'VIR-';
+            $payment->external_reference = $prefix.$invoice->number.'-'.Str::upper(Str::random(4));
             $payment->status = SaasPayment::MANUAL_REVIEW;
         } else {
             $gateway = app(ProviderRegistry::class)->get($provider);
@@ -269,7 +273,114 @@ final class SaasBilling
     }
 
     /**
-     * Virement reçu sur le compte : validation par le super-administrateur avec justificatif.
+     * Le client indique avoir payé (référence de transaction, capture ou reçu
+     * facultatif). Rien n'est activé : le super-administrateur vérifie la
+     * réception des fonds puis valide.
+     */
+    public function declarePayment(SaasPayment $payment, string $reference, ?UploadedFile $proof, User $actor): SaasPayment
+    {
+        return DB::transaction(function () use ($payment, $reference, $proof, $actor): SaasPayment {
+            /** @var SaasPayment $locked */
+            $locked = SaasPayment::query()->withoutGlobalScope(TenantScope::class)->lockForUpdate()->findOrFail($payment->id);
+
+            if (! in_array($locked->provider, SaasPayment::MANUAL_PROVIDERS, true) || $locked->status !== SaasPayment::MANUAL_REVIEW) {
+                throw new InvalidBillingOperation(__('billing.errors.not_transfer'));
+            }
+
+            if ($proof !== null) {
+                $previous = $locked->proof_path;
+                $locked->proof_path = $proof->storeAs(
+                    'saas-proofs/'.$locked->tenant_id,
+                    $locked->id.'-'.Str::lower(Str::random(6)).'.'.$proof->extension(),
+                    'local',
+                ) ?: null;
+
+                if ($previous !== null && $previous !== $locked->proof_path) {
+                    Storage::disk('local')->delete($previous);
+                }
+            }
+
+            $locked->declared_reference = trim($reference);
+            $locked->declared_at = now()->toImmutable();
+            $locked->declared_by = $actor->id;
+            $locked->save();
+
+            $this->audit->record('billing.payment_declared', $locked,
+                after: ['reference' => $locked->declared_reference, 'proof' => $locked->proof_path !== null],
+                actor: $actor, tenant: Tenant::query()->findOrFail($locked->tenant_id));
+
+            return $locked;
+        });
+    }
+
+    /**
+     * Paiement manuel non reçu (référence introuvable, montant différent) : refusé
+     * avec motif ; le client peut relancer un paiement.
+     */
+    public function rejectManualPayment(SaasPayment $payment, string $reason, User $actor): SaasPayment
+    {
+        return DB::transaction(function () use ($payment, $reason, $actor): SaasPayment {
+            /** @var SaasPayment $locked */
+            $locked = SaasPayment::query()->withoutGlobalScope(TenantScope::class)->lockForUpdate()->findOrFail($payment->id);
+
+            if (! in_array($locked->provider, SaasPayment::MANUAL_PROVIDERS, true) || $locked->status !== SaasPayment::MANUAL_REVIEW) {
+                throw new InvalidBillingOperation(__('billing.errors.not_transfer'));
+            }
+
+            $locked->status = SaasPayment::CANCELLED;
+            $locked->failure_reason = trim($reason);
+            $locked->save();
+
+            $this->audit->record('billing.payment_rejected', $locked, metadata: ['reason' => trim($reason)],
+                actor: $actor, tenant: Tenant::query()->findOrFail($locked->tenant_id));
+
+            return $locked;
+        });
+    }
+
+    /**
+     * Avoir sur une facture payée, plafonné au montant restant de la facture.
+     * L'abonnement n'est pas modifié : une suspension éventuelle reste une action distincte.
+     */
+    public function issueCreditNote(SaasInvoice $invoice, int $amount, string $reason, User $actor): SaasCreditNote
+    {
+        return DB::transaction(function () use ($invoice, $amount, $reason, $actor): SaasCreditNote {
+            $invoice = $this->lockInvoice($invoice->id);
+
+            if ($invoice->status !== SaasInvoice::PAID) {
+                throw new InvalidBillingOperation(__('billing.errors.credit_not_paid'));
+            }
+
+            $credited = (int) SaasCreditNote::query()->withoutGlobalScope(TenantScope::class)->where('invoice_id', $invoice->id)->sum('amount');
+
+            if ($amount <= 0 || $amount > $invoice->total - $credited) {
+                throw new InvalidBillingOperation(__('billing.errors.credit_amount', ['max' => $invoice->total - $credited]));
+            }
+
+            $sequence = (int) DB::selectOne('SELECT nextval(\'saas_credit_note_number_seq\') AS n')->n;
+            $tenant = $this->tenantOf($invoice);
+
+            $note = new SaasCreditNote;
+            $note->forceFill([
+                'tenant_id' => $invoice->tenant_id,
+                'invoice_id' => $invoice->id,
+                'number' => sprintf('AV-%d-%06d', now()->year, $sequence),
+                'amount' => $amount,
+                'reason' => trim($reason),
+                'created_by' => $actor->id,
+            ]);
+            $this->context->runAs($tenant, fn () => $note->save());
+
+            $this->audit->record('billing.credit_note_issued', $note,
+                after: ['number' => $note->number, 'invoice' => $invoice->number, 'amount' => $amount],
+                metadata: ['reason' => trim($reason)], actor: $actor, tenant: $tenant);
+
+            return $note;
+        });
+    }
+
+    /**
+     * Paiement manuel reçu (virement, Wave) : validation par le super-administrateur avec justificatif.
      */
     public function confirmTransfer(SaasPayment $payment, string $proofReference, User $actor): SaasPayment
     {
@@ -281,7 +392,7 @@ final class SaasBilling
             /** @var SaasPayment $locked */
             $locked = SaasPayment::query()->withoutGlobalScope(TenantScope::class)->lockForUpdate()->findOrFail($payment->id);
 
-            if ($locked->provider !== 'transfer' || ! in_array($locked->status, [SaasPayment::MANUAL_REVIEW, SaasPayment::SUCCEEDED], true)) {
+            if (! in_array($locked->provider, SaasPayment::MANUAL_PROVIDERS, true) || ! in_array($locked->status, [SaasPayment::MANUAL_REVIEW, SaasPayment::SUCCEEDED], true)) {
                 throw new InvalidBillingOperation(__('billing.errors.not_transfer'));
             }
 

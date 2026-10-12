@@ -77,6 +77,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::post('billing/invoices', [BillingController::class, 'store'])->middleware('throttle:10,1')->name('billing.invoices.store');
     Route::post('billing/invoices/{invoice}/void', [BillingController::class, 'void'])->whereUuid('invoice')->name('billing.invoices.void');
     Route::post('billing/invoices/{invoice}/pay', [BillingController::class, 'pay'])->whereUuid('invoice')->middleware('throttle:10,1')->name('billing.invoices.pay');
+    Route::get('billing/invoices/{invoice}/receipt', [BillingController::class, 'receipt'])->whereUuid('invoice')->name('billing.invoices.receipt');
+    Route::get('billing/credit-notes/{creditNote}', [BillingController::class, 'creditNote'])->whereUuid('creditNote')->name('billing.credit-notes.show');
+    Route::post('billing/payments/{payment}/declare', [BillingController::class, 'declare'])->whereUuid('payment')->middleware('throttle:10,1')->name('billing.payments.declare');
     Route::get('settings/warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
     Route::post('settings/warehouses', [WarehouseController::class, 'store'])->name('warehouses.store');
     Route::get('settings/audit', [AuditController::class, 'index'])->name('audit.index');
@@ -265,6 +268,12 @@ Route::middleware(['auth', 'verified', 'mfa.privileged'])->prefix('platform')->n
     Route::get('billing', [BillingConsoleController::class, 'index'])->name('billing.index');
     Route::post('billing/payments/{payment}/confirm', [BillingConsoleController::class, 'confirmTransfer'])->whereUuid('payment')->name('billing.payments.confirm');
     Route::post('billing/invoices/{invoice}/void', [BillingConsoleController::class, 'voidInvoice'])->whereUuid('invoice')->name('billing.invoices.void');
+    Route::get('billing/payments/{payment}/proof', [BillingConsoleController::class, 'proof'])->whereUuid('payment')->name('billing.payments.proof');
+    Route::post('billing/payments/{payment}/reject', [BillingConsoleController::class, 'rejectPayment'])->whereUuid('payment')->name('billing.payments.reject');
+    Route::post('billing/invoices/{invoice}/credit-notes', [BillingConsoleController::class, 'issueCreditNote'])->whereUuid('invoice')->middleware('throttle:20,1')->name('billing.credit-notes.store');
+    Route::get('billing/invoices/{invoice}/receipt', [BillingConsoleController::class, 'receipt'])->whereUuid('invoice')->name('billing.invoices.receipt');
+    Route::get('billing/credit-notes/{creditNote}', [BillingConsoleController::class, 'creditNote'])->whereUuid('creditNote')->name('billing.credit-notes.show');
+    Route::get('billing/export', [BillingConsoleController::class, 'export'])->name('billing.export');
     Route::post('tenants/{tenant}/support', [SupportController::class, 'grant'])->whereUuid('tenant')->middleware('throttle:10,1')->name('support.grant');
     Route::get('tenants/{tenant}/support', [SupportController::class, 'show'])->whereUuid('tenant')->name('support.show');
     Route::post('tenants/{tenant}/support/revoke', [SupportController::class, 'revoke'])->whereUuid('tenant')->name('support.revoke');

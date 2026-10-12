@@ -30,13 +30,18 @@ final class ProviderRegistry
     }
 
     /**
-     * Moyens proposés au client : prestataires actifs + virement.
+     * Moyens proposés au client : prestataires actifs, envoi Wave au numéro de
+     * DIABA GESCOM (s'il est renseigné) et virement.
      *
      * @return list<string>
      */
     public function available(): array
     {
         $codes = array_keys(array_filter($this->providers, fn (BillingProvider $p) => $p->isEnabled()));
+
+        if (filled(config('billing.wave_number'))) {
+            $codes[] = 'wave_manual';
+        }
 
         return [...$codes, 'transfer'];
     }
