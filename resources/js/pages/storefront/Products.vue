@@ -58,10 +58,17 @@ defineOptions({
                 v-for="tab in [
                     { key: '', label: t('storefront.filter_all') },
                     { key: 'draft', label: t('storefront.status_draft') },
-                    { key: 'published', label: t('storefront.status_published') },
+                    {
+                        key: 'published',
+                        label: t('storefront.status_published'),
+                    },
                 ]"
                 :key="tab.key"
-                :href="storefrontProducts({ query: tab.key ? { status: tab.key } : {} })"
+                :href="
+                    storefrontProducts({
+                        query: tab.key ? { status: tab.key } : {},
+                    })
+                "
                 class="inline-flex min-h-11 items-center rounded-md border px-4 text-sm"
                 :class="
                     filters.status === tab.key
