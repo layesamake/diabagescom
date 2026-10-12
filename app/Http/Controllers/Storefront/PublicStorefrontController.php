@@ -15,7 +15,7 @@ use App\Models\StorefrontProduct;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use IlluminateSupportCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -133,8 +133,8 @@ class PublicStorefrontController extends Controller
 
     /**
      * @param  array<string, mixed>  $data
-     * @param  \Illuminate\Support\Collection<string, StorefrontProduct>  $listings
-     * @param  \Illuminate\Support\Collection<string, Product>  $products
+     * @param  Collection<string, StorefrontProduct>  $listings
+     * @param  Collection<string, Product>  $products
      */
     private function createOrder(Storefront $storefront, array $data, string $key, $listings, $products): StorefrontOrder
     {
