@@ -150,9 +150,8 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                                 : 'bg-white text-slate-900 hover:bg-slate-100'
                         "
                         @click="browse(item.id)"
+                        >{{ item.name }}</button
                     >
-                        {{ item.name }}
-                    </button>
                 </li>
             </ul>
         </nav>
