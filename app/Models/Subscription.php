@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Domain\Tenancy\BelongsToTenant;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,6 +51,41 @@ class Subscription extends Model
             'current_period_end' => 'datetime',
             'status_changed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Filtre SQL sur le statut effectif, mêmes règles que SubscriptionClock::effective()
+     * (un essai ou une période échus passent en lecture seule, puis en suspension).
+     *
+     * @param  Builder<Subscription>  $query
+     */
+    public function scopeEffectiveStatus(Builder $query, string $status, ?CarbonImmutable $now = null): void
+    {
+        $now ??= CarbonImmutable::now();
+        $graceStart = $now->subDays((int) config('diaba.subscriptions.read_only_days'));
+
+        $lapsed = fn (Builder $q, string $stored, string $column, bool $beyondGrace) => $q
+            ->where('status', $stored)
+            ->where($column, '<=', $now)
+            ->where($column, $beyondGrace ? '<=' : '>', $graceStart);
+
+        match ($status) {
+            self::TRIALING => $query->where('status', self::TRIALING)
+                ->where(fn (Builder $q) => $q->whereNull('trial_ends_at')->orWhere('trial_ends_at', '>', $now)),
+            self::ACTIVE => $query->where('status', self::ACTIVE)
+                ->where(fn (Builder $q) => $q->whereNull('current_period_end')->orWhere('current_period_end', '>', $now)),
+            self::READ_ONLY => $query->where(fn (Builder $q) => $q
+                ->where(fn (Builder $q) => $q->where('status', self::READ_ONLY)
+                    ->where(fn (Builder $q) => $q->whereNull('read_only_ends_at')->orWhere('read_only_ends_at', '>', $now)))
+                ->orWhere(fn (Builder $q) => $lapsed($q, self::TRIALING, 'trial_ends_at', false))
+                ->orWhere(fn (Builder $q) => $lapsed($q, self::ACTIVE, 'current_period_end', false))),
+            self::SUSPENDED => $query->where(fn (Builder $q) => $q
+                ->where('status', self::SUSPENDED)
+                ->orWhere(fn (Builder $q) => $q->where('status', self::READ_ONLY)->where('read_only_ends_at', '<=', $now))
+                ->orWhere(fn (Builder $q) => $lapsed($q, self::TRIALING, 'trial_ends_at', true))
+                ->orWhere(fn (Builder $q) => $lapsed($q, self::ACTIVE, 'current_period_end', true))),
+            default => $query->where('status', $status),
+        };
     }
 
     /**

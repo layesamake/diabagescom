@@ -89,7 +89,7 @@ final class PlatformMetrics
             ],
             'churn_this_month' => $this->churnedSince($monthStart),
             'collected' => [
-                'this_month' => $this->collectedBetween($monthStart, $now),
+                'this_month' => $this->collectedBetween($monthStart, $monthStart->addMonth()),
                 'last_month' => $this->collectedBetween($previousMonthStart, $monthStart),
             ],
             'unpaid' => [

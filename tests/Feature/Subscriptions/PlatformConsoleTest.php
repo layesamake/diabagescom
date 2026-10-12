@@ -41,6 +41,56 @@ class PlatformConsoleTest extends TestCase
                 ->where('tenants.data.0.subscription.status', 'trialing'));
     }
 
+    public function test_companies_can_be_filtered_by_effective_status_and_plan(): void
+    {
+        $expired = $this->createTenantWithMember(plan: 'essential');
+        $this->subscriptionOf($expired)->forceFill(['trial_ends_at' => now()->subDays(2)])->save();
+        $trialing = $this->createTenantWithMember();
+        $admin = $this->superAdmin();
+
+        // Essai échu sans passage de la tâche planifiée : déjà en lecture seule.
+        $this->actingAs($admin)->get(route('platform.tenants.index', ['status' => 'read_only']))
+            ->assertInertia(fn ($page) => $page
+                ->has('tenants.data', 1)
+                ->where('tenants.data.0.id', $expired['tenant']->id)
+                ->where('filters.status', 'read_only'));
+
+        $this->actingAs($admin)->get(route('platform.tenants.index', ['status' => 'trialing']))
+            ->assertInertia(fn ($page) => $page->has('tenants.data', 1)->where('tenants.data.0.id', $trialing['tenant']->id));
+
+        $this->actingAs($admin)->get(route('platform.tenants.index', ['plan' => 'essential']))
+            ->assertInertia(fn ($page) => $page->has('tenants.data', 1)->where('tenants.data.0.id', $expired['tenant']->id));
+
+        // Un statut inconnu est ignoré.
+        $this->actingAs($admin)->get(route('platform.tenants.index', ['status' => 'nope']))
+            ->assertInertia(fn ($page) => $page->has('tenants.data', 2)->where('filters.status', ''));
+    }
+
+    public function test_company_record_shows_usage_contacts_and_subscription_history(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $admin = $this->superAdmin();
+
+        $this->actingAs($admin)->post(route('platform.subscriptions.update', $this->subscriptionOf($setup)->id), [
+            'action' => 'extend_trial', 'days' => 5, 'reason' => 'Démonstration prolongée',
+        ])->assertSessionHasNoErrors();
+
+        $this->actingAs($admin)->get(route('platform.tenants.show', $setup['tenant']->id))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('platform/TenantShow')
+                ->where('tenant.name', $setup['tenant']->display_name)
+                ->where('subscription.status', 'trialing')
+                ->where('usage.users', 1)
+                ->where('usage.warehouses', 1)
+                ->where('contacts.0.email', $setup['user']->email)
+                ->where('history.0.action', 'subscription.trial_extended')
+                ->where('history.0.reason', 'Démonstration prolongée')
+                ->where('canManageBilling', true));
+
+        $this->actingAs($setup['user'])->get(route('platform.tenants.show', $setup['tenant']->id))->assertForbidden();
+    }
+
     public function test_super_admin_must_use_mfa(): void
     {
         $this->actingAs($this->superAdmin(mfa: false))

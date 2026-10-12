@@ -256,6 +256,7 @@ Route::bind('platformSubscription', fn (string $value) => TenantController::reso
 Route::middleware(['auth', 'verified', 'mfa.privileged'])->prefix('platform')->name('platform.')->group(function () {
     Route::get('/', PlatformDashboardController::class)->name('dashboard');
     Route::get('tenants', [TenantController::class, 'index'])->name('tenants.index');
+    Route::get('tenants/{tenant}', [TenantController::class, 'show'])->whereUuid('tenant')->name('tenants.show');
     Route::post('subscriptions/{platformSubscription}', [TenantController::class, 'updateSubscription'])
         ->middleware('throttle:30,1')
         ->name('subscriptions.update');
