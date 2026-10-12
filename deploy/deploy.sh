@@ -18,8 +18,8 @@ OPERATOR="${2:-unknown}"
 [[ "$OPERATOR" =~ ^[A-Za-z0-9._-]{1,64}$ ]] || OPERATOR="invalid"
 
 PREV_VERSION="$(cat .current-version 2>/dev/null || true)"
-HEALTH_URL="$(sed -n 's/^DIABA_DOMAIN=//p' .env | tr -d '"')"
-HEALTH_URL="https://${HEALTH_URL}/up"
+HEALTH_BASE_URL="$(sed -n 's/^DIABA_DOMAIN=//p' .env | tr -d '"')"
+HEALTH_BASE_URL="https://${HEALTH_BASE_URL}"
 LOG_FILE="deployments.log"
 
 log_deploy() {
@@ -30,7 +30,9 @@ log_deploy() {
 
 wait_healthy() {
     for _ in $(seq 1 30); do
-        if curl -fsS --max-time 5 -o /dev/null "$HEALTH_URL"; then
+        if curl -fsS --max-time 5 -o /dev/null "${HEALTH_BASE_URL}/up" \
+            && curl -fsS --max-time 5 -o /dev/null "${HEALTH_BASE_URL}/" \
+            && curl -fsS --max-time 5 -o /dev/null "${HEALTH_BASE_URL}/login"; then
             return 0
         fi
         sleep 4
