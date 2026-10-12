@@ -2,6 +2,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ArrowLeft, Lock, ShoppingCart } from '@lucide/vue';
 import { computed, reactive, ref } from 'vue';
+import CashCountWizard from '@/components/CashCountWizard.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,6 @@ import { close as closeRoute, index as cashIndex } from '@/routes/cash';
 import { store as movementStore } from '@/routes/cash/movements';
 import { create as posCreate } from '@/routes/pos';
 import { show as salesShow } from '@/routes/sales';
-import { confirmAction } from '@/composables/useConfirm';
 
 type MovementType =
     | 'customer_payment'
@@ -115,35 +115,17 @@ function addMovement(): void {
     );
 }
 
-const counted = ref('');
-const note = ref('');
-const difference = computed(() =>
-    counted.value.trim() === ''
-        ? null
-        : parseAmount(counted.value) - s.value.summary.drawer,
-);
-
-async function close(): Promise<void> {
-    if (
-        await confirmAction({
-            title: t('cash.close_confirm'),
-            confirmLabel: t('confirm.close'),
-            tone: 'primary',
-        })
-    ) {
-        router.post(
-            closeRoute(s.value.id).url,
-            {
-                counted_amount: parseAmount(counted.value),
-                note: note.value || null,
-            },
-            {
-                preserveScroll: true,
-                onStart: () => (processing.value = true),
-                onFinish: () => (processing.value = false),
-            },
-        );
-    }
+// Fermeture guidée : le comptage et la confirmation se font dans l'assistant.
+function close(counted: number, note: string | null): void {
+    router.post(
+        closeRoute(s.value.id).url,
+        { counted_amount: counted, note },
+        {
+            preserveScroll: true,
+            onStart: () => (processing.value = true),
+            onFinish: () => (processing.value = false),
+        },
+    );
 }
 </script>
 
@@ -172,6 +154,11 @@ async function close(): Promise<void> {
                 ><Link
                     :href="posCreate({ query: { warehouse: s.warehouse.id } })"
                     ><ShoppingCart class="size-4" />{{ t('cash.sell') }}</Link
+                ></Button
+            >
+            <Button v-if="can.close" as-child variant="outline" class="h-11"
+                ><a href="#close-cash"
+                    ><Lock class="size-4" />{{ t('cash.close_title') }}</a
                 ></Button
             >
         </div>
@@ -386,54 +373,15 @@ async function close(): Promise<void> {
             }}</Button>
         </section>
 
-        <section v-if="can.close" class="space-y-3 rounded-lg border p-4">
-            <h2 class="font-semibold">{{ t('cash.close_title') }}</h2>
-            <p class="text-sm">
-                {{ t('cash.expected') }} :
-                <strong class="tabular-nums">{{
-                    formatXof(s.summary.drawer)
-                }}</strong>
-            </p>
-            <div class="grid gap-3 sm:grid-cols-2">
-                <div class="grid gap-1">
-                    <Label for="counted">{{ t('cash.counted') }}</Label>
-                    <Input
-                        id="counted"
-                        v-amount
-                        v-model="counted"
-                        inputmode="numeric"
-                        class="h-11 tabular-nums"
-                    />
-                    <p
-                        v-if="difference !== null"
-                        class="text-sm"
-                        :class="
-                            difference !== 0
-                                ? 'text-destructive'
-                                : 'text-success'
-                        "
-                    >
-                        {{ t('cash.difference') }} : {{ formatXof(difference) }}
-                    </p>
-                </div>
-                <div v-if="difference" class="grid gap-1">
-                    <Label for="close-note">{{ t('cash.closing_note') }}</Label>
-                    <Input
-                        id="close-note"
-                        v-model="note"
-                        maxlength="500"
-                        class="h-11"
-                    />
-                </div>
-            </div>
-            <InputError :message="errors.counted_amount ?? errors.business" />
-            <Button
-                variant="destructive"
-                class="h-11"
-                :disabled="processing || counted.trim() === ''"
-                @click="close"
-                ><Lock class="size-4" />{{ t('cash.close') }}</Button
-            >
-        </section>
+        <CashCountWizard
+            v-if="can.close"
+            id="close-cash"
+            class="scroll-mt-4"
+            :expected="s.summary.drawer"
+            :by-method="s.summary.by_method"
+            :processing="processing"
+            :error="errors.counted_amount ?? errors.note ?? errors.business"
+            @submit="close"
+        />
     </div>
 </template>
