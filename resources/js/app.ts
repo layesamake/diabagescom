@@ -6,6 +6,7 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 import { initializeRequestErrors } from '@/lib/requestErrors';
 import { registerServiceWorker } from '@/offline/serviceWorker';
+import { vAmount } from '@/lib/amountDirective';
 
 const appName = import.meta.env.VITE_APP_NAME || 'DIABA GESCOM';
 
@@ -27,6 +28,7 @@ void createInertiaApp({
         }
     },
     withApp: (app) => {
+        app.directive('amount', vAmount);
         app.directive('focus', {
             mounted: (el: HTMLElement, shouldFocus) => {
                 if (shouldFocus.value !== false) {

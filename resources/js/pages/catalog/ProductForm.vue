@@ -31,6 +31,7 @@ import {
     store as imageStore,
 } from '@/routes/products/image';
 import type { Option, ProductDetail, TaxRateOption, UnitOption } from '@/types';
+import { confirmAction } from '@/composables/useConfirm';
 
 const props = defineProps<{
     product: ProductDetail | null;
@@ -69,12 +70,18 @@ function formatRate(bp: number): string {
     return `${(bp / 100).toLocaleString('fr-FR')} %`;
 }
 
-function removeBarcode(id: string, code: string): void {
+async function removeBarcode(id: string, code: string): Promise<void> {
     if (!props.product) {
         return;
     }
 
-    if (window.confirm(t('catalog.remove_barcode', { code }))) {
+    if (
+        await confirmAction({
+            title: t('catalog.remove_barcode', { code }) + ' ?',
+            confirmLabel: t('confirm.remove'),
+            tone: 'danger',
+        })
+    ) {
         router.delete(
             barcodeDestroy({ product: props.product.id, barcode: id }).url,
             { preserveScroll: true },

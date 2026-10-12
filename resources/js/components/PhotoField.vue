@@ -6,6 +6,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { t } from '@/i18n';
+import { confirmAction } from '@/composables/useConfirm';
 
 /**
  * Photo d'un article ou d'une catégorie : aperçu, envoi d'un fichier ou prise de
@@ -55,8 +56,14 @@ function upload(event: Event): void {
     );
 }
 
-function remove(): void {
-    if (window.confirm(t('photo.remove_confirm'))) {
+async function remove(): Promise<void> {
+    if (
+        await confirmAction({
+            title: t('photo.remove_confirm'),
+            confirmLabel: t('confirm.remove'),
+            tone: 'danger',
+        })
+    ) {
         router.delete(props.removeUrl, { preserveScroll: true });
     }
 }

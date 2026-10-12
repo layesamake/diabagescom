@@ -15,6 +15,7 @@ import {
     voidMethod as voidRoute,
 } from '@/routes/billing/invoices';
 import type { PlanOption } from '@/types';
+import { askText } from '@/composables/useConfirm';
 
 type Invoice = {
     id: string;
@@ -115,8 +116,13 @@ function pay(invoice: Invoice, provider: string): void {
     );
 }
 
-function cancel(invoice: Invoice): void {
-    const reason = window.prompt(t('billing.void_reason'))?.trim();
+async function cancel(invoice: Invoice): Promise<void> {
+    const reason = await askText({
+        title: t('confirm.void_title'),
+        input: { label: t('billing.void_reason'), required: true },
+        confirmLabel: t('confirm.void'),
+        tone: 'danger',
+    });
 
     if (reason) {
         router.post(voidRoute(invoice.id).url, { reason }, options);

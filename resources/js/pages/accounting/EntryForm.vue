@@ -189,6 +189,7 @@ function submit(): void {
                     }}</Label>
                     <Input
                         :id="`d-${index}`"
+                        v-amount
                         v-model="line.debit"
                         inputmode="numeric"
                         class="h-11 tabular-nums"
@@ -201,6 +202,7 @@ function submit(): void {
                     }}</Label>
                     <Input
                         :id="`c-${index}`"
+                        v-amount
                         v-model="line.credit"
                         inputmode="numeric"
                         class="h-11 tabular-nums"

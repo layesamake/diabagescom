@@ -127,6 +127,32 @@ export const fr = {
             separator: 'Ou continuer avec votre e-mail',
         },
     },
+    empty: {
+        products:
+            'Ajoutez votre premier article avec le bouton « Nouvel article », ou importez votre liste depuis un fichier Excel (CSV).',
+        sales: 'Vos ventes apparaîtront ici. Pour commencer, faites une vente au comptoir ou préparez un devis.',
+        stock: 'Le stock apparaît dès qu’un article entre en stock : réception d’un achat ou saisie du stock initial.',
+        purchases:
+            'Créez une commande pour un fournisseur, puis réceptionnez la marchandise : le stock se met à jour tout seul.',
+        cash: 'Ouvrez la caisse en indiquant le fond de caisse pour commencer à encaisser.',
+    },
+    confirm: {
+        ok: 'Confirmer',
+        cancel: 'Non, revenir',
+        validate: 'Oui, valider',
+        remove: 'Oui, retirer',
+        close: 'Oui, fermer',
+        clear: 'Oui, vider',
+        revoke: 'Oui, révoquer',
+        discard: 'Oui, abandonner',
+        ship: 'Oui, expédier',
+        credit: 'Oui, émettre l’avoir',
+        resend: 'Renvoyer la vente',
+        logout: 'Me déconnecter quand même',
+        void: 'Annuler la facture',
+        void_title: 'Annuler cette facture d’abonnement ?',
+        negative_title: 'Vendre sans stock suffisant ?',
+    },
     restore: {
         page_title: 'Restaurer une sauvegarde',
         title: 'Restaurer une sauvegarde',

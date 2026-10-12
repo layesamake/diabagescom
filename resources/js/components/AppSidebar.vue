@@ -17,7 +17,7 @@ import {
     Users,
     Wallet,
 } from '@lucide/vue';
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
 import type { NavGroup } from '@/components/NavMain.vue';
@@ -30,6 +30,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { t } from '@/i18n';
 import { useAppContext } from '@/composables/useAppContext';
@@ -53,6 +54,20 @@ import type { NavItem } from '@/types';
 
 const page = usePage();
 const { can } = useAppContext();
+const { isMobile, setOpen, setOpenMobile } = useSidebar();
+
+// Après un choix dans le menu, le volet laisse la place à la page : fermé sur
+// téléphone, réduit aux icônes sur tablette et petit écran (moins de 1280 px).
+watch(
+    () => page.url,
+    () => {
+        if (isMobile.value) {
+            setOpenMobile(false);
+        } else if (window.matchMedia('(max-width: 1279px)').matches) {
+            setOpen(false);
+        }
+    },
+);
 
 // Rubriques regroupées par métier, affichées selon les permissions
 // (le serveur revérifie tout) ; un groupe vide n'est pas affiché.

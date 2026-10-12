@@ -18,6 +18,7 @@ import {
 import { store as paymentStore } from '@/routes/purchases/invoices/payments';
 import { show as orderShow } from '@/routes/purchases/orders';
 import { show as receiptShow } from '@/routes/purchases/receipts';
+import { confirmAction } from '@/composables/useConfirm';
 
 type Method = 'cash' | 'wave' | 'orange_money' | 'card' | 'transfer' | 'cheque';
 
@@ -95,8 +96,14 @@ const options = {
     onFinish: () => (processing.value = false),
 };
 
-function validateInvoice(): void {
-    if (window.confirm(t('purchases.validate_confirm'))) {
+async function validateInvoice(): Promise<void> {
+    if (
+        await confirmAction({
+            title: t('purchases.validate_confirm'),
+            confirmLabel: t('confirm.validate'),
+            tone: 'primary',
+        })
+    ) {
         router.post(validateRoute(inv.value.id).url, {}, options);
     }
 }
@@ -326,6 +333,7 @@ const selectClass =
                         </option>
                     </select>
                     <Input
+                        v-amount
                         v-model="payment.amount"
                         inputmode="numeric"
                         class="h-11 tabular-nums"

@@ -13,6 +13,7 @@ import {
     show as orderShow,
 } from '@/routes/purchases/orders';
 import type { Paginated } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 type Status =
     | 'draft'
@@ -97,12 +98,12 @@ const badge: Record<Status, string> = {
             >
         </div>
 
-        <p
+        <EmptyState
             v-if="orders.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
+            :hint="t('empty.purchases')"
         >
             {{ t('purchases.empty') }}
-        </p>
+        </EmptyState>
         <ul v-else class="divide-y rounded-lg border">
             <li v-for="order in orders.data" :key="order.id">
                 <Link

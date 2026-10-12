@@ -22,6 +22,7 @@ import {
     store as lineStore,
 } from '@/routes/counts/lines';
 import { index as stockIndex } from '@/routes/stock';
+import { confirmAction } from '@/composables/useConfirm';
 
 type Line = {
     id: string;
@@ -122,8 +123,14 @@ function removeLine(line: Line): void {
     );
 }
 
-function validateCount(): void {
-    if (window.confirm(t('counts.validate_confirm'))) {
+async function validateCount(): Promise<void> {
+    if (
+        await confirmAction({
+            title: t('counts.validate_confirm'),
+            confirmLabel: t('confirm.validate'),
+            tone: 'primary',
+        })
+    ) {
         router.post(
             validateRoute(props.count.id).url,
             { idempotency_key: validateKey },

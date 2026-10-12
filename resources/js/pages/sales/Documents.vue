@@ -16,6 +16,7 @@ import {
     show as salesShow,
 } from '@/routes/sales';
 import type { Paginated } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 type DocType = 'quote' | 'order' | 'invoice' | 'credit_note';
 type SalesDoc = {
@@ -154,12 +155,9 @@ const paymentBadge: Record<string, string> = {
             </select>
         </form>
 
-        <p
-            v-if="documents.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="documents.data.length === 0" :hint="t('empty.sales')">
             {{ t('sales.empty') }}
-        </p>
+        </EmptyState>
 
         <ul v-else class="divide-y rounded-lg border">
             <li v-for="doc in documents.data" :key="doc.id">

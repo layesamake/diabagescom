@@ -262,6 +262,7 @@ function submit(): void {
                         }}</Label>
                         <Input
                             :id="`c-${index}`"
+                            v-amount
                             v-model="line.unit_cost"
                             inputmode="numeric"
                             class="h-11 tabular-nums"

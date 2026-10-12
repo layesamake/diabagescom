@@ -29,6 +29,7 @@ import {
     receive as receiveRoute,
 } from '@/routes/purchases/orders';
 import { show as receiptShow } from '@/routes/purchases/receipts';
+import { confirmAction } from '@/composables/useConfirm';
 
 type Status =
     | 'draft'
@@ -105,8 +106,14 @@ const options = {
     onFinish: () => (processing.value = false),
 };
 
-function confirmOrder(): void {
-    if (window.confirm(t('purchases.confirm_hint'))) {
+async function confirmOrder(): Promise<void> {
+    if (
+        await confirmAction({
+            title: t('purchases.confirm_hint'),
+            confirmLabel: t('confirm.validate'),
+            tone: 'primary',
+        })
+    ) {
         router.post(confirmRoute(o.value.id).url, {}, options);
     }
 }

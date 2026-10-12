@@ -16,6 +16,7 @@ import {
     receive as receiveRoute,
     ship as shipRoute,
 } from '@/routes/transfers';
+import { confirmAction } from '@/composables/useConfirm';
 
 type Line = {
     product_id: string;
@@ -67,11 +68,14 @@ const options = {
     onFinish: () => (processing.value = false),
 };
 
-function ship(): void {
+async function ship(): Promise<void> {
     if (
-        window.confirm(
-            t('transfers.ship_confirm', { source: props.transfer.source.name }),
-        )
+        await confirmAction({
+            title: t('transfers.ship_confirm', {
+                source: props.transfer.source.name,
+            }),
+            confirmLabel: t('confirm.ship'),
+        })
     ) {
         router.post(
             shipRoute(props.transfer.id).url,

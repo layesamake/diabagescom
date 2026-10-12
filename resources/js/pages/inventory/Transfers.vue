@@ -12,6 +12,7 @@ import {
     show as transferShow,
 } from '@/routes/transfers';
 import type { Paginated } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 type Transfer = {
     id: string;
@@ -58,12 +59,9 @@ const badge: Record<Transfer['status'], string> = {
             >
         </div>
 
-        <p
-            v-if="transfers.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="transfers.data.length === 0">
             {{ t('transfers.empty') }}
-        </p>
+        </EmptyState>
 
         <ul v-else class="divide-y rounded-lg border">
             <li v-for="tr in transfers.data" :key="tr.id">

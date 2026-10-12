@@ -10,6 +10,7 @@ import {
     movements as movementsRoute,
 } from '@/routes/stock';
 import type { Paginated } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 type Movement = {
     id: string;
@@ -107,12 +108,9 @@ const formatter = new Intl.DateTimeFormat('fr-FR', {
             </p>
         </div>
 
-        <p
-            v-if="movements.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="movements.data.length === 0">
             {{ t('stock.movements_empty') }}
-        </p>
+        </EmptyState>
 
         <ol v-else class="divide-y rounded-lg border">
             <li

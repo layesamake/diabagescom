@@ -18,6 +18,8 @@ import {
 } from '@/offline/sync';
 import { show as salesShow } from '@/routes/sales';
 import { index as syncIndex } from '@/routes/sync';
+import { askText, confirmAction } from '@/composables/useConfirm';
+import EmptyState from '@/components/EmptyState.vue';
 
 defineOptions({
     layout: {
@@ -84,7 +86,11 @@ async function resendWithCurrentPrices(command: LocalCommand): Promise<void> {
 }
 
 async function resendNegative(command: LocalCommand): Promise<void> {
-    const reason = window.prompt(t('offline.negative_prompt'))?.trim();
+    const reason = await askText({
+        title: t('confirm.negative_title'),
+        input: { label: t('offline.negative_prompt'), required: true },
+        confirmLabel: t('confirm.resend'),
+    });
 
     if (reason) {
         await resend(command, {
@@ -96,7 +102,13 @@ async function resendNegative(command: LocalCommand): Promise<void> {
 }
 
 async function abandon(command: LocalCommand): Promise<void> {
-    if (window.confirm(t('offline.discard_confirm'))) {
+    if (
+        await confirmAction({
+            title: t('offline.discard_confirm'),
+            confirmLabel: t('confirm.discard'),
+            tone: 'danger',
+        })
+    ) {
         await discard(command);
         await refresh();
     }
@@ -150,12 +162,9 @@ const badge: Record<string, string> = {
             {{ t(`offline.problem.${syncState.problem}`) }}
         </p>
 
-        <p
-            v-if="visible.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="visible.length === 0">
             {{ t('offline.empty') }}
-        </p>
+        </EmptyState>
 
         <ul v-else class="divide-y rounded-lg border">
             <li

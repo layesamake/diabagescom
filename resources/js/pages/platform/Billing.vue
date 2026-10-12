@@ -11,6 +11,7 @@ import { formatXof } from '@/lib/money';
 import { index as billingIndex } from '@/routes/platform/billing';
 import { voidMethod as voidRoute } from '@/routes/platform/billing/invoices';
 import { confirm as confirmRoute } from '@/routes/platform/billing/payments';
+import { askText } from '@/composables/useConfirm';
 
 defineProps<{
     invoices: {
@@ -66,8 +67,13 @@ function confirmTransfer(id: string): void {
     );
 }
 
-function voidInvoice(id: string): void {
-    const reason = window.prompt(t('billing.void_reason'))?.trim();
+async function voidInvoice(id: string): Promise<void> {
+    const reason = await askText({
+        title: t('confirm.void_title'),
+        input: { label: t('billing.void_reason'), required: true },
+        confirmLabel: t('confirm.void'),
+        tone: 'danger',
+    });
 
     if (reason) {
         router.post(voidRoute(id).url, { reason }, { preserveScroll: true });

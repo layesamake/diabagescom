@@ -9,6 +9,8 @@ import {
     index as devicesIndex,
     revoke as revokeRoute,
 } from '@/routes/sync/devices';
+import { confirmAction } from '@/composables/useConfirm';
+import EmptyState from '@/components/EmptyState.vue';
 
 defineProps<{
     devices: {
@@ -28,8 +30,14 @@ defineOptions({
     },
 });
 
-function revoke(id: string, name: string): void {
-    if (window.confirm(t('offline.revoke_confirm', { name }))) {
+async function revoke(id: string, name: string): Promise<void> {
+    if (
+        await confirmAction({
+            title: t('offline.revoke_confirm', { name }),
+            confirmLabel: t('confirm.revoke'),
+            tone: 'danger',
+        })
+    ) {
         router.post(revokeRoute(id).url, {}, { preserveScroll: true });
     }
 }
@@ -45,12 +53,9 @@ function revoke(id: string, name: string): void {
             :description="t('offline.devices_description')"
         />
 
-        <p
-            v-if="devices.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="devices.length === 0">
             {{ t('offline.no_devices') }}
-        </p>
+        </EmptyState>
 
         <ul v-else class="divide-y rounded-lg border">
             <li

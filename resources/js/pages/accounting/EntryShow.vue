@@ -19,6 +19,7 @@ import {
     reverse as reverseRoute,
     show as entryShow,
 } from '@/routes/accounting/entries';
+import { confirmAction } from '@/composables/useConfirm';
 
 const props = defineProps<{
     entry: {
@@ -69,8 +70,14 @@ const options = {
     onFinish: () => (processing.value = false),
 };
 
-function post(): void {
-    if (window.confirm(t('accounting.post_confirm'))) {
+async function post(): Promise<void> {
+    if (
+        await confirmAction({
+            title: t('accounting.post_confirm'),
+            confirmLabel: t('confirm.validate'),
+            tone: 'primary',
+        })
+    ) {
         router.post(postRoute(e.value.id).url, {}, options);
     }
 }

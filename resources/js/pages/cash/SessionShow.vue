@@ -14,6 +14,7 @@ import { close as closeRoute, index as cashIndex } from '@/routes/cash';
 import { store as movementStore } from '@/routes/cash/movements';
 import { create as posCreate } from '@/routes/pos';
 import { show as salesShow } from '@/routes/sales';
+import { confirmAction } from '@/composables/useConfirm';
 
 type MovementType =
     | 'customer_payment'
@@ -122,8 +123,14 @@ const difference = computed(() =>
         : parseAmount(counted.value) - s.value.summary.drawer,
 );
 
-function close(): void {
-    if (window.confirm(t('cash.close_confirm'))) {
+async function close(): Promise<void> {
+    if (
+        await confirmAction({
+            title: t('cash.close_confirm'),
+            confirmLabel: t('confirm.close'),
+            tone: 'primary',
+        })
+    ) {
         router.post(
             closeRoute(s.value.id).url,
             {
@@ -341,6 +348,7 @@ function close(): void {
                     <Label for="mv-amount">{{ t('cash.amount') }}</Label>
                     <Input
                         id="mv-amount"
+                        v-amount
                         v-model="movement.amount"
                         inputmode="numeric"
                         class="h-11 tabular-nums"
@@ -391,6 +399,7 @@ function close(): void {
                     <Label for="counted">{{ t('cash.counted') }}</Label>
                     <Input
                         id="counted"
+                        v-amount
                         v-model="counted"
                         inputmode="numeric"
                         class="h-11 tabular-nums"

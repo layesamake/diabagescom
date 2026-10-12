@@ -25,6 +25,7 @@ import { enqueueSale, syncState, type SalePayload } from '@/offline/sync';
 import { open as openRegister } from '@/routes/cash';
 import { create as posCreate, store as posStore } from '@/routes/pos';
 import { index as salesIndex } from '@/routes/sales';
+import { confirmAction } from '@/composables/useConfirm';
 
 type Method = 'cash' | 'wave' | 'orange_money' | 'card' | 'transfer' | 'cheque';
 type CartLine = {
@@ -217,8 +218,14 @@ function open(registerId: string): void {
     );
 }
 
-function clearCart(): void {
-    if (window.confirm(t('pos.clear_confirm'))) {
+async function clearCart(): Promise<void> {
+    if (
+        await confirmAction({
+            title: t('pos.clear_confirm'),
+            confirmLabel: t('confirm.clear'),
+            tone: 'danger',
+        })
+    ) {
         cart.value = [];
         customer.value = null;
         tenders.value = [{ method: 'cash', amount: '', reference: '' }];
@@ -351,6 +358,7 @@ function checkout(): void {
                         }}</Label>
                         <Input
                             id="opening"
+                            v-amount
                             v-model="openingAmount"
                             inputmode="numeric"
                             class="h-11 w-40 bg-background tabular-nums"
@@ -571,6 +579,7 @@ function checkout(): void {
                                 >
                                 <Input
                                     :id="`discount-${index}`"
+                                    v-amount
                                     v-model="line.discount"
                                     inputmode="numeric"
                                     class="h-11 tabular-nums"
@@ -645,6 +654,7 @@ function checkout(): void {
                                 >
                                 <Input
                                     :id="`tender-${index}`"
+                                    v-amount
                                     v-model="tender.amount"
                                     inputmode="numeric"
                                     :placeholder="

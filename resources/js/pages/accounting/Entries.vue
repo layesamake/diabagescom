@@ -16,6 +16,7 @@ import {
     show as entryShow,
 } from '@/routes/accounting/entries';
 import type { Paginated } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 type Entry = {
     id: string;
@@ -126,12 +127,9 @@ function apply(): void {
             }}</Button>
         </form>
 
-        <p
-            v-if="entries.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="entries.data.length === 0">
             {{ t('accounting.empty') }}
-        </p>
+        </EmptyState>
         <ul v-else class="divide-y rounded-lg border">
             <li v-for="entry in entries.data" :key="entry.id">
                 <Link

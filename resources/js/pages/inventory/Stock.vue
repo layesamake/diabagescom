@@ -30,6 +30,7 @@ import {
 } from '@/routes/stock';
 import { index as transfersIndex } from '@/routes/transfers';
 import type { Paginated } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 type Row = {
     id: string;
@@ -380,12 +381,9 @@ const formatQty = (raw: string | null) =>
             </Button>
         </section>
 
-        <p
-            v-if="rows.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="rows.data.length === 0" :hint="t('empty.stock')">
             {{ t('stock.empty') }}
-        </p>
+        </EmptyState>
 
         <ul v-else class="divide-y rounded-lg border">
             <li

@@ -12,6 +12,7 @@ import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 import { t } from '@/i18n';
+import { confirmAction } from '@/composables/useConfirm';
 import { clearOfflineData, syncState } from '@/offline/sync';
 
 type Props = {
@@ -21,17 +22,24 @@ type Props = {
 // Déconnexion : prévenir si des ventes hors ligne ne sont pas envoyées, puis
 // effacer la base locale et les caches de l'appareil (docs/08).
 const confirmLogout = (): boolean => {
-    const confirmed =
-        syncState.pending === 0 ||
-        window.confirm(
-            t('offline.logout_pending', { count: syncState.pending }),
-        );
-
-    if (confirmed) {
+    if (syncState.pending === 0) {
         void clearOfflineData();
+
+        return true;
     }
 
-    return confirmed;
+    // Ventes en attente : on demande d'abord, puis on se déconnecte si l'utilisateur confirme.
+    void confirmAction({
+        title: t('offline.logout_pending', { count: syncState.pending }),
+        confirmLabel: t('confirm.logout'),
+        tone: 'danger',
+    }).then((confirmed) => {
+        if (confirmed) {
+            void clearOfflineData().then(() => router.post(logout().url));
+        }
+    });
+
+    return false;
 };
 
 const handleLogout = () => {

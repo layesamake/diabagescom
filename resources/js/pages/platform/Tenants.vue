@@ -12,6 +12,7 @@ import { index as tenantsIndex } from '@/routes/platform/tenants';
 import { update as updateSubscription } from '@/routes/platform/subscriptions';
 import { grant as grantSupport } from '@/routes/platform/support';
 import type { SubscriptionSummary } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 type TenantRow = {
     id: string;
@@ -85,12 +86,9 @@ function submitSearch(): void {
             />
         </form>
 
-        <p
-            v-if="tenants.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="tenants.data.length === 0">
             {{ t('platform.empty') }}
-        </p>
+        </EmptyState>
 
         <ul class="space-y-4">
             <li

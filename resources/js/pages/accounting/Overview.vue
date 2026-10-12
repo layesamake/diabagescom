@@ -24,6 +24,7 @@ import {
     close as closeYearRoute,
     store as yearStore,
 } from '@/routes/accounting/years';
+import { confirmAction } from '@/composables/useConfirm';
 
 type PeriodStatus = 'open' | 'locked' | 'closed';
 
@@ -84,16 +85,32 @@ function setup(): void {
     );
 }
 
-function changePeriod(id: string, action: 'lock' | 'unlock' | 'close'): void {
-    if (action === 'close' && !window.confirm(t('accounting.close_confirm'))) {
+async function changePeriod(
+    id: string,
+    action: 'lock' | 'unlock' | 'close',
+): Promise<void> {
+    if (
+        action === 'close' &&
+        !(await confirmAction({
+            title: t('accounting.close_confirm'),
+            confirmLabel: t('confirm.close'),
+            tone: 'danger',
+        }))
+    ) {
         return;
     }
 
     router.post(periodUpdate(id).url, { action }, options);
 }
 
-function closeYear(id: string, name: string): void {
-    if (window.confirm(t('accounting.close_year_confirm', { name }))) {
+async function closeYear(id: string, name: string): Promise<void> {
+    if (
+        await confirmAction({
+            title: t('accounting.close_year_confirm', { name }),
+            confirmLabel: t('confirm.close'),
+            tone: 'danger',
+        })
+    ) {
         router.post(closeYearRoute(id).url, {}, options);
     }
 }

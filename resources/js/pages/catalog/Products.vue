@@ -16,6 +16,7 @@ import {
 } from '@/routes/products';
 import { create as importCreate } from '@/routes/products/import';
 import type { Option, Paginated, ProductRow } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 defineOptions({
     layout: {
@@ -161,16 +162,16 @@ watch([category, status], search);
             </div>
         </form>
 
-        <p
+        <EmptyState
             v-if="products.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
+            :hint="filters.q ? undefined : t('empty.products')"
         >
             {{
                 filters.q
                     ? t('catalog.empty_search', { q: filters.q })
                     : t('catalog.empty')
             }}
-        </p>
+        </EmptyState>
 
         <!-- Liste en cartes : lisible sur smartphone, sans défilement horizontal. -->
         <ul v-else class="divide-y rounded-lg border">

@@ -13,6 +13,7 @@ import { formatXof } from '@/lib/money';
 import * as customers from '@/routes/customers';
 import * as suppliers from '@/routes/suppliers';
 import type { Paginated } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 type Party = {
     id: string;
@@ -286,12 +287,9 @@ function toggleArchive(party: Party): void {
             </select>
         </form>
 
-        <p
-            v-if="parties.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="parties.data.length === 0">
             {{ t('parties.empty') }}
-        </p>
+        </EmptyState>
 
         <ul v-else class="divide-y rounded-lg border">
             <li

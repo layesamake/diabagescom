@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import { auditActionLabel, t } from '@/i18n';
 import { index as auditIndex } from '@/routes/audit';
+import EmptyState from '@/components/EmptyState.vue';
 
 type AuditRow = {
     id: string;
@@ -43,12 +44,9 @@ const formatter = new Intl.DateTimeFormat('fr-FR', {
             :description="t('audit.description')"
         />
 
-        <p
-            v-if="events.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="events.data.length === 0">
             {{ t('audit.empty') }}
-        </p>
+        </EmptyState>
 
         <!-- Liste en cartes : lisible sur smartphone, sans défilement horizontal. -->
         <ol v-else class="divide-y rounded-lg border">

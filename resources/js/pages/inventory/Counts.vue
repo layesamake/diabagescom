@@ -14,6 +14,7 @@ import {
 } from '@/routes/counts';
 import { index as stockIndex } from '@/routes/stock';
 import type { Paginated } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 type Count = {
     id: string;
@@ -76,12 +77,9 @@ function start(): void {
             >
         </div>
 
-        <p
-            v-if="counts.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="counts.data.length === 0">
             {{ t('counts.empty') }}
-        </p>
+        </EmptyState>
 
         <ul v-else class="divide-y rounded-lg border">
             <li v-for="c in counts.data" :key="c.id">

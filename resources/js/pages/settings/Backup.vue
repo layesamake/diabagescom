@@ -21,6 +21,7 @@ import {
     store as backupStore,
 } from '@/routes/backup';
 import { create as restoreCreate } from '@/routes/restore';
+import EmptyState from '@/components/EmptyState.vue';
 
 type ExportRow = {
     id: string;
@@ -154,12 +155,9 @@ const badge: Record<ExportRow['status'], string> = {
 
         <section class="space-y-3">
             <h3 class="font-semibold">{{ t('backup.list_title') }}</h3>
-            <p
-                v-if="exports.length === 0"
-                class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-            >
+            <EmptyState v-if="exports.length === 0">
                 {{ t('backup.empty') }}
-            </p>
+            </EmptyState>
             <ol v-else class="divide-y rounded-lg border">
                 <li
                     v-for="row in exports"

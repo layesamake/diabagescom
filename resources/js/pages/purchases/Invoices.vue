@@ -13,6 +13,7 @@ import {
     show as invoiceShow,
 } from '@/routes/purchases/invoices';
 import type { Paginated } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 type Invoice = {
     id: string;
@@ -119,12 +120,9 @@ function filter(status: string): void {
             >
         </div>
 
-        <p
-            v-if="invoices.data.length === 0"
-            class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
-        >
+        <EmptyState v-if="invoices.data.length === 0">
             {{ t('purchases.empty') }}
-        </p>
+        </EmptyState>
         <ul v-else class="divide-y rounded-lg border">
             <li v-for="inv in invoices.data" :key="inv.id">
                 <Link

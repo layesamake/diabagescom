@@ -229,6 +229,7 @@ function submit(): void {
                         }}</Label>
                         <Input
                             :id="`d-${index}`"
+                            v-amount
                             v-model="line.discount"
                             inputmode="numeric"
                             class="h-11 tabular-nums"

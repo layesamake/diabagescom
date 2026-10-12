@@ -15,6 +15,7 @@ import { index as cashIndex, open as openRoute } from '@/routes/cash';
 import { store as registerStore } from '@/routes/cash/registers';
 import { show as sessionShow } from '@/routes/cash/sessions';
 import type { Paginated } from '@/types';
+import EmptyState from '@/components/EmptyState.vue';
 
 type Session = {
     id: string;
@@ -194,6 +195,7 @@ function createRegister(): void {
                             }}</Label>
                             <Input
                                 :id="`open-${register.id}`"
+                                v-amount
                                 v-model="opening[register.id]"
                                 inputmode="numeric"
                                 class="h-11 tabular-nums"
@@ -228,12 +230,12 @@ function createRegister(): void {
 
         <section class="space-y-3">
             <h2 class="font-semibold">{{ t('cash.history') }}</h2>
-            <p
+            <EmptyState
                 v-if="sessions.data.length === 0"
-                class="rounded-lg border border-dashed p-6 text-sm text-muted-foreground"
+                :hint="t('empty.cash')"
             >
                 {{ t('cash.no_sessions') }}
-            </p>
+            </EmptyState>
             <ul v-else class="divide-y rounded-lg border">
                 <li v-for="s in sessions.data" :key="s.id">
                     <Link

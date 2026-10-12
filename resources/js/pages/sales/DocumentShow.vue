@@ -33,6 +33,7 @@ import {
 import { store as creditStore } from '@/routes/sales/credit_notes';
 import { store as paymentStore } from '@/routes/sales/payments';
 import { store as refundStore } from '@/routes/sales/refunds';
+import { confirmAction } from '@/composables/useConfirm';
 
 type DocType = 'quote' | 'order' | 'invoice' | 'credit_note';
 type Method = 'cash' | 'wave' | 'orange_money' | 'card' | 'transfer' | 'cheque';
@@ -159,13 +160,19 @@ const needsNegativeReason = computed(
         (errors.value.business ?? '').startsWith('Stock insuffisant'),
 );
 
-function validateDocument(): void {
+async function validateDocument(): Promise<void> {
     const message =
         doc.value.type === 'invoice'
             ? t('sales.validate_invoice_confirm')
             : t('sales.validate_confirm');
 
-    if (window.confirm(message)) {
+    if (
+        await confirmAction({
+            title: message,
+            confirmLabel: t('confirm.validate'),
+            tone: 'primary',
+        })
+    ) {
         router.post(
             validateRoute(doc.value.id).url,
             { negative_stock_reason: negativeReason.value.trim() || null },
@@ -274,8 +281,14 @@ const creditLines = computed(() =>
         })),
 );
 
-function submitCredit(): void {
-    if (window.confirm(t('sales.credit_confirm'))) {
+async function submitCredit(): Promise<void> {
+    if (
+        await confirmAction({
+            title: t('sales.credit_confirm'),
+            confirmLabel: t('confirm.credit'),
+            tone: 'danger',
+        })
+    ) {
         router.post(
             creditStore(doc.value.id).url,
             {
@@ -685,6 +698,7 @@ const selectClass =
                         </option>
                     </select>
                     <Input
+                        v-amount
                         v-model="tender.amount"
                         inputmode="numeric"
                         class="h-11 tabular-nums"
@@ -760,6 +774,7 @@ const selectClass =
                         </option>
                     </select>
                     <Input
+                        v-amount
                         v-model="refund.amount"
                         inputmode="numeric"
                         class="h-11 tabular-nums"
