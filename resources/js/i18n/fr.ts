@@ -127,6 +127,60 @@ export const fr = {
             separator: 'Ou continuer avec votre e-mail',
         },
     },
+    team: {
+        nav: 'Collaborateurs',
+        page_title: 'Collaborateurs',
+        heading: 'Vos collaborateurs',
+        description:
+            'Les personnes qui utilisent DIABA GESCOM avec vous. Chacune a son propre compte et ne voit que ce que son rôle permet.',
+        invite: 'Ajouter un collaborateur',
+        invite_title: 'Ajouter un collaborateur',
+        invite_hint:
+            'Il recevra un e-mail pour choisir son mot de passe, puis pourra se connecter.',
+        edit: 'Modifier',
+        edit_title: 'Accès de {name}',
+        edit_hint: 'Changez son rôle ou les dépôts auxquels il a accès.',
+        name: 'Nom et prénom',
+        email: 'Adresse e-mail',
+        role: 'Rôle',
+        warehouses: 'Dépôts accessibles',
+        admin_all_warehouses:
+            'Un administrateur a accès à tous les dépôts et à tous les réglages.',
+        all_warehouses: 'Tous les dépôts',
+        send_invite: 'Envoyer l’invitation',
+        save: 'Enregistrer',
+        resend: 'Renvoyer l’invitation',
+        suspend: 'Suspendre',
+        suspend_title: 'Suspendre l’accès de {name} ?',
+        suspend_message:
+            'Cette personne ne pourra plus se connecter à l’entreprise. Ses ventes et opérations restent enregistrées. Vous pourrez la réactiver à tout moment.',
+        suspend_confirm: 'Oui, suspendre',
+        reactivate: 'Réactiver',
+        me: 'vous',
+        status_pending: 'Invitation en attente',
+        status_suspended: 'Suspendu',
+        two_factor: 'Double authentification',
+        seats: '{used} utilisateur(s) sur {limit} inclus dans votre formule',
+        seats_unlimited: '{used} utilisateur(s)',
+        seats_full:
+            'Limite atteinte : changez de formule ou ajoutez des utilisateurs dans Abonnement.',
+        empty: 'Vous travaillez seul pour l’instant.',
+        empty_hint:
+            'Ajoutez vos vendeurs, votre gestionnaire de stock ou votre comptable : chacun aura son compte et ses droits.',
+        roles: {
+            admin: 'Tous les droits : ventes, achats, stock, réglages, collaborateurs et abonnement.',
+            cashier:
+                'Vend au comptoir, encaisse et gère sa caisse. Ne voit pas les coûts ni les réglages.',
+            warehouse_manager:
+                'Gère le stock de ses dépôts : entrées, transferts, inventaires.',
+            purchaser:
+                'Commande aux fournisseurs, réceptionne et enregistre les factures d’achat.',
+            accountant:
+                'Consulte les ventes et achats, tient la comptabilité et les rapports.',
+            management:
+                'Voit toute l’activité, les marges et les rapports, sans modifier les réglages.',
+        },
+    },
     empty: {
         products:
             'Ajoutez votre premier article avec le bouton « Nouvel article », ou importez votre liste depuis un fichier Excel (CSV).',
@@ -799,6 +853,10 @@ export const fr = {
             'backup.export_ready': 'Sauvegarde prête',
             'backup.export_downloaded': 'Sauvegarde téléchargée',
             'backup.restored': 'Entreprise restaurée depuis une sauvegarde',
+            'membership.updated': 'Accès d’un collaborateur modifié',
+            'membership.suspended': 'Collaborateur suspendu',
+            'membership.reactivated': 'Collaborateur réactivé',
+            'membership.invitation_sent': 'Invitation renvoyée',
             'backup.uploaded': 'Sauvegarde envoyée sur Google Drive',
             'backup.cloud_connected': 'Google Drive relié',
             'backup.cloud_updated': 'Fréquence des sauvegardes modifiée',

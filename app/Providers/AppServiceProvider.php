@@ -11,6 +11,7 @@ use App\Domain\Tenancy\TenantContext;
 use App\Models\User;
 use App\Support\Health\CheckCriticalDependencies;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -43,6 +44,16 @@ class AppServiceProvider extends ServiceProvider
         $this->configureAuthorization();
 
         Event::listen(DiagnosingHealth::class, CheckCriticalDependencies::class);
+
+        // Mot de passe choisi via un lien reçu par e-mail (invitation d'un
+        // collaborateur, mot de passe oublié) : l'adresse est prouvée.
+        Event::listen(PasswordReset::class, function (PasswordReset $event): void {
+            $user = $event->user;
+
+            if ($user instanceof User && $user->email_verified_at === null) {
+                $user->forceFill(['email_verified_at' => now()])->save();
+            }
+        });
         Event::subscribe(RecordAuthenticationEvents::class);
     }
 

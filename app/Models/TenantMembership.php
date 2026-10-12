@@ -33,6 +33,8 @@ class TenantMembership extends Model
 
     public const string STATUS_ACTIVE = 'active';
 
+    public const string STATUS_SUSPENDED = 'suspended';
+
     protected $attributes = ['status' => 'active'];
 
     /**
