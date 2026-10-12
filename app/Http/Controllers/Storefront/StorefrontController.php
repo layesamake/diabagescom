@@ -12,7 +12,6 @@ use App\Models\StorefrontOrder;
 use App\Models\StorefrontProduct;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Inertia\Inertia;

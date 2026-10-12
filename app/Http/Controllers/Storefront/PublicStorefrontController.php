@@ -3,22 +3,20 @@
 namespace App\Http\Controllers\Storefront;
 
 use App\Domain\Subscriptions\FeatureAccess;
+use App\Http\Controllers\Catalog\CatalogImages;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Storefront\CreateStorefrontOrderRequest;
 use App\Models\Product;
 use App\Models\Storefront;
 use App\Models\StorefrontOrder;
-use App\Models\StorefrontOrderItem;
 use App\Models\StorefrontProduct;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use App\Http\Controllers\Catalog\CatalogImages;
 
 class PublicStorefrontController extends Controller
 {
@@ -130,6 +128,7 @@ class PublicStorefrontController extends Controller
     private function productData(StorefrontProduct $listing, ?Product $product = null, ?string $slug = null): array
     {
         $product ??= Product::query()->withoutGlobalScopes()->where('tenant_id', $listing->tenant_id)->with(['unit:id,code', 'category:id,name'])->findOrFail($listing->product_id);
+
         return [
             'id' => $product->id, 'sku' => $product->sku,
             'name' => $listing->public_name ?: $product->name,
@@ -146,9 +145,11 @@ class PublicStorefrontController extends Controller
         $sequence = DB::table('tenant_sequences')->where('tenant_id', $tenantId)->where('key', 'storefront_orders')->lockForUpdate()->first();
         if ($sequence === null) {
             DB::table('tenant_sequences')->insert(['tenant_id' => $tenantId, 'key' => 'storefront_orders', 'next_value' => 2, 'created_at' => now(), 'updated_at' => now()]);
+
             return 'WEB-000001';
         }
         DB::table('tenant_sequences')->where('tenant_id', $tenantId)->where('key', 'storefront_orders')->update(['next_value' => $sequence->next_value + 1, 'updated_at' => now()]);
+
         return 'WEB-'.str_pad((string) $sequence->next_value, 6, '0', STR_PAD_LEFT);
     }
 }
