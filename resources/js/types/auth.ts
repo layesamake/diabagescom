@@ -55,6 +55,7 @@ export type SubscriptionSummary = {
     status: SubscriptionStatus;
     plan: { code: string; name: string } | null;
     trial_ends_at: string | null;
+    cancel_at: string | null;
     read_only_ends_at: string | null;
     trial_days_left: number | null;
     can_write: boolean;

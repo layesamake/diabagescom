@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\Platform;
 
+use App\Domain\Audit\AuditLog;
 use App\Domain\Identity\PermissionCatalog;
+use App\Domain\Platform\ProvisionPlatformTenant;
 use App\Domain\Subscriptions\FeatureAccess;
+use App\Domain\Subscriptions\SubscriptionClock;
 use App\Domain\Subscriptions\SubscriptionLifecycle;
 use App\Domain\Tenancy\TenantScope;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Platform\CreatePlatformTenantRequest;
 use App\Models\AuditEvent;
 use App\Models\Plan;
+use App\Models\Role;
 use App\Models\SaasInvoice;
 use App\Models\SaasPayment;
 use App\Models\Subscription;
@@ -16,10 +21,14 @@ use App\Models\Tenant;
 use App\Models\TenantMembership;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Notifications\TeamInvitationNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -33,6 +42,42 @@ use Inertia\Response;
 class TenantController extends Controller
 {
     private const array STATUSES = [Subscription::TRIALING, Subscription::ACTIVE, Subscription::READ_ONLY, Subscription::SUSPENDED, Subscription::CANCELLED];
+
+    public function create(): Response
+    {
+        Gate::authorize('platform.tenants.manage');
+
+        return Inertia::render('platform/TenantCreate', [
+            'countries' => [['code' => 'SN', 'name' => __('onboarding.countries.SN')]],
+            'plans' => Plan::query()
+                ->where('active', true)
+                ->orderBy('sort_order')
+                ->get(['code', 'name', 'warehouse_limit', 'included_users', 'accounting_enabled']),
+            'trialDays' => (int) config('diaba.subscriptions.trial_days'),
+            'defaults' => [
+                'country_code' => 'SN',
+                'timezone' => 'Africa/Dakar',
+                'warehouse_code' => 'PRINCIPAL',
+                'plan_code' => config('diaba.subscriptions.default_plan'),
+            ],
+        ]);
+    }
+
+    public function store(CreatePlatformTenantRequest $request, ProvisionPlatformTenant $provision): RedirectResponse
+    {
+        Gate::authorize('platform.tenants.manage');
+
+        /** @var User $actor */
+        $actor = $request->user();
+
+        /** @var array{owner_name: string, owner_email: string, legal_name: string, display_name: string, country_code: string, timezone: string, warehouse_name: string, warehouse_code: string, warehouse_address?: string|null, plan_code: string} $data */
+        $data = $request->validated();
+        $membership = $provision($actor, $data);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('platform.tenant_created', ['email' => $membership->user->email])]);
+
+        return redirect()->route('platform.tenants.show', $membership->tenant_id);
+    }
 
     public function index(Request $request, FeatureAccess $access): Response
     {
@@ -57,7 +102,8 @@ class TenantController extends Controller
             ->paginate(25)
             ->withQueryString()
             ->through(function (Tenant $tenant) use ($access) {
-                $summary = $access->summary($tenant);
+                $subscription = $this->platformSubscription($tenant);
+                $summary = $subscription === null ? $access->summary($tenant) : $this->platformSummary($subscription);
 
                 return [
                     'id' => $tenant->id,
@@ -66,7 +112,7 @@ class TenantController extends Controller
                     'created_at' => $tenant->created_at?->toIso8601String(),
                     'members' => $tenant->memberships_count,
                     'subscription' => $summary,
-                    'subscription_id' => $access->subscription($tenant)?->id,
+                    'subscription_id' => $subscription?->id,
                 ];
             });
 
@@ -88,7 +134,7 @@ class TenantController extends Controller
     {
         Gate::authorize('platform.tenants.manage');
 
-        $subscription = $access->subscription($tenant);
+        $subscription = $this->platformSubscription($tenant);
         $memberships = TenantMembership::query()->with(['user:id,name,email,last_login_at', 'role:id,code,name'])
             ->where('tenant_id', $tenant->id)->get();
         $invoices = SaasInvoice::query()->withoutGlobalScope(TenantScope::class)->with('plan:id,name')
@@ -104,11 +150,12 @@ class TenantController extends Controller
                 'status' => $tenant->status,
                 'created_at' => $tenant->created_at?->toIso8601String(),
             ],
-            'subscription' => $access->summary($tenant),
+            'subscription' => $subscription === null ? $access->summary($tenant) : $this->platformSummary($subscription),
             'subscription_id' => $subscription?->id,
             'period' => $subscription === null ? null : [
                 'billing_cycle' => $subscription->billing_cycle,
                 'current_period_end' => $subscription->current_period_end?->toIso8601String(),
+                'cancel_at' => $subscription->cancel_at?->toIso8601String(),
             ],
             'usage' => [
                 'users' => $memberships->where('status', 'active')->count(),
@@ -119,8 +166,8 @@ class TenantController extends Controller
             ],
             // Contacts utiles à la facturation et aux relances : administrateurs actifs uniquement.
             'contacts' => $memberships
-                ->filter(fn (TenantMembership $m) => $m->status === 'active' && $m->role->code === PermissionCatalog::ADMIN_ROLE)
-                ->map(fn (TenantMembership $m) => ['name' => $m->user->name, 'email' => $m->user->email, 'role' => $m->role->name])
+                ->filter(fn (TenantMembership $m) => $m->role->code === PermissionCatalog::ADMIN_ROLE)
+                ->map(fn (TenantMembership $m) => ['id' => $m->id, 'name' => $m->user->name, 'email' => $m->user->email, 'role' => $m->role->name, 'status' => $m->status, 'pending' => $m->user->email_verified_at === null])
                 ->values(),
             'invoices' => $invoices->map(fn (SaasInvoice $i) => [
                 'id' => $i->id, 'number' => $i->number, 'plan' => $i->plan->name, 'cycle' => $i->billing_cycle,
@@ -153,12 +200,83 @@ class TenantController extends Controller
         ]);
     }
 
+    public function resendInvitation(Request $request, Tenant $tenant, TenantMembership $membership, AuditLog $audit): RedirectResponse
+    {
+        Gate::authorize('platform.tenants.manage');
+        $this->ensureMembershipBelongsTo($tenant, $membership);
+
+        $user = $membership->user;
+        /** @var User $actor */
+        $actor = $request->user();
+        $pending = $user->email_verified_at === null;
+        $link = $pending
+            ? route('password.reset', ['token' => Password::broker()->createToken($user), 'email' => $user->email])
+            : route('login');
+        $user->notify(new TeamInvitationNotification($tenant->display_name, $actor->name, $membership->role->name, $link, $pending));
+        $audit->record('membership.invitation_sent', $membership, actor: $actor, tenant: $tenant);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('organization.team.resent', ['email' => $user->email])]);
+
+        return back(303);
+    }
+
+    public function suspendMember(Request $request, Tenant $tenant, TenantMembership $membership, AuditLog $audit): RedirectResponse
+    {
+        Gate::authorize('platform.tenants.manage');
+        $this->ensureMembershipBelongsTo($tenant, $membership);
+        /** @var User $actor */
+        $actor = $request->user();
+
+        if ($membership->status !== TenantMembership::STATUS_ACTIVE) {
+            return back(303);
+        }
+
+        if ($membership->isAdmin() && $this->activeAdminCount($tenant) <= 1) {
+            throw ValidationException::withMessages(['member' => __('organization.team.errors.last_admin')]);
+        }
+
+        DB::transaction(function () use ($membership, $tenant, $actor, $audit): void {
+            $membership->status = TenantMembership::STATUS_SUSPENDED;
+            $membership->save();
+            $audit->record('membership.suspended', $membership, before: ['status' => TenantMembership::STATUS_ACTIVE], after: ['status' => TenantMembership::STATUS_SUSPENDED], actor: $actor, tenant: $tenant);
+        });
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('organization.team.suspended', ['name' => $membership->user->name])]);
+
+        return back(303);
+    }
+
+    public function reactivateMember(Request $request, Tenant $tenant, TenantMembership $membership, FeatureAccess $access, SubscriptionLifecycle $lifecycle, AuditLog $audit): RedirectResponse
+    {
+        Gate::authorize('platform.tenants.manage');
+        $this->ensureMembershipBelongsTo($tenant, $membership);
+        /** @var User $actor */
+        $actor = $request->user();
+
+        if ($membership->status !== TenantMembership::STATUS_SUSPENDED) {
+            return back(303);
+        }
+
+        DB::transaction(function () use ($membership, $tenant, $actor, $access, $lifecycle, $audit): void {
+            $lifecycle->lockForTenant($tenant);
+            $access->forget($tenant);
+            $access->assertCanAdd($tenant, FeatureAccess::RESOURCE_USERS);
+            $membership->status = TenantMembership::STATUS_ACTIVE;
+            $membership->save();
+            $audit->record('membership.reactivated', $membership, before: ['status' => TenantMembership::STATUS_SUSPENDED], after: ['status' => TenantMembership::STATUS_ACTIVE], actor: $actor, tenant: $tenant);
+        });
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('organization.team.reactivated', ['name' => $membership->user->name])]);
+
+        return back(303);
+    }
+
     public function updateSubscription(Request $request, Subscription $platformSubscription, SubscriptionLifecycle $lifecycle): RedirectResponse
     {
         Gate::authorize('platform.billing.manage');
 
         $data = $request->validate([
-            'action' => ['required', Rule::in(['change_plan', 'extend_trial', 'activate', 'suspend'])],
+            'action' => ['required', Rule::in(['change_plan', 'extend_trial', 'activate', 'suspend', 'cancel_now', 'cancel_at_period_end', 'reactivate'])],
             'reason' => ['required', 'string', 'min:5', 'max:500'],
             'plan_id' => ['required_if:action,change_plan', 'nullable', 'uuid', Rule::exists('plans', 'id')],
             'days' => ['required_if:action,extend_trial', 'nullable', 'integer', 'min:1', 'max:60'],
@@ -179,6 +297,9 @@ class TenantController extends Controller
             'extend_trial' => $lifecycle->extendTrial($platformSubscription, (int) $data['days'], $reason, $actor),
             'activate' => $lifecycle->activate($platformSubscription, (string) $data['billing_cycle'], $reason, $actor),
             'suspend' => $lifecycle->suspend($platformSubscription, $reason, $actor),
+            'cancel_now' => $lifecycle->cancel($platformSubscription, false, $reason, $actor),
+            'cancel_at_period_end' => $lifecycle->cancel($platformSubscription, true, $reason, $actor),
+            'reactivate' => $lifecycle->reactivate($platformSubscription, $reason, $actor),
             default => abort(422),
         };
 
@@ -193,5 +314,48 @@ class TenantController extends Controller
     public static function resolveSubscription(string $value): Subscription
     {
         return Subscription::query()->withoutGlobalScope(TenantScope::class)->findOrFail($value);
+    }
+
+    private function platformSubscription(Tenant $tenant): ?Subscription
+    {
+        return Subscription::query()->withoutGlobalScope(TenantScope::class)->with('plan')
+            ->where('tenant_id', $tenant->id)
+            ->orderByRaw("CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END")
+            ->latest()
+            ->first();
+    }
+
+    /** @return array<string, mixed> */
+    private function platformSummary(Subscription $subscription): array
+    {
+        $now = now()->toImmutable();
+        $effective = SubscriptionClock::effective($subscription, $now);
+
+        return [
+            'status' => $effective['status'],
+            'plan' => ['code' => $subscription->plan->code, 'name' => $subscription->plan->name],
+            'trial_ends_at' => $subscription->trial_ends_at?->toIso8601String(),
+            'cancel_at' => $subscription->cancel_at?->toIso8601String(),
+            'read_only_ends_at' => $effective['read_only_ends_at']?->toIso8601String(),
+            'trial_days_left' => $subscription->trial_ends_at !== null && $effective['status'] === Subscription::TRIALING
+                ? max(0, (int) ceil($now->diffInHours($subscription->trial_ends_at, false) / 24))
+                : null,
+            'can_write' => in_array($effective['status'], [Subscription::TRIALING, Subscription::ACTIVE], true),
+            'features' => ['accounting' => $effective['status'] !== Subscription::CANCELLED && $subscription->plan->accounting_enabled],
+        ];
+    }
+
+    private function ensureMembershipBelongsTo(Tenant $tenant, TenantMembership $membership): void
+    {
+        abort_unless($membership->tenant_id === $tenant->id, 404);
+    }
+
+    private function activeAdminCount(Tenant $tenant): int
+    {
+        return TenantMembership::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('status', TenantMembership::STATUS_ACTIVE)
+            ->where('role_id', Role::system(PermissionCatalog::SCOPE_TENANT, PermissionCatalog::ADMIN_ROLE)->id)
+            ->count();
     }
 }

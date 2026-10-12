@@ -24,6 +24,10 @@ final class SubscriptionClock
         $readOnlyEndsAt = $subscription->read_only_ends_at;
         $graceDays = (int) config('diaba.subscriptions.read_only_days');
 
+        if ($subscription->cancel_at !== null && $now->gte($subscription->cancel_at)) {
+            return ['status' => Subscription::CANCELLED, 'read_only_ends_at' => null];
+        }
+
         if ($status === Subscription::TRIALING && $subscription->trial_ends_at !== null && $now->gte($subscription->trial_ends_at)) {
             $status = Subscription::READ_ONLY;
             $readOnlyEndsAt = $subscription->trial_ends_at->addDays($graceDays);

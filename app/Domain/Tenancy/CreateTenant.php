@@ -30,9 +30,11 @@ final class CreateTenant
     /**
      * @param  array{legal_name: string, display_name: string, country_code: string, timezone: string, warehouse_name: string, warehouse_code: string, warehouse_address?: string|null, plan_code: string}  $data
      */
-    public function __invoke(User $owner, array $data): TenantMembership
+    public function __invoke(User $owner, array $data, ?User $actor = null): TenantMembership
     {
-        return DB::transaction(function () use ($owner, $data): TenantMembership {
+        $actor ??= $owner;
+
+        return DB::transaction(function () use ($owner, $data, $actor): TenantMembership {
             $tenant = new Tenant([
                 'legal_name' => $data['legal_name'],
                 'display_name' => $data['display_name'],
@@ -51,9 +53,9 @@ final class CreateTenant
             $membership->save();
 
             $plan = Plan::query()->where('code', $data['plan_code'])->where('active', true)->firstOrFail();
-            $this->subscriptions->startTrial($tenant, $plan, $owner);
+            $this->subscriptions->startTrial($tenant, $plan, $actor);
 
-            return $this->context->runAs($tenant, function () use ($tenant, $owner, $membership, $data): TenantMembership {
+            return $this->context->runAs($tenant, function () use ($tenant, $owner, $actor, $membership, $data): TenantMembership {
                 ($this->catalogDefaults)();
 
                 $warehouse = Warehouse::query()->create([
@@ -62,9 +64,9 @@ final class CreateTenant
                     'address' => $data['warehouse_address'] ?? null,
                 ]);
 
-                $this->audit->record('tenant.created', $tenant, after: $tenant->only(['legal_name', 'display_name', 'country_code', 'timezone']), actor: $owner, tenant: $tenant);
-                $this->audit->record('membership.created', $membership, after: ['user_id' => $owner->id, 'role' => PermissionCatalog::ADMIN_ROLE], actor: $owner, tenant: $tenant);
-                $this->audit->record('warehouse.created', $warehouse, after: $warehouse->only(['code', 'name']), actor: $owner, tenant: $tenant);
+                $this->audit->record('tenant.created', $tenant, after: $tenant->only(['legal_name', 'display_name', 'country_code', 'timezone']), actor: $actor, tenant: $tenant);
+                $this->audit->record('membership.created', $membership, after: ['user_id' => $owner->id, 'role' => PermissionCatalog::ADMIN_ROLE], actor: $actor, tenant: $tenant);
+                $this->audit->record('warehouse.created', $warehouse, after: $warehouse->only(['code', 'name']), actor: $actor, tenant: $tenant);
 
                 return $membership;
             });

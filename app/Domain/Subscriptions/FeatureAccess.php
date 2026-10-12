@@ -180,6 +180,7 @@ final class FeatureAccess
             'status' => $effective['status'] ?? Subscription::SUSPENDED,
             'plan' => $subscription ? ['code' => $subscription->plan->code, 'name' => $subscription->plan->name] : null,
             'trial_ends_at' => $subscription?->trial_ends_at?->toIso8601String(),
+            'cancel_at' => $subscription?->cancel_at?->toIso8601String(),
             'read_only_ends_at' => $effective['read_only_ends_at']?->toIso8601String(),
             'trial_days_left' => $subscription?->trial_ends_at !== null && ($effective['status'] ?? null) === Subscription::TRIALING
                 ? max(0, (int) ceil($now->diffInHours($subscription->trial_ends_at, false) / 24))

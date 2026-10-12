@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,11 @@ import { auditActionLabel, t } from '@/i18n';
 import { formatDate } from '@/lib/dates';
 import { formatXof } from '@/lib/money';
 import { update as updateSubscription } from '@/routes/platform/subscriptions';
+import {
+    reactivate as reactivateMember,
+    resend as resendInvitation,
+    suspend as suspendMember,
+} from '@/routes/platform/members';
 import { grant as grantSupport } from '@/routes/platform/support';
 import {
     index as tenantsIndex,
@@ -17,7 +22,14 @@ import {
 } from '@/routes/platform/tenants';
 import type { SubscriptionSummary } from '@/types';
 
-type Action = 'change_plan' | 'extend_trial' | 'activate' | 'suspend';
+type Action =
+    | 'change_plan'
+    | 'extend_trial'
+    | 'activate'
+    | 'suspend'
+    | 'cancel_now'
+    | 'cancel_at_period_end'
+    | 'reactivate';
 
 const props = defineProps<{
     tenant: {
@@ -33,6 +45,7 @@ const props = defineProps<{
     period: {
         billing_cycle: 'monthly' | 'yearly' | null;
         current_period_end: string | null;
+        cancel_at: string | null;
     } | null;
     usage: {
         users: number;
@@ -41,7 +54,14 @@ const props = defineProps<{
         warehouse_limit: number | null;
         last_login_at: string | null;
     };
-    contacts: { name: string; email: string; role: string }[];
+    contacts: {
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        status: 'active' | 'suspended';
+        pending: boolean;
+    }[];
     invoices: {
         id: string;
         number: string;
@@ -83,12 +103,23 @@ setLayoutProps({
     ],
 });
 
-const actions: Action[] = [
-    'change_plan',
-    'extend_trial',
-    'activate',
-    'suspend',
-];
+const actions = computed<Action[]>(() => {
+    if (props.subscription.cancel_at) {
+        return ['reactivate'];
+    }
+
+    if (props.subscription.status === 'cancelled') {
+        return ['activate'];
+    }
+
+    return [
+        'change_plan',
+        'extend_trial',
+        'suspend',
+        'cancel_at_period_end',
+        'cancel_now',
+    ];
+});
 const selected = ref<Action | ''>('');
 
 const selectClass =
@@ -107,6 +138,32 @@ const limit = (used: number, max: number | null) =>
     max === null
         ? t('platform.usage_unlimited', { used })
         : t('platform.usage_of', { used, max });
+
+function resend(contactId: string): void {
+    router.post(
+        resendInvitation({ tenant: props.tenant.id, membership: contactId })
+            .url,
+        {},
+        { preserveScroll: true },
+    );
+}
+
+function suspend(contactId: string): void {
+    router.post(
+        suspendMember({ tenant: props.tenant.id, membership: contactId }).url,
+        {},
+        { preserveScroll: true },
+    );
+}
+
+function reactivate(contactId: string): void {
+    router.post(
+        reactivateMember({ tenant: props.tenant.id, membership: contactId })
+            .url,
+        {},
+        { preserveScroll: true },
+    );
+}
 </script>
 
 <template>
@@ -149,6 +206,16 @@ const limit = (used: number, max: number | null) =>
                     {{
                         t('billing.until', {
                             date: formatDate(period.current_period_end),
+                        })
+                    }}
+                </p>
+                <p
+                    v-if="subscription.cancel_at"
+                    class="mt-2 text-xs text-warning"
+                >
+                    {{
+                        t('platform.cancel_scheduled', {
+                            date: formatDate(subscription.cancel_at),
                         })
                     }}
                 </p>
@@ -213,6 +280,49 @@ const limit = (used: number, max: number | null) =>
                     <span class="text-muted-foreground">{{
                         contact.role
                     }}</span>
+                    <span
+                        v-if="contact.status === 'suspended'"
+                        class="rounded bg-danger-soft px-2 py-0.5 text-xs text-danger-soft-foreground"
+                    >
+                        {{ t('platform.account_suspended') }}
+                    </span>
+                    <span
+                        v-else-if="contact.pending"
+                        class="rounded bg-warning-soft px-2 py-0.5 text-xs text-warning-soft-foreground"
+                    >
+                        {{ t('platform.invitation_pending') }}
+                    </span>
+                    <div class="flex gap-2">
+                        <Button
+                            v-if="
+                                contact.pending && contact.status === 'active'
+                            "
+                            type="button"
+                            variant="ghost"
+                            class="h-10"
+                            @click="resend(contact.id)"
+                        >
+                            {{ t('platform.resend_invitation') }}
+                        </Button>
+                        <Button
+                            v-if="contact.status === 'active'"
+                            type="button"
+                            variant="outline"
+                            class="h-10"
+                            @click="suspend(contact.id)"
+                        >
+                            {{ t('platform.suspend_account') }}
+                        </Button>
+                        <Button
+                            v-else
+                            type="button"
+                            variant="outline"
+                            class="h-10"
+                            @click="reactivate(contact.id)"
+                        >
+                            {{ t('platform.reactivate_account') }}
+                        </Button>
+                    </div>
                 </li>
             </ul>
         </section>
@@ -307,6 +417,20 @@ const limit = (used: number, max: number | null) =>
                     </select>
                     <InputError :message="errors.billing_cycle" />
                 </div>
+
+                <p
+                    v-else-if="
+                        selected === 'cancel_now' ||
+                        selected === 'cancel_at_period_end'
+                    "
+                    class="text-sm text-warning sm:col-span-2"
+                >
+                    {{
+                        selected === 'cancel_now'
+                            ? t('platform.cancel_now_hint')
+                            : t('platform.cancel_at_period_end_hint')
+                    }}
+                </p>
 
                 <div class="grid gap-2 sm:col-span-2">
                     <Label for="reason">{{ t('platform.reason') }}</Label>

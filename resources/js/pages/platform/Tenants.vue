@@ -5,11 +5,13 @@ import EmptyState from '@/components/EmptyState.vue';
 import Heading from '@/components/Heading.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import { formatDate } from '@/lib/dates';
 import {
     index as tenantsIndex,
     show as tenantShow,
+    create as tenantCreate,
 } from '@/routes/platform/tenants';
 import type { SubscriptionSummary } from '@/types';
 
@@ -67,6 +69,24 @@ function submit(): void {
             :title="t('platform.tenants_title')"
             :description="t('platform.tenants_description')"
         />
+
+        <div
+            class="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
+        >
+            <div>
+                <p class="font-semibold">
+                    {{ t('platform.create.quick_title') }}
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('platform.create.quick_description') }}
+                </p>
+            </div>
+            <Button as-child class="h-11">
+                <Link :href="tenantCreate()">{{
+                    t('platform.create.open')
+                }}</Link>
+            </Button>
+        </div>
 
         <form
             class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem_12rem]"

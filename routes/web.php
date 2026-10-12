@@ -259,7 +259,12 @@ Route::bind('platformSubscription', fn (string $value) => TenantController::reso
 Route::middleware(['auth', 'verified', 'mfa.privileged'])->prefix('platform')->name('platform.')->group(function () {
     Route::get('/', PlatformDashboardController::class)->name('dashboard');
     Route::get('tenants', [TenantController::class, 'index'])->name('tenants.index');
+    Route::get('tenants/create', [TenantController::class, 'create'])->name('tenants.create');
+    Route::post('tenants', [TenantController::class, 'store'])->name('tenants.store');
     Route::get('tenants/{tenant}', [TenantController::class, 'show'])->whereUuid('tenant')->name('tenants.show');
+    Route::post('tenants/{tenant}/members/{membership}/resend', [TenantController::class, 'resendInvitation'])->whereUuid('tenant')->whereUuid('membership')->name('members.resend');
+    Route::post('tenants/{tenant}/members/{membership}/suspend', [TenantController::class, 'suspendMember'])->whereUuid('tenant')->whereUuid('membership')->name('members.suspend');
+    Route::post('tenants/{tenant}/members/{membership}/reactivate', [TenantController::class, 'reactivateMember'])->whereUuid('tenant')->whereUuid('membership')->name('members.reactivate');
     Route::post('subscriptions/{platformSubscription}', [TenantController::class, 'updateSubscription'])
         ->middleware('throttle:30,1')
         ->name('subscriptions.update');

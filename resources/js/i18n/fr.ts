@@ -21,6 +21,7 @@ export const fr = {
         hide_password: 'Masquer le mot de passe',
         previous: 'Précédent',
         next: 'Suivant',
+        back: 'Retour',
     },
     fields: {
         name: 'Nom complet',
@@ -944,6 +945,28 @@ export const fr = {
         tenants_title: 'Entreprises clientes',
         tenants_description:
             'Abonnements des entreprises. Les données métier des entreprises ne sont pas visibles ici.',
+        create: {
+            page_title: 'Créer une entreprise cliente',
+            title: 'Créer une entreprise cliente',
+            description:
+                'Préparez l’espace client, son premier dépôt et son essai gratuit depuis la console propriétaire.',
+            quick_title: 'Nouveau client',
+            quick_description:
+                'Créez un compte administrateur et envoyez-lui son invitation.',
+            open: 'Créer un client',
+            owner_section: 'Administrateur client',
+            owner_help:
+                'Une invitation sera envoyée. Aucun mot de passe ne sera communiqué ou affiché ici.',
+            owner_name: 'Nom complet',
+            owner_email: 'Adresse e-mail',
+            company_section: 'Entreprise',
+            warehouse_section: 'Premier dépôt',
+            plan_section: 'Formule et essai',
+            plan_help: 'L’essai gratuit sera créé pour {days} jours.',
+            invitation_notice:
+                'La création est auditée et l’administrateur reçoit une invitation.',
+            submit: 'Créer et inviter',
+        },
         plans_title: 'Formules',
         plans_description:
             'Limites et tarifs (XOF). Un tarif vide signifie « non encore validé ».',
@@ -952,6 +975,11 @@ export const fr = {
         members: '{count} membre(s)',
         created: 'Créée le {date}',
         no_subscription: 'Aucun abonnement',
+        invitation_pending: 'Invitation en attente',
+        account_suspended: 'Compte suspendu',
+        resend_invitation: 'Renvoyer l’invitation',
+        suspend_account: 'Suspendre le compte',
+        reactivate_account: 'Réactiver le compte',
         actions: 'Actions',
         filter_status: 'Statut',
         filter_plan: 'Formule',
@@ -994,7 +1022,15 @@ export const fr = {
             extend_trial: "Prolonger l'essai",
             activate: 'Activer (paiement validé)',
             suspend: 'Suspendre',
+            cancel_now: 'Résilier immédiatement',
+            cancel_at_period_end: 'Résilier à l’échéance',
+            reactivate: 'Annuler la résiliation',
         },
+        cancel_scheduled: 'Résiliation prévue le {date}.',
+        cancel_now_hint:
+            'L’accès client sera arrêté immédiatement. Cette action doit être justifiée dans le motif.',
+        cancel_at_period_end_hint:
+            'Le client garde son accès jusqu’à l’échéance de sa période actuelle, puis le renouvellement s’arrête.',
         reason: 'Motif (obligatoire, visible dans l’audit)',
         days: 'Jours supplémentaires',
         billing_cycle: 'Périodicité',
@@ -1050,6 +1086,9 @@ export const fr = {
             'subscription.trial_extended': 'Essai prolongé',
             'subscription.activated': 'Abonnement activé',
             'subscription.suspended': 'Abonnement suspendu',
+            'subscription.cancelled': 'Abonnement résilié',
+            'subscription.cancellation_scheduled': 'Résiliation programmée',
+            'subscription.reactivated': 'Résiliation annulée',
             'product.created': 'Article créé',
             'product.updated': 'Article modifié',
             'product.archived': 'Article archivé',

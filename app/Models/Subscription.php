@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonImmutable|null $read_only_ends_at
  * @property CarbonImmutable|null $current_period_start
  * @property CarbonImmutable|null $current_period_end
+ * @property CarbonImmutable|null $cancel_at
  * @property CarbonImmutable $status_changed_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -49,6 +50,7 @@ class Subscription extends Model
             'read_only_ends_at' => 'datetime',
             'current_period_start' => 'datetime',
             'current_period_end' => 'datetime',
+            'cancel_at' => 'datetime',
             'status_changed_at' => 'datetime',
         ];
     }
@@ -71,9 +73,11 @@ class Subscription extends Model
 
         match ($status) {
             self::TRIALING => $query->where('status', self::TRIALING)
-                ->where(fn (Builder $q) => $q->whereNull('trial_ends_at')->orWhere('trial_ends_at', '>', $now)),
+                ->where(fn (Builder $q) => $q->whereNull('trial_ends_at')->orWhere('trial_ends_at', '>', $now))
+                ->where(fn (Builder $q) => $q->whereNull('cancel_at')->orWhere('cancel_at', '>', $now)),
             self::ACTIVE => $query->where('status', self::ACTIVE)
-                ->where(fn (Builder $q) => $q->whereNull('current_period_end')->orWhere('current_period_end', '>', $now)),
+                ->where(fn (Builder $q) => $q->whereNull('current_period_end')->orWhere('current_period_end', '>', $now))
+                ->where(fn (Builder $q) => $q->whereNull('cancel_at')->orWhere('cancel_at', '>', $now)),
             self::READ_ONLY => $query->where(fn (Builder $q) => $q
                 ->where(fn (Builder $q) => $q->where('status', self::READ_ONLY)
                     ->where(fn (Builder $q) => $q->whereNull('read_only_ends_at')->orWhere('read_only_ends_at', '>', $now)))

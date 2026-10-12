@@ -87,7 +87,8 @@ final class SubscriptionLifecycle
             ->withoutGlobalScope(TenantScope::class)
             ->whereIn('status', [Subscription::TRIALING, Subscription::ACTIVE, Subscription::READ_ONLY])
             ->where(fn ($q) => $q
-                ->where(fn ($q) => $q->where('status', Subscription::TRIALING)->where('trial_ends_at', '<=', $now))
+                ->where(fn ($q) => $q->whereNotNull('cancel_at')->where('cancel_at', '<=', $now))
+                ->orWhere(fn ($q) => $q->where('status', Subscription::TRIALING)->where('trial_ends_at', '<=', $now))
                 ->orWhere(fn ($q) => $q->where('status', Subscription::ACTIVE)->where('current_period_end', '<=', $now))
                 ->orWhere(fn ($q) => $q->where('status', Subscription::READ_ONLY)->where('read_only_ends_at', '<=', $now)))
             ->pluck('id');
@@ -110,10 +111,13 @@ final class SubscriptionLifecycle
 
                 $subscription->status = $effective['status'];
                 $subscription->read_only_ends_at = $effective['read_only_ends_at'];
+                if ($effective['status'] === Subscription::CANCELLED) {
+                    $subscription->cancel_at = null;
+                }
                 $subscription->status_changed_at = $now;
                 $subscription->save();
 
-                $this->audit->record('subscription.status_changed', $subscription,
+                $this->audit->record($effective['status'] === Subscription::CANCELLED ? 'subscription.cancelled' : 'subscription.status_changed', $subscription,
                     before: ['status' => $from],
                     after: ['status' => $subscription->status],
                     metadata: ['reason' => 'schedule'],
@@ -167,6 +171,32 @@ final class SubscriptionLifecycle
             $s->current_period_start = $start;
             $s->current_period_end = $billingCycle === 'yearly' ? $start->addYear() : $start->addMonth();
             $s->read_only_ends_at = null;
+            $s->cancel_at = null;
+        });
+    }
+
+    public function cancel(Subscription $subscription, bool $atPeriodEnd, string $reason, User $actor): Subscription
+    {
+        return $this->manual($subscription, $reason, $actor, $atPeriodEnd ? 'subscription.cancellation_scheduled' : 'subscription.cancelled', function (Subscription $s) use ($atPeriodEnd): void {
+            if ($atPeriodEnd) {
+                $s->cancel_at = $s->current_period_end ?? $s->trial_ends_at ?? CarbonImmutable::now();
+
+                return;
+            }
+
+            $s->status = Subscription::CANCELLED;
+            $s->cancel_at = null;
+        });
+    }
+
+    public function reactivate(Subscription $subscription, string $reason, User $actor): Subscription
+    {
+        return $this->manual($subscription, $reason, $actor, 'subscription.reactivated', function (Subscription $s): void {
+            if ($s->status === Subscription::CANCELLED) {
+                throw new InvalidArgumentException('A cancelled subscription requires a new activation cycle.');
+            }
+
+            $s->cancel_at = null;
         });
     }
 
@@ -280,6 +310,7 @@ final class SubscriptionLifecycle
             'billing_cycle' => $subscription->billing_cycle,
             'trial_ends_at' => $subscription->trial_ends_at?->toIso8601String(),
             'current_period_end' => $subscription->current_period_end?->toIso8601String(),
+            'cancel_at' => $subscription->cancel_at?->toIso8601String(),
         ];
     }
 
