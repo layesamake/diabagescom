@@ -59,7 +59,7 @@ export type SubscriptionSummary = {
     read_only_ends_at: string | null;
     trial_days_left: number | null;
     can_write: boolean;
-    features: { accounting: boolean };
+    features: { accounting: boolean; online_store: boolean };
 };
 
 export type PlanOption = {

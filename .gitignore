@@ -50,3 +50,6 @@ yarn-error.log
 /deploy/.deploy.lock
 /deploy/deployments.log
 *.age
+
+# Secrets locaux de développement (jamais versionnés)
+/codes-secrets/

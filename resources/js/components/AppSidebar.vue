@@ -12,6 +12,7 @@ import {
     Receipt,
     Settings,
     ShoppingBasket,
+    ShoppingBag,
     ShoppingCart,
     Truck,
     Users,
@@ -46,6 +47,7 @@ import { index as purchaseInvoicesIndex } from '@/routes/purchases/invoices';
 import { index as purchaseOrdersIndex } from '@/routes/purchases/orders';
 import { index as salesIndex } from '@/routes/sales';
 import { index as stockIndex } from '@/routes/stock';
+import { index as storefrontIndex } from '@/routes/storefront';
 import { index as suppliersIndex } from '@/routes/suppliers';
 import { dashboard as platformDashboard } from '@/routes/platform';
 import { index as platformBilling } from '@/routes/platform/billing';
@@ -156,6 +158,18 @@ const navGroups = computed<NavGroup[]>(() => {
                     t('catalog.nav'),
                     productsIndex(),
                     Package,
+                ),
+                ...item(
+                    Boolean(
+                        (
+                            page.props.subscription as {
+                                features?: { online_store?: boolean };
+                            } | null
+                        )?.features?.online_store,
+                    ) && can('catalog.view'),
+                    t('storefront.nav'),
+                    storefrontIndex(),
+                    ShoppingBag,
                 ),
                 ...item(
                     can('inventory.view'),

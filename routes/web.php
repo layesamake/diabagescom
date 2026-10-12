@@ -38,6 +38,8 @@ use App\Http\Controllers\Settings\BackupController;
 use App\Http\Controllers\Settings\GoogleDriveController;
 use App\Http\Controllers\Settings\MemberController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\Storefront\PublicStorefrontController;
+use App\Http\Controllers\Storefront\StorefrontController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +47,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', WelcomeController::class)->name('home');
 Route::get('sitemap.xml', [WelcomeController::class, 'sitemap'])->name('sitemap');
 Route::get('robots.txt', [WelcomeController::class, 'robots'])->name('robots');
+
+// Boutique publique : aucune donnée métier privée n'est exposée sans que le
+// slug et l'activation de la boutique soient vérifiés par le contrôleur.
+Route::prefix('boutique/{slug}')->group(function (): void {
+    Route::get('/', [PublicStorefrontController::class, 'show'])->name('storefront.show');
+    Route::post('orders', [PublicStorefrontController::class, 'order'])->middleware('throttle:20,1')->name('storefront.orders.store');
+    Route::get('orders/{order}/confirmation', [PublicStorefrontController::class, 'confirmation'])->name('storefront.order.confirmation');
+    Route::get('products/{product}/image', [PublicStorefrontController::class, 'image'])->whereUuid('product')->middleware('throttle:120,1')->name('storefront.products.image');
+});
 
 // Pages légales publiques (versions provisoires, à faire valider par un juriste).
 Route::inertia('confidentialite', 'legal/Privacy')->name('legal.privacy');
@@ -83,6 +94,14 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('settings/warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
     Route::post('settings/warehouses', [WarehouseController::class, 'store'])->name('warehouses.store');
     Route::get('settings/audit', [AuditController::class, 'index'])->name('audit.index');
+    Route::middleware('feature:online_store')->prefix('storefront')->name('storefront.')->group(function (): void {
+        Route::get('/', [StorefrontController::class, 'index'])->name('index');
+        Route::put('/', [StorefrontController::class, 'update'])->name('update');
+        Route::get('products', [StorefrontController::class, 'products'])->name('products');
+        Route::put('products/{product}', [StorefrontController::class, 'updateProduct'])->whereUuid('product')->name('products.update');
+        Route::get('orders', [StorefrontController::class, 'orders'])->name('orders');
+        Route::put('orders/{order}', [StorefrontController::class, 'updateOrder'])->whereUuid('order')->name('orders.update');
+    });
     Route::get('settings/members', [MemberController::class, 'index'])->name('members.index');
     Route::post('settings/members', [MemberController::class, 'store'])->middleware('throttle:20,1')->name('members.store');
     Route::put('settings/members/{membership}', [MemberController::class, 'update'])->whereUuid('membership')->name('members.update');

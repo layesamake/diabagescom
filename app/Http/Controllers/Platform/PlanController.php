@@ -37,6 +37,7 @@ class PlanController extends Controller
             'warehouse_limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'included_users' => ['required', 'integer', 'min:1', 'max:10000'],
             'accounting_enabled' => ['required', 'boolean'],
+            'online_store_enabled' => ['sometimes', 'boolean'],
             'price_monthly' => ['nullable', 'integer', 'min:0', 'max:100000000'],
             'price_yearly' => ['nullable', 'integer', 'min:0', 'max:1000000000'],
             'active' => ['required', 'boolean'],

@@ -16,6 +16,7 @@ type PlanRow = {
     warehouse_limit: number | null;
     included_users: number;
     accounting_enabled: boolean;
+    online_store_enabled: boolean;
     price_monthly: number | null;
     price_yearly: number | null;
     active: boolean;
@@ -35,6 +36,7 @@ const withBooleans = (
 ): Record<string, FormDataConvertible> => ({
     ...data,
     accounting_enabled: data.accounting_enabled ? 1 : 0,
+    online_store_enabled: data.online_store_enabled ? 1 : 0,
     active: data.active ? 1 : 0,
     warehouse_limit: data.warehouse_limit === '' ? null : data.warehouse_limit,
     price_monthly: data.price_monthly === '' ? null : data.price_monthly,
@@ -151,6 +153,16 @@ const withBooleans = (
                         class="size-5"
                     />
                     {{ t('platform.accounting') }}
+                </label>
+                <label class="flex min-h-11 items-center gap-3 text-sm">
+                    <input
+                        type="checkbox"
+                        name="online_store_enabled"
+                        value="1"
+                        :checked="plan.online_store_enabled"
+                        class="size-5"
+                    />
+                    {{ t('platform.online_store') }}
                 </label>
                 <label class="flex min-h-11 items-center gap-3 text-sm">
                     <input

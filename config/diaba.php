@@ -50,6 +50,7 @@ return [
             'warehouse_limit' => 1,
             'included_users' => 2,
             'accounting_enabled' => false,
+            'online_store_enabled' => false,
             'sort_order' => 10,
         ],
         'essential_accounting' => [
@@ -57,6 +58,7 @@ return [
             'warehouse_limit' => 1,
             'included_users' => 3,
             'accounting_enabled' => true,
+            'online_store_enabled' => false,
             'sort_order' => 20,
         ],
         'business' => [
@@ -64,6 +66,7 @@ return [
             'warehouse_limit' => 5,
             'included_users' => 5,
             'accounting_enabled' => false,
+            'online_store_enabled' => false,
             'sort_order' => 30,
         ],
         'business_accounting' => [
@@ -71,6 +74,7 @@ return [
             'warehouse_limit' => 5,
             'included_users' => 8,
             'accounting_enabled' => true,
+            'online_store_enabled' => false,
             'sort_order' => 40,
         ],
     ],

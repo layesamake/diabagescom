@@ -26,5 +26,6 @@ return [
         'included_users' => 'utilisateurs inclus',
         'price_monthly' => 'prix mensuel',
         'price_yearly' => 'prix annuel',
+        'online_store_enabled' => 'boutique en ligne',
     ],
 ];

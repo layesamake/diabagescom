@@ -22,6 +22,8 @@ final class FeatureAccess
 {
     public const string FEATURE_ACCOUNTING = 'accounting';
 
+    public const string FEATURE_ONLINE_STORE = 'online_store';
+
     public const string RESOURCE_WAREHOUSES = 'warehouses';
 
     public const string RESOURCE_USERS = 'users';
@@ -75,6 +77,7 @@ final class FeatureAccess
 
         return match ($feature) {
             self::FEATURE_ACCOUNTING => $plan !== null && $plan->accounting_enabled,
+            self::FEATURE_ONLINE_STORE => $plan !== null && $plan->online_store_enabled,
             default => false,
         };
     }
@@ -186,7 +189,10 @@ final class FeatureAccess
                 ? max(0, (int) ceil($now->diffInHours($subscription->trial_ends_at, false) / 24))
                 : null,
             'can_write' => in_array($effective['status'] ?? null, [Subscription::TRIALING, Subscription::ACTIVE], true),
-            'features' => [self::FEATURE_ACCOUNTING => $this->hasFeature($tenant, self::FEATURE_ACCOUNTING)],
+            'features' => [
+                self::FEATURE_ACCOUNTING => $this->hasFeature($tenant, self::FEATURE_ACCOUNTING),
+                self::FEATURE_ONLINE_STORE => $this->hasFeature($tenant, self::FEATURE_ONLINE_STORE),
+            ],
         ];
     }
 }

@@ -341,7 +341,10 @@ class TenantController extends Controller
                 ? max(0, (int) ceil($now->diffInHours($subscription->trial_ends_at, false) / 24))
                 : null,
             'can_write' => in_array($effective['status'], [Subscription::TRIALING, Subscription::ACTIVE], true),
-            'features' => ['accounting' => $effective['status'] !== Subscription::CANCELLED && $subscription->plan->accounting_enabled],
+            'features' => [
+                'accounting' => $effective['status'] !== Subscription::CANCELLED && $subscription->plan->accounting_enabled,
+                'online_store' => $effective['status'] !== Subscription::CANCELLED && $subscription->plan->online_store_enabled,
+            ],
         ];
     }
 
