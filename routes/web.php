@@ -41,6 +41,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
 
+// Pages légales publiques (versions provisoires, à faire valider par un juriste).
+Route::inertia('confidentialite', 'legal/Privacy')->name('legal.privacy');
+Route::inertia('conditions', 'legal/Terms')->name('legal.terms');
+
 // Assistant de démarrage : connecté et vérifié, sans entreprise requise.
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('onboarding', [OnboardingController::class, 'create'])->name('onboarding.create');
