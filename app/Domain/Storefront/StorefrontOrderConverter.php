@@ -40,11 +40,19 @@ final class StorefrontOrderConverter
             $warehouse = $this->context->warehouse() ?? Warehouse::query()->orderBy('created_at')->first()
                 ?? throw new InvalidSalesOperation(__('inventory.errors.unknown_warehouse'));
             $customer = $this->customerFor($order);
-            $lines = $order->items->filter(fn ($item) => $item->product_id !== null)->map(fn ($item): array => [
-                'product_id' => $item->product_id,
-                'quantity' => rtrim(rtrim((string) $item->quantity, '0'), '.'),
-                'unit_price' => $item->unit_price,
-            ])->values()->all();
+            /** @var list<array{product_id: string, quantity: string, unit_price: int}> $lines */
+            $lines = [];
+            foreach ($order->items as $item) {
+                if ($item->product_id === null) {
+                    continue;
+                }
+
+                $lines[] = [
+                    'product_id' => (string) $item->product_id,
+                    'quantity' => rtrim(rtrim((string) $item->quantity, '0'), '.'),
+                    'unit_price' => (int) $item->unit_price,
+                ];
+            }
 
             $note = "Commande web {$order->number} · ".($order->fulfillment === 'delivery' ? 'livraison : '.$order->delivery_address : 'retrait sur place');
             $document = $this->sales->saveDraft(null, SalesDocument::ORDER, [
