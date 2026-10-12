@@ -146,4 +146,36 @@ class StorefrontTest extends TestCase
         $this->assertSame(0, StorefrontProduct::query()->count());
         $this->assertSame(0, Storefront::query()->count());
     }
+
+    public function test_public_page_lists_categories_and_filters_by_category(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $computer = $this->publish($setup['tenant'], 'tsi-informatique');
+        $food = app(TenantContext::class)->runAs($setup['tenant'], function () use ($setup): Product {
+            $product = Product::query()->forceCreate([
+                'sku' => 'RZ-001', 'name' => 'Riz', 'type' => 'stockable',
+                'unit_id' => Unit::query()->where('code', 'U')->value('id'),
+                'tax_rate_id' => TaxRate::query()->firstOrFail()->id,
+                'category_id' => ProductCategory::query()->create(['name' => 'Épicerie'])->id, 'sale_price' => 14500,
+            ]);
+            StorefrontProduct::query()->create([
+                'tenant_id' => $setup['tenant']->id,
+                'storefront_id' => Storefront::query()->where('slug', 'tsi-informatique')->value('id'),
+                'product_id' => $product->id, 'visible' => true,
+            ]);
+
+            return $product;
+        });
+        $categoryId = $food->category_id;
+        app(TenantContext::class)->clear();
+
+        $this->get(route('storefront.show', 'tsi-informatique'))
+            ->assertInertia(fn ($page) => $page->count('categories', 2)->count('products.data', 2));
+        $this->get(route('storefront.show', ['slug' => 'tsi-informatique', 'category' => $categoryId]))
+            ->assertInertia(fn ($page) => $page
+                ->count('categories', 2)
+                ->count('products.data', 1)
+                ->where('products.data.0.id', $food->id));
+        $this->assertNotSame($computer->id, $food->id);
+    }
 }

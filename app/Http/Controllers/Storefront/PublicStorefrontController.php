@@ -43,8 +43,16 @@ class PublicStorefrontController extends Controller
                 return $productQuery->get()->keyBy('id');
             },
         );
-        $products = $listings->filter(fn (StorefrontProduct $listing) => $productsById->has($listing->product_id))
-            ->map(function (StorefrontProduct $listing) use ($productsById, $slug): array {
+        $available = $listings->filter(fn (StorefrontProduct $listing) => $productsById->has($listing->product_id));
+        // Menu des catégories : celles des articles publiés (avant filtre par catégorie).
+        $categories = $available->map(fn (StorefrontProduct $listing) => $productsById->get($listing->product_id)->category)
+            ->filter()->unique('id')->sortBy('name')
+            ->map(fn ($category): array => ['id' => $category->id, 'name' => $category->name])->values();
+        $categoryId = (string) $request->query('category', '');
+        if ($categoryId !== '') {
+            $available = $available->filter(fn (StorefrontProduct $listing) => $productsById->get($listing->product_id)->category_id === $categoryId);
+        }
+        $products = $available->map(function (StorefrontProduct $listing) use ($productsById, $slug): array {
                 /** @var Product $product */
                 $product = $productsById->get($listing->product_id);
 
@@ -55,7 +63,8 @@ class PublicStorefrontController extends Controller
         return Inertia::render('storefront/Public', [
             'storefront' => ['name' => $storefront->tenant->display_name, ...$storefront->only(['slug', 'tagline', 'description', 'phone', 'email', 'whatsapp', 'address', 'opening_hours', 'accepts_orders', 'delivery_enabled'])],
             'products' => ['data' => $products, 'prev_page_url' => null, 'next_page_url' => null],
-            'filters' => ['q' => $q],
+            'categories' => $categories,
+            'filters' => ['q' => $q, 'category' => $categoryId],
         ]);
     }
 

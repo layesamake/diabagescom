@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { computed, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,9 +32,21 @@ type Storefront = {
 const props = defineProps<{
     storefront: Storefront;
     products: { data: Product[] };
-    filters: { q: string };
+    categories: { id: string; name: string }[];
+    filters: { q: string; category: string };
 }>();
 const search = ref(props.filters.q);
+// La vitrine est toujours claire, même si l'interface de l'entreprise est en thème sombre.
+let wasDark = false;
+onMounted(() => {
+    wasDark = document.documentElement.classList.contains('dark');
+    document.documentElement.classList.remove('dark');
+});
+onBeforeUnmount(() => {
+    if (wasDark) {
+        document.documentElement.classList.add('dark');
+    }
+});
 const cart = reactive<Record<string, number>>({});
 const customer = reactive({
     customer_name: '',
@@ -55,12 +67,20 @@ const total = computed(() =>
         0,
     ),
 );
-const submitSearch = () =>
+const menu = computed(() => [
+    { id: '', name: t('storefront.public.all_categories') },
+    ...props.categories,
+]);
+const browse = (category: string) =>
     router.get(
         window.location.pathname,
-        { q: search.value },
+        {
+            ...(search.value ? { q: search.value } : {}),
+            ...(category ? { category } : {}),
+        },
         { preserveState: true },
     );
+const submitSearch = () => browse(props.filters.category);
 const submitOrder = () =>
     router.post(order(props.storefront.slug), {
         ...customer,
@@ -112,6 +132,33 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                 </div>
             </div>
         </header>
+        <nav
+            v-if="categories.length"
+            :aria-label="t('storefront.public.categories')"
+            class="border-b bg-white"
+        >
+            <ul
+                class="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3 text-sm"
+            >
+                <li
+                    v-for="item in menu"
+                    :key="item.id"
+                >
+                    <button
+                        type="button"
+                        class="inline-flex min-h-11 items-center whitespace-nowrap rounded-full border px-4"
+                        :class="
+                            filters.category === item.id
+                                ? 'border-slate-900 bg-slate-900 text-white'
+                                : 'bg-white text-slate-900 hover:bg-slate-100'
+                        "
+                        @click="browse(item.id)"
+                    >
+                        {{ item.name }}
+                    </button>
+                </li>
+            </ul>
+        </nav>
         <div
             class="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1fr_360px]"
         >
@@ -126,7 +173,7 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                     <Input
                         v-model="search"
                         :placeholder="t('storefront.public.search')"
-                        class="h-11 bg-white"
+                        class="h-11 border-slate-300 bg-white text-slate-900"
                     /><Button type="submit" class="h-11">{{
                         t('common.continue')
                     }}</Button>
@@ -268,7 +315,7 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                     </form>
                 </div>
                 <p v-else class="mt-4 text-sm text-muted-foreground">
-                    {{ t('storefront.public.empty') }}
+                    {{ t('storefront.public.cart_empty') }}
                 </p>
             </aside>
         </div>

@@ -1119,6 +1119,10 @@ export const fr = {
             confirmation_text:
                 'Votre commande : {number}. L’entreprise va vous contacter pour confirmer les modalités.',
             empty: 'Aucun article disponible.',
+            cart_empty:
+                'Votre panier est vide. Touchez « Commander » sur un article.',
+            all_categories: 'Toutes les catégories',
+            categories: 'Catégories',
         },
     },
     audit: {
