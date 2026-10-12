@@ -13,10 +13,10 @@ use Illuminate\Support\Facades\DB;
 final class StorefrontStock
 {
     /**
-     * @param  list<Product>  $products
+     * @param  iterable<Product>  $products
      * @return array<string, float|null> id article => quantité disponible (null = illimité)
      */
-    public function availability(string $tenantId, array $products): array
+    public function availability(string $tenantId, iterable $products): array
     {
         $result = [];
         $stockable = [];
