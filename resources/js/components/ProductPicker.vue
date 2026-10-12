@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ChevronDown, ScanBarcode } from '@lucide/vue';
+import { Camera, ChevronDown, ScanBarcode } from '@lucide/vue';
 import { ref, watch } from 'vue';
+import CameraScanner from '@/components/CameraScanner.vue';
 import { highlight, useCombobox } from '@/composables/useCombobox';
+import { cameraAvailable } from '@/lib/barcodeScanner';
 import { Input } from '@/components/ui/input';
 import { t } from '@/i18n';
 import { lookupOffline, searchProductsOffline } from '@/offline/sync';
@@ -110,6 +112,61 @@ function choose(product: PickedProduct, clear = true): void {
     }
 }
 
+/**
+ * Article correspondant exactement à un code (code-barres, référence) :
+ * serveur si en ligne, sinon catalogue de l'appareil.
+ */
+async function lookupCode(code: string): Promise<PickedProduct | null> {
+    const online = navigator.onLine
+        ? await fetchJson<{
+              product: PickedProduct & { unit_decimals: boolean };
+          }>(lookup({ query: { code } }).url).catch(() => undefined)
+        : undefined;
+    const offline = online === undefined ? await lookupOffline(code) : null;
+
+    if (offline && !(props.stockedOnly && offline.type === 'service')) {
+        return offline;
+    }
+
+    if (online && !(props.stockedOnly && online.product.type === 'service')) {
+        return {
+            ...online.product,
+            decimals: online.product.unit_decimals,
+            standard_cost: null,
+            available: null,
+        };
+    }
+
+    return null;
+}
+
+// Caméra : chaque code lu ajoute l'article ; la caméra reste ouverte.
+const cameraOpen = ref(false);
+const cameraFeedback = ref<{ ok: boolean; text: string } | null>(null);
+const canUseCamera = cameraAvailable();
+
+async function onCameraCode(code: string): Promise<void> {
+    const product = await lookupCode(code);
+
+    if (product) {
+        choose(product, false);
+        cameraFeedback.value = {
+            ok: true,
+            text: t('scanner.added', { name: product.name }),
+        };
+    } else {
+        cameraFeedback.value = {
+            ok: false,
+            text: t('scanner.unknown', { code }),
+        };
+    }
+}
+
+function openCamera(): void {
+    cameraFeedback.value = null;
+    cameraOpen.value = true;
+}
+
 // Entrée : code-barres exact d'abord (scan), sinon premier résultat.
 // Le champ est vidé dès l'appui sur Entrée : avec un réseau lent, un second scan
 // rapide ne se colle pas au premier, et la réponse du premier n'efface pas la
@@ -129,31 +186,10 @@ async function onEnter(): Promise<void> {
     clearTimeout(timer);
     query.value = '';
     close();
-    const online = navigator.onLine
-        ? await fetchJson<{
-              product: PickedProduct & { unit_decimals: boolean };
-          }>(lookup({ query: { code } }).url).catch(() => undefined)
-        : undefined;
-    const offline = online === undefined ? await lookupOffline(code) : null;
+    const product = await lookupCode(code);
 
-    if (offline && !(props.stockedOnly && offline.type === 'service')) {
-        choose(offline, false);
-
-        return;
-    }
-
-    const exact = online ?? null;
-
-    if (exact && !(props.stockedOnly && exact.product.type === 'service')) {
-        choose(
-            {
-                ...exact.product,
-                decimals: exact.product.unit_decimals,
-                standard_cost: null,
-                available: null,
-            },
-            false,
-        );
+    if (product) {
+        choose(product, false);
 
         return;
     }
@@ -185,7 +221,7 @@ async function onEnter(): Promise<void> {
             type="search"
             autocomplete="off"
             enterkeyhint="search"
-            class="h-11 pr-11 pl-10"
+            :class="canUseCamera ? 'h-11 pr-22 pl-10' : 'h-11 pr-11 pl-10'"
             role="combobox"
             :aria-expanded="open"
             :aria-controls="`${inputId}-list`"
@@ -200,6 +236,16 @@ async function onEnter(): Promise<void> {
             @keydown.enter.prevent="onEnter"
             @keydown.escape="close()"
         />
+        <button
+            v-if="canUseCamera"
+            type="button"
+            class="absolute top-1/2 right-10 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-primary hover:bg-accent"
+            :aria-label="t('scanner.open')"
+            :title="t('scanner.open')"
+            @click="openCamera"
+        >
+            <Camera class="size-5" />
+        </button>
         <button
             type="button"
             tabindex="-1"
@@ -264,5 +310,10 @@ async function onEnter(): Promise<void> {
                 >
             </li>
         </ul>
+        <CameraScanner
+            v-model:open="cameraOpen"
+            :feedback="cameraFeedback"
+            @detected="onCameraCode"
+        />
     </div>
 </template>

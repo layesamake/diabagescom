@@ -43,6 +43,7 @@ const props = defineProps<{
     sessions: { id: string; register: string; opened_by: string }[];
     registers: { id: string; name: string }[];
     methods: Method[];
+    frequent: PickedProduct[];
     can: {
         price_override: boolean;
         discount: boolean;
@@ -77,6 +78,36 @@ const provisional = ref<{ total: number; change: number; at: string } | null>(
 );
 
 const quickMethods: Method[] = ['cash', 'wave', 'orange_money', 'card'];
+
+/**
+ * Montants reçus en espèces les plus probables : le montant exact, puis les
+ * billets ou sommes rondes juste au-dessus (monnaie à rendre calculée).
+ */
+const cashSuggestions = computed(() => {
+    const due = total.value;
+
+    if (due <= 0) {
+        return [];
+    }
+
+    const rounded = [500, 1000, 2000, 5000, 10000]
+        .map((unit) => Math.ceil(due / unit) * unit)
+        .filter((amount) => amount > due);
+
+    return [due, ...new Set(rounded)].slice(0, 5);
+});
+
+const showCashSuggestions = computed(
+    () =>
+        !onCredit.value &&
+        tenders.value.length === 1 &&
+        tenders.value[0].method === 'cash' &&
+        cart.value.length > 0,
+);
+
+function receive(amount: number): void {
+    tenders.value[0].amount = String(amount);
+}
 
 function addProduct(product: PickedProduct): void {
     const existing = cart.value.find((l) => l.product.id === product.id);
@@ -433,6 +464,55 @@ function checkout(): void {
                 @select="addProduct"
             />
 
+            <!-- Articles fréquents : ajout au panier d'une seule touche -->
+            <section
+                v-if="frequent.length"
+                class="space-y-2"
+                aria-labelledby="frequent-title"
+            >
+                <h2
+                    id="frequent-title"
+                    class="text-sm font-medium text-muted-foreground"
+                >
+                    {{ t('pos.frequent') }}
+                </h2>
+                <div
+                    class="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4"
+                >
+                    <button
+                        v-for="product in frequent"
+                        :key="product.id"
+                        type="button"
+                        class="flex min-h-20 flex-col justify-between rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/60 hover:bg-accent active:scale-[0.98]"
+                        @click="addProduct(product)"
+                    >
+                        <span class="line-clamp-2 text-sm font-medium">{{
+                            product.name
+                        }}</span>
+                        <span
+                            class="mt-1 flex items-baseline justify-between gap-2"
+                        >
+                            <span
+                                class="font-semibold text-primary tabular-nums"
+                                >{{ formatXof(product.sale_price ?? 0) }}</span
+                            >
+                            <span
+                                v-if="
+                                    product.available !== null &&
+                                    product.available !== undefined
+                                "
+                                class="text-xs text-muted-foreground"
+                                >{{
+                                    t('pos.tile_stock', {
+                                        quantity: product.available,
+                                    })
+                                }}</span
+                            >
+                        </span>
+                    </button>
+                </div>
+            </section>
+
             <div>
                 <div class="mb-2 flex items-center justify-between">
                     <h2 class="font-semibold">
@@ -690,6 +770,25 @@ function checkout(): void {
                                 ><X class="size-4"
                             /></Button>
                         </div>
+                        <div
+                            v-if="index === 0 && showCashSuggestions"
+                            class="flex flex-wrap gap-2"
+                            :aria-label="t('pos.quick_cash')"
+                        >
+                            <Button
+                                v-for="(amount, i) in cashSuggestions"
+                                :key="amount"
+                                type="button"
+                                variant="secondary"
+                                class="h-11 flex-1 tabular-nums"
+                                @click="receive(amount)"
+                                >{{
+                                    i === 0
+                                        ? t('pos.exact_amount')
+                                        : formatXof(amount)
+                                }}</Button
+                            >
+                        </div>
                         <Input
                             v-if="tender.method !== 'cash'"
                             v-model="tender.reference"
@@ -746,13 +845,13 @@ function checkout(): void {
                     <span class="text-muted-foreground">{{
                         t('pos.total')
                     }}</span>
-                    <span class="text-2xl font-bold tabular-nums">{{
+                    <span class="text-3xl font-bold tabular-nums lg:text-4xl">{{
                         formatXof(total)
                     }}</span>
                 </div>
                 <p
                     v-if="plan.change > 0"
-                    class="text-right text-sm font-medium text-success"
+                    class="text-right text-lg font-semibold text-success"
                 >
                     {{ t('pos.change', { amount: formatXof(plan.change) }) }}
                 </p>

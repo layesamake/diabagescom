@@ -40,6 +40,26 @@ class SalesHttpTest extends TestCase
         $this->actingAs($user)->get(route('purchases.invoices.create'))->assertInertia(fn (Assert $page) => $page->component('purchases/InvoiceForm'));
     }
 
+    public function test_frequent_products_are_the_best_sellers_of_the_warehouse(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $rice = $this->makeProduct($setup, 'RIZ');
+        $oil = $this->makeProduct($setup, 'HUILE');
+        $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '20', 1000], [$setup['warehouse']->id, $oil->id, '20', 1000]]);
+        $session = $this->openSession($setup, 0);
+
+        // Sans historique : articles par ordre alphabétique.
+        $this->actingAs($setup['user'])->get(route('pos.create'))->assertInertia(fn (Assert $page) => $page
+            ->where('frequent.0.sku', 'HUILE')->where('frequent.0.available', '20'));
+
+        $this->sell($setup, $session, [[$rice->id, '1']], [['cash', 2000]]);
+        $this->sell($setup, $session, [[$rice->id, '1']], [['cash', 2000]]);
+        $this->sell($setup, $session, [[$oil->id, '1']], [['cash', 2000]]);
+
+        $this->actingAs($setup['user'])->get(route('pos.create'))->assertInertia(fn (Assert $page) => $page
+            ->where('frequent.0.sku', 'RIZ')->where('frequent.1.sku', 'HUILE')->has('frequent', 2));
+    }
+
     public function test_a_counter_sale_over_http_is_idempotent_and_prints(): void
     {
         $setup = $this->createTenantWithMember();

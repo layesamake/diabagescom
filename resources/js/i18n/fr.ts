@@ -181,6 +181,19 @@ export const fr = {
         'sync/Queue':
             'Les ventes faites sans connexion Internet. Elles sont envoyées automatiquement dès que la connexion revient.\nSi une vente est refusée (stock insuffisant, par exemple), vous pouvez la corriger ici.',
     },
+    scanner: {
+        title: 'Scanner avec la caméra',
+        open: 'Scanner avec la caméra',
+        done: 'Terminer',
+        starting: 'Ouverture de la caméra…',
+        hint: 'Placez le code-barres dans le cadre. Vous pouvez scanner plusieurs articles à la suite.',
+        added: '{name} ajouté',
+        unknown: 'Code {code} inconnu : vérifiez la fiche article.',
+        denied: 'L’accès à la caméra a été refusé.',
+        error: 'La caméra n’a pas pu démarrer.',
+        fallback:
+            'Autorisez la caméra dans les réglages du navigateur, ou tapez le code dans la recherche.',
+    },
     mobile_nav: {
         label: 'Navigation principale',
         sell: 'Vendre',
@@ -1219,6 +1232,10 @@ export const fr = {
         pos_channel: 'Vente comptoir',
     },
     pos: {
+        frequent: 'Articles fréquents',
+        tile_stock: 'stock {quantity}',
+        quick_cash: 'Montant reçu',
+        exact_amount: 'Montant exact',
         title: 'Vente comptoir',
         cart: 'Panier',
         cart_empty: 'Scannez ou recherchez un article pour commencer.',
