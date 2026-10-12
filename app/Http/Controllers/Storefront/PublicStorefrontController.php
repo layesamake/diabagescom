@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Storefront;
 
 use App\Domain\Subscriptions\FeatureAccess;
+use App\Domain\Tenancy\TenantContext;
 use App\Http\Controllers\Catalog\CatalogImages;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Storefront\CreateStorefrontOrderRequest;
@@ -33,9 +34,19 @@ class PublicStorefrontController extends Controller
         if ($q !== '') {
             $productQuery->search($q);
         }
-        $productsById = $productQuery->get()->keyBy('id');
+        // Les relations unités/catégories restent filtrées par l'entreprise de la boutique,
+        // même pour un visiteur sans session ou connecté à une autre entreprise.
+        $productsById = app(TenantContext::class)->runAs(
+            $storefront->tenant,
+            fn () => $productQuery->get()->keyBy('id'),
+        );
         $products = $listings->filter(fn (StorefrontProduct $listing) => $productsById->has($listing->product_id))
-            ->map(fn (StorefrontProduct $listing) => $this->productData($listing, $productsById->get($listing->product_id), $slug))
+            ->map(function (StorefrontProduct $listing) use ($productsById, $slug): array {
+                /** @var Product $product */
+                $product = $productsById->get($listing->product_id);
+
+                return $this->productData($listing, $product, $slug);
+            })
             ->values();
 
         return Inertia::render('storefront/Public', [
@@ -125,10 +136,8 @@ class PublicStorefrontController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function productData(StorefrontProduct $listing, ?Product $product = null, ?string $slug = null): array
+    private function productData(StorefrontProduct $listing, Product $product, string $slug): array
     {
-        $product ??= Product::query()->withoutGlobalScopes()->where('tenant_id', $listing->tenant_id)->with(['unit:id,code', 'category:id,name'])->findOrFail($listing->product_id);
-
         return [
             'id' => $product->id, 'sku' => $product->sku,
             'name' => $listing->public_name ?: $product->name,
@@ -136,7 +145,7 @@ class PublicStorefrontController extends Controller
             'category' => $product->category?->name,
             'price' => $listing->public_price ?? $product->sale_price,
             'unit' => $product->unit->code,
-            'image_url' => $product->image_path && $slug !== null ? route('storefront.products.image', [$slug, $product->id]) : null,
+            'image_url' => $product->image_path ? route('storefront.products.image', [$slug, $product->id]) : null,
         ];
     }
 

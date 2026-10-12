@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Storefront;
 
+use App\Domain\Tenancy\TenantContext;
+use App\Models\Storefront;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,8 +17,12 @@ class UpdateStorefrontRequest extends FormRequest
     /** @return array<string, list<mixed>> */
     public function rules(): array
     {
+        $storefrontId = Storefront::query()
+            ->where('tenant_id', app(TenantContext::class)->tenantId())
+            ->value('id');
+
         return [
-            'slug' => ['required', 'string', 'min:3', 'max:100', 'alpha_dash', Rule::unique('storefronts', 'slug')->ignore($this->route('storefront'))],
+            'slug' => ['required', 'string', 'min:3', 'max:100', 'alpha_dash', Rule::unique('storefronts', 'slug')->ignore($storefrontId)],
             'enabled' => ['sometimes', 'boolean'],
             'tagline' => ['nullable', 'string', 'max:160'],
             'description' => ['nullable', 'string', 'max:5000'],
