@@ -110,7 +110,7 @@ class StorefrontSeedCommand extends Command
 
         for ($y = 0; $y < $size; $y++) {
             $shade = 1 - ($y / $size) * 0.35;
-            imageline($image, 0, $y, $size, $y, (int) imagecolorallocate($image, (int) ($r * $shade), (int) ($g * $shade), (int) ($b * $shade)));
+            imageline($image, 0, $y, $size, $y, (int) imagecolorallocate($image, min(255, max(0, (int) ($r * $shade))), min(255, max(0, (int) ($g * $shade))), min(255, max(0, (int) ($b * $shade)))));
         }
 
         imagefilledellipse($image, 300, 230, 280, 280, (int) imagecolorallocatealpha($image, 255, 255, 255, 96));
@@ -136,7 +136,7 @@ class StorefrontSeedCommand extends Command
     {
         $font = 5;
         $w = max(1, imagefontwidth($font) * strlen($text));
-        $h = imagefontheight($font);
+        $h = max(1, imagefontheight($font));
         $tile = imagecreatetruecolor($w, $h);
         imagealphablending($tile, false);
         imagesavealpha($tile, true);

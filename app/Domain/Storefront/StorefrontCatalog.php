@@ -4,6 +4,7 @@ namespace App\Domain\Storefront;
 
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Models\GoodsReceiptLine;
+use App\Models\Product;
 use App\Models\Storefront;
 use App\Models\StorefrontProduct;
 use App\Models\Tenant;
@@ -38,15 +39,15 @@ final class StorefrontCatalog
             return;
         }
 
-        $this->insertDrafts($this->storefrontFor($tenant), $tenant, collect($productIds)->unique()->values()->all());
+        $this->insertDrafts($this->storefrontFor($tenant), $tenant, array_values(array_unique(array_map('strval', [...$productIds]))));
     }
 
     /** Rattrape les articles déjà réceptionnés avant l'activation de la boutique. */
     public function syncPurchased(Storefront $storefront): void
     {
-        $ids = GoodsReceiptLine::query()
-            ->whereHas('product', fn ($q) => $q->whereNull('archived_at'))
-            ->distinct()->pluck('product_id')->all();
+        $ids = array_values(array_map('strval', GoodsReceiptLine::query()
+            ->whereIn('product_id', Product::query()->whereNull('archived_at')->select('id'))
+            ->distinct()->pluck('product_id')->all()));
 
         $this->insertDrafts($storefront, $storefront->tenant, $ids);
     }
