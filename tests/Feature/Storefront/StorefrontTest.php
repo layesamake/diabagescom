@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Storefront;
 
+use App\Domain\Storefront\StorefrontCatalog;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Http\Controllers\Storefront\PublicStorefrontController;
 use App\Http\Requests\Storefront\UpdateStorefrontRequest;
+use App\Models\Plan;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Storefront;
@@ -103,5 +105,45 @@ class StorefrontTest extends TestCase
 
         $this->assertTrue(Validator::make(['slug' => 'tsi-informatique'], $rules)->passes());
         $this->assertTrue(Validator::make(['slug' => 'autre-boutique'], $rules)->errors()->has('slug'));
+    }
+
+    public function test_purchased_products_become_unpublished_drafts_and_stay_hidden_from_visitors(): void
+    {
+        $setup = $this->createTenantWithMember();
+        Plan::query()->update(['online_store_enabled' => true]);
+        app(FeatureAccess::class)->forget($setup['tenant']);
+        $product = $this->publish($setup['tenant'], 'tsi-informatique');
+        $other = app(TenantContext::class)->runAs($setup['tenant'], fn (): Product => Product::query()->forceCreate([
+            'sku' => 'PC-002', 'name' => 'Écran', 'type' => 'stockable',
+            'unit_id' => Unit::query()->where('code', 'U')->value('id'),
+            'tax_rate_id' => TaxRate::query()->firstOrFail()->id, 'sale_price' => 90000,
+        ]));
+
+        app(StorefrontCatalog::class)->draftProducts($setup['tenant'], [$product->id, $other->id, $other->id]);
+        app(TenantContext::class)->clear();
+
+        $drafts = StorefrontProduct::query()->where('product_id', $other->id)->get();
+        $this->assertCount(1, $drafts);
+        $this->assertFalse($drafts->first()->visible);
+        $this->assertTrue(StorefrontProduct::query()->where('product_id', $product->id)->firstOrFail()->visible);
+        $this->get(route('storefront.show', 'tsi-informatique'))
+            ->assertInertia(fn ($page) => $page->count('products.data', 1)->where('products.data.0.id', $product->id));
+    }
+
+    public function test_nothing_is_drafted_when_the_plan_has_no_online_store(): void
+    {
+        $setup = $this->createTenantWithMember();
+        Plan::query()->update(['online_store_enabled' => false]);
+        app(FeatureAccess::class)->forget($setup['tenant']);
+        $product = app(TenantContext::class)->runAs($setup['tenant'], fn (): Product => Product::query()->forceCreate([
+            'sku' => 'PC-003', 'name' => 'Clavier', 'type' => 'stockable',
+            'unit_id' => Unit::query()->where('code', 'U')->value('id'),
+            'tax_rate_id' => TaxRate::query()->firstOrFail()->id, 'sale_price' => 15000,
+        ]));
+
+        app(StorefrontCatalog::class)->draftProducts($setup['tenant'], [$product->id]);
+
+        $this->assertSame(0, StorefrontProduct::query()->count());
+        $this->assertSame(0, Storefront::query()->count());
     }
 }

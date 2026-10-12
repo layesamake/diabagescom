@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FormDataConvertible } from '@inertiajs/core';
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ type Product = {
 const props = defineProps<{
     storefront: { slug: string };
     products: Product[];
+    filters: { status: string };
 }>();
 const transform = (
     data: Record<string, FormDataConvertible>,
@@ -52,6 +53,24 @@ defineOptions({
             :title="t('storefront.products')"
             :description="t('storefront.description')"
         />
+        <div class="flex flex-wrap gap-2">
+            <Link
+                v-for="tab in [
+                    { key: '', label: t('storefront.filter_all') },
+                    { key: 'draft', label: t('storefront.status_draft') },
+                    { key: 'published', label: t('storefront.status_published') },
+                ]"
+                :key="tab.key"
+                :href="storefrontProducts({ query: tab.key ? { status: tab.key } : {} })"
+                class="inline-flex min-h-11 items-center rounded-md border px-4 text-sm"
+                :class="
+                    filters.status === tab.key
+                        ? 'bg-primary text-primary-foreground'
+                        : ''
+                "
+                >{{ tab.label }}</Link
+            >
+        </div>
         <div
             v-if="products.length === 0"
             class="rounded-lg border p-6 text-muted-foreground"
@@ -67,7 +86,22 @@ defineOptions({
             class="grid gap-4 rounded-lg border p-4 md:grid-cols-2"
         >
             <div class="md:col-span-2">
-                <p class="font-semibold">{{ product.name }}</p>
+                <p class="flex items-center gap-2 font-semibold">
+                    {{ product.name }}
+                    <span
+                        class="rounded-full border px-2 py-0.5 text-xs font-normal"
+                        :class="
+                            product.visible
+                                ? 'border-green-600 text-green-700'
+                                : 'text-muted-foreground'
+                        "
+                        >{{
+                            product.visible
+                                ? t('storefront.status_published')
+                                : t('storefront.status_draft')
+                        }}</span
+                    >
+                </p>
                 <p class="text-sm text-muted-foreground">
                     {{ product.sku }} · {{ product.category ?? '—' }} ·
                     {{ product.sale_price }} XOF / {{ product.unit }}

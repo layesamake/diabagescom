@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Storefront;
 
+use App\Domain\Storefront\StorefrontCatalog;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Http\Controllers\Controller;
@@ -13,7 +14,6 @@ use App\Models\StorefrontProduct;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -44,18 +44,22 @@ class StorefrontController extends Controller
         return back(303)->with('success', 'Boutique enregistrée.');
     }
 
-    public function products(TenantContext $context, FeatureAccess $access): Response
+    public function products(Request $request, TenantContext $context, FeatureAccess $access, StorefrontCatalog $catalog): Response
     {
         Gate::authorize('catalog.view');
         $access->assertFeature($context->tenant(), FeatureAccess::FEATURE_ONLINE_STORE);
         $storefront = $this->storefront($context);
+        // Les articles achetés alimentent la boutique en brouillon : rien à ressaisir.
+        $catalog->syncPurchased($storefront);
+        $status = (string) $request->query('status', '');
+        $listings = StorefrontProduct::query()->where('storefront_id', $storefront->id)
+            ->when($status === 'draft', fn ($q) => $q->where('visible', false))
+            ->when($status === 'published', fn ($q) => $q->where('visible', true))
+            ->get()->keyBy('product_id');
         $products = Product::query()->with(['unit:id,code', 'category:id,name'])
-            ->whereNull('archived_at')->orderBy('name')->get()
-            ->map(function (Product $product) use ($storefront): array {
-                $listing = StorefrontProduct::query()->firstOrCreate(
-                    ['storefront_id' => $storefront->id, 'product_id' => $product->id],
-                    ['tenant_id' => $product->tenant_id],
-                );
+            ->whereNull('archived_at')->whereIn('id', $listings->keys())->orderBy('name')->get()
+            ->map(function (Product $product) use ($listings): array {
+                $listing = $listings->get($product->id);
 
                 return [
                     'id' => $product->id,
@@ -69,11 +73,12 @@ class StorefrontController extends Controller
                     'public_description' => $listing->public_description,
                     'public_price' => $listing->public_price,
                 ];
-            });
+            })->values();
 
         return Inertia::render('storefront/Products', [
             'storefront' => $this->storefrontData($storefront),
             'products' => $products,
+            'filters' => ['status' => $status],
         ]);
     }
 
@@ -130,23 +135,7 @@ class StorefrontController extends Controller
 
     private function storefront(TenantContext $context): Storefront
     {
-        return Storefront::query()->firstOrCreate(
-            ['tenant_id' => $context->tenant()->id],
-            ['slug' => $this->uniqueSlug($context->tenant()->display_name), 'enabled' => false],
-        );
-    }
-
-    private function uniqueSlug(string $name): string
-    {
-        $base = Str::slug($name) ?: 'boutique';
-        $slug = $base;
-        $suffix = 2;
-        while (Storefront::query()->where('slug', $slug)->exists()) {
-            $slug = "{$base}-{$suffix}";
-            $suffix++;
-        }
-
-        return $slug;
+        return app(StorefrontCatalog::class)->storefrontFor($context->tenant());
     }
 
     /** @return array<string, mixed> */

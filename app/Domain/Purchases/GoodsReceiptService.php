@@ -8,6 +8,7 @@ use App\Domain\Inventory\Quantity;
 use App\Domain\Inventory\StockAccess;
 use App\Domain\Inventory\StockLedger;
 use App\Domain\Organization\Sequences;
+use App\Domain\Storefront\StorefrontCatalog;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Models\GoodsReceipt;
@@ -35,6 +36,7 @@ final class GoodsReceiptService
         private readonly PurchaseOrderService $orders,
         private readonly Sequences $sequences,
         private readonly AuditLog $audit,
+        private readonly StorefrontCatalog $storefront,
     ) {}
 
     /**
@@ -175,6 +177,9 @@ final class GoodsReceiptService
         }
 
         $this->ledger->post('receipt', "goods_receipt:{$receipt->id}", $movements, $actor, source: $receipt);
+
+        // Tout article acheté arrive en brouillon dans la boutique en ligne (sans ressaisie).
+        $this->storefront->draftProducts($this->context->tenant(), array_map(fn (array $l): string => $l['product']->id, $lines));
 
         $this->audit->record('purchase.goods_received', $receipt,
             after: ['number' => $receipt->number, 'order' => $order?->number, 'total_excl_tax' => $total, 'lines' => count($lines)], actor: $actor);
