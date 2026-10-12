@@ -143,15 +143,16 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                 <li v-for="item in menu" :key="item.id">
                     <button
                         type="button"
-                        class="inline-flex min-h-11 items-center whitespace-nowrap rounded-full border px-4"
+                        class="inline-flex min-h-11 items-center rounded-full border px-4 whitespace-nowrap"
                         :class="
                             filters.category === item.id
                                 ? 'border-slate-900 bg-slate-900 text-white'
                                 : 'bg-white text-slate-900 hover:bg-slate-100'
                         "
                         @click="browse(item.id)"
-                        >{{ item.name }}</button
                     >
+                        {{ item.name }}
+                    </button>
                 </li>
             </ul>
         </nav>
