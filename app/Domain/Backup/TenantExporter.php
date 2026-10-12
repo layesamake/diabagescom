@@ -39,6 +39,7 @@ final class TenantExporter
         'stock_transfers', 'stock_transfer_lines', 'inventory_counts', 'inventory_count_lines',
         'purchase_orders', 'purchase_order_lines', 'goods_receipts', 'goods_receipt_lines',
         'supplier_invoices', 'supplier_invoice_lines', 'supplier_returns', 'supplier_return_lines',
+        'storefronts', 'storefront_products', 'storefront_orders', 'storefront_order_items',
         'sales_documents', 'sales_document_lines', 'payments', 'cash_movements',
         'chart_accounts', 'accounting_settings', 'accounting_journals', 'account_mappings', 'fiscal_years', 'accounting_periods',
         'journal_entries', 'journal_entry_lines', 'accounting_postings', 'bank_reconciliations', 'bank_reconciliation_lines',
