@@ -34,7 +34,10 @@ class WelcomeController extends Controller
                 'price_yearly' => $plan->price_yearly,
             ]);
 
-        $addons = collect(config('diaba.addons'))
+        /** @var array<string, array{label: string, price_monthly: int|null, price_yearly: int|null}> $configured */
+        $configured = config('diaba.addons', []);
+
+        $addons = collect($configured)
             ->filter(fn (array $addon): bool => $addon['price_monthly'] !== null)
             ->map(fn (array $addon, string $code): array => [
                 'code' => $code,
