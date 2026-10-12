@@ -7,6 +7,7 @@ use App\Domain\Inventory\Quantity;
 use App\Domain\Inventory\StockLedger;
 use App\Domain\Storefront\StorefrontCatalog;
 use App\Domain\Storefront\StorefrontOrderConverter;
+use App\Domain\Storefront\StorefrontStock;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Http\Controllers\Storefront\PublicStorefrontController;
