@@ -27,6 +27,16 @@ class WelcomePageTest extends TestCase
                 ->missing('plans.0.id'));
     }
 
+    public function test_the_online_store_is_advertised_only_on_plans_that_include_it(): void
+    {
+        Plan::query()->where('code', 'business')->update(['online_store_enabled' => true]);
+        Plan::query()->where('code', 'essential')->update(['online_store_enabled' => false]);
+
+        $this->get(route('home'))->assertInertia(fn ($page) => $page
+            ->where('plans', fn ($plans) => collect($plans)->firstWhere('code', 'business')['online_store_enabled'] === true)
+            ->where('plans', fn ($plans) => collect($plans)->firstWhere('code', 'essential')['online_store_enabled'] === false));
+    }
+
     public function test_addons_without_price_are_not_advertised(): void
     {
         config([

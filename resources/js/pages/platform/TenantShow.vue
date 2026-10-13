@@ -2,6 +2,7 @@
 import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
+import TenantProfileCard from '@/components/TenantProfileCard.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,6 +54,14 @@ const props = defineProps<{
         warehouses: number;
         warehouse_limit: number | null;
         last_login_at: string | null;
+    };
+    profile: {
+        vat_regime: string;
+        maps_url: string | null;
+        logo_url: string | null;
+        cover_url: string | null;
+        has_stamp: boolean;
+        regimes: string[];
     };
     contacts: {
         id: string;
@@ -564,6 +573,8 @@ function reactivate(contactId: string): void {
                 </li>
             </ol>
         </section>
+
+        <TenantProfileCard :tenant-id="tenant.id" :profile="profile" />
 
         <section v-if="canSupport" class="space-y-3 rounded-xl border p-4">
             <h2 class="font-semibold">{{ t('billing.support') }}</h2>

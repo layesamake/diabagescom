@@ -26,6 +26,7 @@ use App\Http\Controllers\Platform\DashboardController as PlatformDashboardContro
 use App\Http\Controllers\Platform\PlanController;
 use App\Http\Controllers\Platform\SupportController;
 use App\Http\Controllers\Platform\TenantController;
+use App\Http\Controllers\Platform\TenantProfileController;
 use App\Http\Controllers\Purchases\PurchaseOrderController;
 use App\Http\Controllers\Purchases\ReceiptController;
 use App\Http\Controllers\Purchases\SupplierInvoiceController;
@@ -312,6 +313,10 @@ Route::middleware(['auth', 'verified', 'mfa.privileged'])->prefix('platform')->n
     Route::get('billing/invoices/{invoice}/receipt', [BillingConsoleController::class, 'receipt'])->whereUuid('invoice')->name('billing.invoices.receipt');
     Route::get('billing/credit-notes/{creditNote}', [BillingConsoleController::class, 'creditNote'])->whereUuid('creditNote')->name('billing.credit-notes.show');
     Route::get('billing/export', [BillingConsoleController::class, 'export'])->name('billing.export');
+    Route::put('tenants/{tenant}/profile', [TenantProfileController::class, 'update'])->whereUuid('tenant')->name('tenants.profile.update');
+    Route::post('tenants/{tenant}/profile/images/{slot}', [TenantProfileController::class, 'uploadImage'])->whereUuid('tenant')->whereIn('slot', ['logo', 'cover'])->middleware('throttle:20,1')->name('tenants.profile.images.store');
+    Route::delete('tenants/{tenant}/profile/images/{slot}', [TenantProfileController::class, 'removeImage'])->whereUuid('tenant')->whereIn('slot', ['logo', 'stamp', 'cover'])->name('tenants.profile.images.destroy');
+    Route::get('tenants/{tenant}/profile/images/{slot}', [TenantProfileController::class, 'image'])->whereUuid('tenant')->whereIn('slot', ['logo', 'cover'])->middleware('signed')->name('tenants.profile.images.show');
     Route::post('tenants/{tenant}/support', [SupportController::class, 'grant'])->whereUuid('tenant')->middleware('throttle:10,1')->name('support.grant');
     Route::get('tenants/{tenant}/support', [SupportController::class, 'show'])->whereUuid('tenant')->name('support.show');
     Route::post('tenants/{tenant}/support/revoke', [SupportController::class, 'revoke'])->whereUuid('tenant')->name('support.revoke');

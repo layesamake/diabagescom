@@ -23,6 +23,8 @@ const props = defineProps<{
     size?: 'sm' | 'lg';
     /** « contain » pour un logo ou un cachet (jamais rogné). */
     fit?: 'cover' | 'contain';
+    /** Champs ajoutés à l'envoi et au retrait (ex. motif d'une action de support). */
+    extraData?: Record<string, string>;
 }>();
 
 const preview = ref<string | null>(null);
@@ -43,12 +45,12 @@ function upload(event: Event): void {
 
     router.post(
         props.uploadUrl,
-        { image: file },
+        { image: file, ...props.extraData },
         {
             preserveScroll: true,
             forceFormData: true,
             onStart: () => (processing.value = true),
-            onError: (errors) => (error.value = errors.image),
+            onError: (errors) => (error.value = errors.image ?? errors.reason),
             onFinish: () => {
                 processing.value = false;
                 preview.value = null;
@@ -66,7 +68,10 @@ async function remove(): Promise<void> {
             tone: 'danger',
         })
     ) {
-        router.delete(props.removeUrl, { preserveScroll: true });
+        router.delete(props.removeUrl, {
+            preserveScroll: true,
+            data: props.extraData,
+        });
     }
 }
 </script>

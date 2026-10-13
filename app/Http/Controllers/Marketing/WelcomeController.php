@@ -16,7 +16,7 @@ class WelcomeController extends Controller
 {
     public const TITLE = 'Ventes, stock et caisse pour votre commerce';
 
-    public const DESCRIPTION = 'Logiciel de gestion commerciale pour les commerces et PME du Sénégal : ventes, caisse, stock multi-dépôts, achats, factures PDF, WhatsApp et comptabilité SYSCOHADA, même sans connexion.';
+    public const DESCRIPTION = 'Logiciel de gestion commerciale pour les commerces et PME du Sénégal : ventes, caisse, stock multi-dépôts, achats, factures PDF à votre logo, WhatsApp, boutique en ligne et comptabilité SYSCOHADA, même sans connexion.';
 
     public function __invoke(): Response
     {
@@ -30,6 +30,7 @@ class WelcomeController extends Controller
                 'warehouse_limit' => $plan->warehouse_limit,
                 'included_users' => $plan->included_users,
                 'accounting_enabled' => $plan->accounting_enabled,
+                'online_store_enabled' => $plan->online_store_enabled,
                 'price_monthly' => $plan->price_monthly,
                 'price_yearly' => $plan->price_yearly,
             ]);

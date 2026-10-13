@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Platform;
 
 use App\Domain\Audit\AuditLog;
 use App\Domain\Identity\PermissionCatalog;
+use App\Domain\Organization\CompanyProfile;
 use App\Domain\Platform\ProvisionPlatformTenant;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Subscriptions\SubscriptionClock;
 use App\Domain\Subscriptions\SubscriptionLifecycle;
 use App\Domain\Tenancy\TenantScope;
+use App\Http\Controllers\Catalog\CatalogImages;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Platform\CreatePlatformTenantRequest;
 use App\Models\AuditEvent;
@@ -19,6 +21,7 @@ use App\Models\SaasPayment;
 use App\Models\Subscription;
 use App\Models\Tenant;
 use App\Models\TenantMembership;
+use App\Models\TenantProfile;
 use App\Models\User;
 use App\Models\Warehouse;
 use App\Notifications\TeamInvitationNotification;
@@ -194,10 +197,32 @@ class TenantController extends Controller
                     'reason' => $e->metadata['reason'] ?? null,
                     'created_at' => $e->created_at->toIso8601String(),
                 ]),
+            'profile' => $this->profileData($tenant),
             'plans' => Plan::query()->orderBy('sort_order')->get(['id', 'code', 'name', 'active']),
             'canManageBilling' => Gate::allows('platform.billing.manage'),
             'canSupport' => Gate::allows('platform.support_access'),
         ]);
+    }
+
+    /**
+     * Fiche de l'entreprise vue par le support : logo et devanture affichables ;
+     * le cachet/signature n'est jamais exposé (présence seulement).
+     *
+     * @return array<string, mixed>
+     */
+    private function profileData(Tenant $tenant): array
+    {
+        $profile = app(CompanyProfile::class)->of($tenant);
+        $signed = fn (string $slot, ?string $path): ?string => CatalogImages::url('platform.tenants.profile.images.show', $path, ['tenant' => $tenant->id, 'slot' => $slot], $profile->version);
+
+        return [
+            'vat_regime' => $profile->vat_regime,
+            'maps_url' => $profile->maps_url,
+            'logo_url' => $signed('logo', $profile->logo_path),
+            'cover_url' => $signed('cover', $profile->cover_path),
+            'has_stamp' => $profile->stamp_path !== null,
+            'regimes' => TenantProfile::VAT_REGIMES,
+        ];
     }
 
     public function resendInvitation(Request $request, Tenant $tenant, TenantMembership $membership, AuditLog $audit): RedirectResponse

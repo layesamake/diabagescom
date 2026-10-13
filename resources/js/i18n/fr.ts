@@ -963,6 +963,17 @@ export const fr = {
         },
     },
     platform: {
+        profile: {
+            title: 'Fiche de l’entreprise',
+            hint: 'Logo, devanture, régime de TVA et localisation. Chaque modification est tracée dans le journal de l’entreprise.',
+            reason: 'Motif de la modification',
+            reason_needed:
+                'Indiquez un motif (5 caractères minimum) pour modifier la fiche.',
+            stamp_present: 'présent (non affiché)',
+            stamp_absent: 'aucun',
+            stamp_remove_confirm:
+                'Retirer le cachet / la signature de cette entreprise ?',
+        },
         nav: 'Console plateforme',
         dashboard_title: 'Tableau de bord',
         dashboard_description:

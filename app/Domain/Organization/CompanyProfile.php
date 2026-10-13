@@ -34,38 +34,38 @@ final class CompanyProfile
     /**
      * @param  array{vat_regime: string, maps_url?: string|null}  $data
      */
-    public function update(Tenant $tenant, array $data, User $actor): TenantProfile
+    public function update(Tenant $tenant, array $data, User $actor, ?string $reason = null, bool $bypassSubscription = false): TenantProfile
     {
-        $this->access->assertCanWrite($tenant);
+        $bypassSubscription || $this->access->assertCanWrite($tenant);
         $maps = isset($data['maps_url']) && trim($data['maps_url']) !== '' ? trim($data['maps_url']) : null;
 
         if ($maps !== null && ! self::isGoogleMapsUrl($maps)) {
             throw ValidationException::withMessages(['maps_url' => __('company.maps_invalid')]);
         }
 
-        return DB::transaction(function () use ($tenant, $data, $maps, $actor): TenantProfile {
+        return DB::transaction(function () use ($tenant, $data, $maps, $actor, $reason): TenantProfile {
             $profile = $this->of($tenant);
             $before = ['vat_regime' => $profile->vat_regime, 'maps_url' => $profile->maps_url];
             $profile->forceFill(['tenant_id' => $tenant->id, 'vat_regime' => $data['vat_regime'], 'maps_url' => $maps])->save();
-            $this->audit->record('company.profile_updated', $tenant, before: $before, after: ['vat_regime' => $profile->vat_regime, 'maps_url' => $profile->maps_url], actor: $actor, tenant: $tenant);
+            $this->audit->record('company.profile_updated', $tenant, before: $before, after: ['vat_regime' => $profile->vat_regime, 'maps_url' => $profile->maps_url], metadata: $this->reasonMetadata($reason), actor: $actor, tenant: $tenant);
 
             return $profile;
         });
     }
 
-    public function setImage(Tenant $tenant, string $slot, ?UploadedFile $file, User $actor): TenantProfile
+    public function setImage(Tenant $tenant, string $slot, ?UploadedFile $file, User $actor, ?string $reason = null, bool $bypassSubscription = false): TenantProfile
     {
         $column = TenantProfile::IMAGES[$slot] ?? throw new \InvalidArgumentException('Unknown image slot.');
-        $this->access->assertCanWrite($tenant);
+        $bypassSubscription || $this->access->assertCanWrite($tenant);
 
         $path = $file !== null ? $this->images->store($file, "tenants/{$tenant->id}/profile") : null;
         $profile = $this->of($tenant);
         $previous = $profile->{$column};
 
         try {
-            DB::transaction(function () use ($profile, $tenant, $column, $path, $slot, $actor): void {
+            DB::transaction(function () use ($profile, $tenant, $column, $path, $slot, $actor, $reason): void {
                 $profile->forceFill(['tenant_id' => $tenant->id, $column => $path, 'version' => $profile->version + 1])->save();
-                $this->audit->record($path === null ? 'company.image_removed' : 'company.image_changed', $tenant, metadata: ['image' => $slot], actor: $actor, tenant: $tenant);
+                $this->audit->record($path === null ? 'company.image_removed' : 'company.image_changed', $tenant, metadata: ['image' => $slot, ...$this->reasonMetadata($reason)], actor: $actor, tenant: $tenant);
             });
         } catch (\Throwable $e) {
             $this->images->delete($path);
@@ -76,6 +76,14 @@ final class CompanyProfile
         $this->images->delete($previous);
 
         return $profile;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function reasonMetadata(?string $reason): array
+    {
+        return $reason !== null && trim($reason) !== '' ? ['reason' => trim($reason), 'by' => 'platform'] : [];
     }
 
     /**

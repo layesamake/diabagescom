@@ -12,6 +12,7 @@ import {
     Lock,
     Mail,
     MessageCircle,
+    Bell,
     NotebookPen,
     PackageX,
     Receipt,
@@ -19,6 +20,7 @@ import {
     ShieldCheck,
     ShoppingCart,
     Smartphone,
+    Store,
     Truck,
     Users,
     Wallet,
@@ -37,6 +39,7 @@ type Plan = {
     warehouse_limit: number | null;
     included_users: number;
     accounting_enabled: boolean;
+    online_store_enabled: boolean;
     price_monthly: number | null;
     price_yearly: number | null;
 };
@@ -117,7 +120,12 @@ const features = [
     {
         icon: Receipt,
         title: 'Devis, factures, reçus',
-        text: 'Documents PDF à votre nom, numérotés automatiquement, imprimables sur ticket.',
+        text: 'Documents PDF à votre nom, avec votre logo et votre cachet, numérotés automatiquement, imprimables sur ticket.',
+    },
+    {
+        icon: Store,
+        title: 'Boutique en ligne',
+        text: 'Une vitrine à votre logo, avec vos articles, votre localisation Google Maps et la prise de commande. Vous confirmez, le client paie à la livraison ou au retrait.',
     },
     {
         icon: MessageCircle,
@@ -132,7 +140,12 @@ const features = [
     {
         icon: BookOpenCheck,
         title: 'Comptabilité SYSCOHADA',
-        text: 'Écritures générées par vos ventes et achats, journaux, balance et rapprochement bancaire.',
+        text: 'Écritures générées par vos ventes et achats, justificatifs joints, journaux, balance et rapprochement bancaire.',
+    },
+    {
+        icon: Bell,
+        title: 'Alertes sur mesure',
+        text: 'Stock bas, factures échues, caisse à fermer : choisissez ce qui s’affiche et recevez, si vous le souhaitez, un résumé par e-mail chaque matin.',
     },
     {
         icon: Users,
@@ -180,7 +193,7 @@ const trust = [
     {
         icon: Smartphone,
         title: 'Paiement simple',
-        text: 'Abonnement réglé par Wave, Orange Money ou virement.',
+        text: 'Abonnement réglé par Wave ou virement bancaire.',
     },
 ];
 
@@ -200,6 +213,14 @@ const faq = computed(() => [
     {
         q: 'J’ai plusieurs boutiques ou un entrepôt, est-ce possible ?',
         a: 'Oui. Chaque dépôt a son propre stock et sa caisse ; vous suivez tout depuis un seul compte. Le nombre de dépôts dépend de la formule.',
+    },
+    {
+        q: 'Puis-je vendre en ligne ?',
+        a: 'Avec les formules qui incluent la boutique en ligne, vous publiez les articles de votre choix sur une page à votre nom (logo, photo de devanture, localisation Google Maps). Vos clients commandent, vous confirmez et suivez la commande ; le paiement se fait à la livraison ou au retrait.',
+    },
+    {
+        q: 'Mes factures peuvent-elles porter mon logo et mon cachet ?',
+        a: 'Oui. Dans Paramètres › Entreprise, vous ajoutez votre logo, votre cachet ou signature et votre régime de TVA : ils figurent sur vos devis, factures et avoirs PDF.',
     },
     {
         q: 'Mon comptable peut-il utiliser les données ?',
@@ -247,6 +268,7 @@ function planFeatures(plan: Plan): { ok: boolean; text: string }[] {
         { ok: true, text: 'Ventes, caisse, stock et achats' },
         { ok: true, text: 'Factures PDF et partage WhatsApp' },
         { ok: true, text: 'Mode hors connexion' },
+        { ok: plan.online_store_enabled, text: 'Boutique en ligne' },
         { ok: plan.accounting_enabled, text: 'Comptabilité SYSCOHADA' },
     ];
 }
@@ -490,7 +512,7 @@ const yearlyKnown = computed(() =>
                         </p>
                     </div>
                     <ul
-                        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+                        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                     >
                         <li
                             v-for="f in features"
