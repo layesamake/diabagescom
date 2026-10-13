@@ -25,7 +25,7 @@ class CompanyDetailsTest extends TestCase
 
     private function html(array $setup, $invoice): string
     {
-        $data = app(SalesDocumentPdf::class)->viewData($invoice, $setup['tenant']->refresh());
+        $data = app(SalesDocumentPdf::class)->viewData($invoice, $setup['tenant']->refresh(), withBranding: true);
 
         return view('pdf.sales-document', [...$data, 'width' => 80, 'logo' => public_path('brand/logo-diaba-gescom-horizontal.png')])->render();
     }

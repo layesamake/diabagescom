@@ -37,8 +37,15 @@ final class SendAlertDigests
             ->get();
 
         foreach ($tenants as $tenant) {
+            // Une requête par entreprise : seuls les membres ayant activé le résumé e-mail sont examinés.
+            $wanting = DB::table('notification_preferences')->where('tenant_id', $tenant->id)->where('email', true)->distinct()->pluck('user_id')->all();
+
+            if ($wanting === []) {
+                continue;
+            }
+
             $memberships = TenantMembership::query()->with(['user', 'role', 'tenant'])
-                ->where('tenant_id', $tenant->id)->where('status', TenantMembership::STATUS_ACTIVE)->get();
+                ->where('tenant_id', $tenant->id)->where('status', TenantMembership::STATUS_ACTIVE)->whereIn('user_id', $wanting)->get();
 
             foreach ($memberships as $membership) {
                 if (! $membership->user->isActive()) {

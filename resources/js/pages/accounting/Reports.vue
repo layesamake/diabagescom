@@ -34,6 +34,7 @@ type Statement = {
     balanced: boolean;
     difference: number;
     result: number;
+    clamped_to?: string | null;
 };
 type BalanceRow = {
     account_id: string;
@@ -216,6 +217,17 @@ const cell = 'p-2 text-right tabular-nums';
                     {{
                         t('accounting.statements.unbalanced', {
                             amount: formatXof(Math.abs(statement.difference)),
+                        })
+                    }}
+                </p>
+                <p
+                    v-if="statement.clamped_to"
+                    class="rounded-lg border p-3 text-sm text-muted-foreground"
+                    role="status"
+                >
+                    {{
+                        t('accounting.statements.clamped', {
+                            date: formatDate(statement.clamped_to),
                         })
                     }}
                 </p>

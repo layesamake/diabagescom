@@ -39,10 +39,15 @@
 </head>
 <body>
 <div class="toolbar">
-    <button type="button" onclick="window.print()">{{ __('sales.ticket.print') }}</button>
-    <button type="button" class="secondary" onclick="window.close()">{{ __('sales.ticket.close') }}</button>
+    <button type="button" id="print-button">{{ __('sales.ticket.print') }}</button>
+    <button type="button" class="secondary" id="close-button">{{ __('sales.ticket.close') }}</button>
 </div>
 @include('partials.receipt-body')
+<script nonce="{{ Vite::cspNonce() }}">
+    // Les attributs onclick sont interdits par la politique de sécurité : écouteurs ici.
+    document.getElementById('print-button')?.addEventListener('click', () => window.print());
+    document.getElementById('close-button')?.addEventListener('click', () => window.close());
+</script>
 @if ($autoprint)
     <script nonce="{{ Vite::cspNonce() }}">
         // Impression directe à l'ouverture (vente comptoir) : la boîte de dialogue

@@ -147,7 +147,7 @@ class CompanyProfileTest extends TestCase
         $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '10', 1000]]);
         $invoice = $this->sell($setup, $this->openSession($setup, 0), [[$rice->id, '1']], [['cash', 2000]]);
 
-        $data = app(SalesDocumentPdf::class)->viewData($invoice, $setup['tenant']);
+        $data = app(SalesDocumentPdf::class)->viewData($invoice, $setup['tenant'], withBranding: true);
         $this->assertStringStartsWith('data:image/png;base64,', (string) $data['companyLogo']);
         $this->assertStringStartsWith('data:image/png;base64,', (string) $data['companyStamp']);
 

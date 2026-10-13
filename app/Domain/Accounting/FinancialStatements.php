@@ -133,10 +133,21 @@ final class FinancialStatements
     /**
      * Compte de résultat de la période [$from, $to] (soldes intermédiaires de gestion).
      *
-     * @return array{tables: list<array{title: string, rows: list<array{label: string, amount: int, kind: string, accounts: string}>}>, balanced: bool, difference: int, result: int}
+     * Une période qui dépasse la fin de l'exercice de $from est ramenée à cette fin (clé « clamped_to »)
+     * plutôt que de mélanger deux exercices.
+     *
+     * @return array{tables: list<array{title: string, rows: list<array{label: string, amount: int, kind: string, accounts: string}>}>, balanced: bool, difference: int, result: int, clamped_to: string|null}
      */
     public function incomeStatement(CarbonImmutable $from, CarbonImmutable $to): array
     {
+        $yearEnd = $this->calendar->periodFor($from)?->fiscalYear->ends_on;
+        $clampedTo = null;
+
+        if ($yearEnd !== null && $to->toDateString() > $yearEnd->toDateString()) {
+            $to = CarbonImmutable::parse($yearEnd->toDateString());
+            $clampedTo = $to->toDateString();
+        }
+
         $p = array_fill_keys([
             'sales_goods', 'purchases_goods', 'stock_variation', 'other_sales', 'other_products',
             'other_purchases', 'transport', 'external', 'taxes', 'other_charges', 'personnel', 'depreciation',
@@ -220,6 +231,7 @@ final class FinancialStatements
             'balanced' => true,
             'difference' => 0,
             'result' => $net,
+            'clamped_to' => $clampedTo,
         ];
     }
 

@@ -44,6 +44,7 @@ return [
         'suppliers' => 'Balance fournisseurs',
     ],
     'export' => [
+        'account_required' => 'Choisissez un compte pour exporter le grand livre.',
         'as_of' => 'Situation au :date',
         'period' => 'Du :from au :to',
     ],

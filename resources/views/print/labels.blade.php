@@ -40,8 +40,8 @@
 </head>
 <body>
 <div class="toolbar">
-    <button type="button" onclick="window.print()">{{ __('catalog.labels.print', ['count' => count($labels) * $copies]) }}</button>
-    <button type="button" class="secondary" onclick="window.close()">{{ __('catalog.labels.close') }}</button>
+    <button type="button" id="print-button">{{ __('catalog.labels.print', ['count' => count($labels) * $copies]) }}</button>
+    <button type="button" class="secondary" id="close-button">{{ __('catalog.labels.close') }}</button>
 </div>
 @if ($skipped !== [])
     <p class="warn" role="alert">{{ __('catalog.labels.skipped', ['names' => implode(', ', $skipped)]) }}</p>
@@ -64,6 +64,12 @@
         @endfor
     @endforeach
 </div>
+
+<script nonce="{{ Vite::cspNonce() }}">
+    // Les attributs onclick sont interdits par la politique de sécurité : écouteurs ici.
+    document.getElementById('print-button')?.addEventListener('click', () => window.print());
+    document.getElementById('close-button')?.addEventListener('click', () => window.close());
+</script>
 
 @if ($autoprint && $labels !== [])
     <script nonce="{{ Vite::cspNonce() }}">

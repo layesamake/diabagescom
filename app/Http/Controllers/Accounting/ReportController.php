@@ -35,6 +35,9 @@ class ReportController extends Controller
         /** @var ChartAccount|null $account */
         $account = $accountCode !== '' ? ChartAccount::query()->where('code', $accountCode)->first() : null;
 
+        // Un export du grand livre sans compte ne produirait qu'un fichier vide.
+        abort_if($report === 'ledger' && $account === null && in_array($request->query('format'), ['csv', ...ReportExporter::FORMATS], true), 422, __('accounting.export.account_required'));
+
         $data = match ($report) {
             'ledger' => $account !== null ? $reports->generalLedger($account, $from, $to) : null,
             'customers' => $reports->partyBalances('customer', $to),
@@ -108,6 +111,7 @@ class ReportController extends Controller
     private function tabular(string $report, ?array $data, CarbonImmutable $from, CarbonImmutable $to): TabularReport
     {
         $title = __("accounting.report_titles.{$report}");
+        $to = isset($data['clamped_to']) ? CarbonImmutable::parse((string) $data['clamped_to']) : $to;
         $period = in_array($report, ['balance_sheet', 'customers', 'suppliers'], true)
             ? __('accounting.export.as_of', ['date' => $to->format('d/m/Y')])
             : __('accounting.export.period', ['from' => $from->format('d/m/Y'), 'to' => $to->format('d/m/Y')]);

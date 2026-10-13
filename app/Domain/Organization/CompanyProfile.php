@@ -26,9 +26,12 @@ final class CompanyProfile
         private readonly FeatureAccess $access,
     ) {}
 
+    /** @var array<string, TenantProfile> fiche déjà lue (une seule requête par rendu de document) */
+    private array $profiles = [];
+
     public function of(Tenant $tenant): TenantProfile
     {
-        return TenantProfile::query()->firstOrNew(['tenant_id' => $tenant->id]);
+        return $this->profiles[$tenant->id] ??= TenantProfile::query()->firstOrNew(['tenant_id' => $tenant->id]);
     }
 
     /**
@@ -40,19 +43,25 @@ final class CompanyProfile
     public function update(Tenant $tenant, array $data, User $actor, ?string $reason = null, bool $bypassSubscription = false): TenantProfile
     {
         $bypassSubscription || $this->access->assertCanWrite($tenant);
-        $maps = isset($data['maps_url']) && trim($data['maps_url']) !== '' ? trim($data['maps_url']) : null;
+        $mapsGiven = array_key_exists('maps_url', $data);
+        $maps = $mapsGiven && is_string($data['maps_url']) && trim($data['maps_url']) !== '' ? trim($data['maps_url']) : null;
 
         if ($maps !== null && ! self::isGoogleMapsUrl($maps)) {
             throw ValidationException::withMessages(['maps_url' => __('company.maps_invalid')]);
         }
 
-        return DB::transaction(function () use ($tenant, $data, $maps, $actor, $reason): TenantProfile {
+        return DB::transaction(function () use ($tenant, $data, $maps, $mapsGiven, $actor, $reason): TenantProfile {
             $profile = $this->of($tenant);
             $names = ['legal_name' => $tenant->legal_name, 'display_name' => $tenant->display_name];
             $keys = ['vat_regime', 'maps_url', ...TenantProfile::DETAILS];
             $before = [...$names, ...$profile->only($keys)];
 
-            $values = ['tenant_id' => $tenant->id, 'vat_regime' => $data['vat_regime'], 'maps_url' => $maps];
+            // Seules les clés envoyées sont modifiées : un lien Maps absent de la requête reste en place.
+            $values = ['tenant_id' => $tenant->id, 'vat_regime' => $data['vat_regime']];
+
+            if ($mapsGiven) {
+                $values['maps_url'] = $maps;
+            }
 
             foreach (TenantProfile::DETAILS as $field) {
                 if (array_key_exists($field, $data)) {

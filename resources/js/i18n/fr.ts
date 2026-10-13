@@ -1893,6 +1893,8 @@ export const fr = {
         },
         statements: {
             no_year: 'Aucun exercice comptable ne couvre cette date.',
+            clamped:
+                'La période dépasse la fin de l’exercice : le compte de résultat s’arrête au {date}.',
             unbalanced:
                 'Le bilan présente un écart de {amount} : vérifiez les écritures.',
             accounts: 'Comptes',

@@ -58,16 +58,23 @@ final class EntryAttachments
 
             Storage::disk(self::DISK)->put($stored, (string) file_get_contents($path));
 
-            $attachment = JournalEntryAttachment::query()->create([
-                'entry_id' => $entry->id,
-                'original_name' => $this->cleanName($file->getClientOriginalName()),
-                'path' => $stored,
-                'mime' => $mime,
-                'size' => (int) $file->getSize(),
-                'sha256' => (string) hash_file('sha256', $path),
-                'uploaded_by' => $actor->id,
-            ]);
-            $this->audit->record('accounting.attachment_added', $entry, after: ['name' => $attachment->original_name, 'sha256' => $attachment->sha256], actor: $actor);
+            try {
+                $attachment = JournalEntryAttachment::query()->create([
+                    'entry_id' => $entry->id,
+                    'original_name' => $this->cleanName($file->getClientOriginalName()),
+                    'path' => $stored,
+                    'mime' => $mime,
+                    'size' => (int) $file->getSize(),
+                    'sha256' => (string) hash_file('sha256', $path),
+                    'uploaded_by' => $actor->id,
+                ]);
+                $this->audit->record('accounting.attachment_added', $entry, after: ['name' => $attachment->original_name, 'sha256' => $attachment->sha256], actor: $actor);
+            } catch (\Throwable $e) {
+                // La transaction est annulée : le fichier déjà écrit ne doit pas rester sans ligne en base.
+                Storage::disk(self::DISK)->delete($stored);
+
+                throw $e;
+            }
 
             return $attachment;
         });

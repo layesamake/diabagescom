@@ -231,19 +231,18 @@ final class PartyImport
             ], fn (string $value) => $value !== '');
             $lookup = isset($provided['code']) ? ['code' => $provided['code']] : ($provided !== [] ? $provided : ['name' => $this->key('name', $name)]);
 
-            // Un même repère ne peut pas servir deux fois dans le fichier.
-            foreach ($provided !== [] ? $provided : $lookup as $key => $value) {
-                if ($value === '') {
-                    continue;
+            // Identité de la ligne : son premier repère (code, NINEA, téléphone, e-mail, sinon nom). Deux lignes
+            // de même identité sont un doublon ; des contacts distincts qui partagent seulement un e-mail ou un
+            // téléphone secondaire ne le sont pas.
+            $identityKey = array_key_first($lookup);
+            $identityValue = $lookup[$identityKey];
+
+            if ($identityValue !== '') {
+                if (isset($seen[$identityKey][$identityValue])) {
+                    $messages[] = __('catalog.import.party_errors.duplicate', ['line' => $seen[$identityKey][$identityValue]]);
+                } else {
+                    $seen[$identityKey][$identityValue] = $line;
                 }
-
-                if (isset($seen[$key][$value])) {
-                    $messages[] = __('catalog.import.party_errors.duplicate', ['line' => $seen[$key][$value]]);
-
-                    break;
-                }
-
-                $seen[$key][$value] = $line;
             }
 
             $match = null;

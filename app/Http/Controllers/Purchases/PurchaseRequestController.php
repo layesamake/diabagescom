@@ -209,7 +209,7 @@ class PurchaseRequestController extends Controller
 
     private function seesAll(): bool
     {
-        return Gate::allows('purchase.view') || Gate::allows('purchase_request.approve');
+        return Gate::allows('purchase.create') || Gate::allows('purchase_request.approve');
     }
 
     private function isAuthor(Request $request, PurchaseRequest $purchaseRequest): bool

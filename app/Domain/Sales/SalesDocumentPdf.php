@@ -37,7 +37,7 @@ final class SalesDocumentPdf
         $width = $format === self::FORMAT_RECEIPT_58 ? 58 : 80;
 
         $pdf = Pdf::loadView($receipt ? 'pdf.receipt' : 'pdf.sales-document', [
-            ...$this->viewData($document, $tenant),
+            ...$this->viewData($document, $tenant, withBranding: ! $receipt),
             'width' => $width,
             'logo' => public_path('brand/logo-diaba-gescom-horizontal.png'),
         ]);
@@ -55,17 +55,25 @@ final class SalesDocumentPdf
      *
      * @return array<string, mixed>
      */
-    public function viewData(SalesDocument $document, Tenant $tenant): array
+    public function viewData(SalesDocument $document, Tenant $tenant, bool $withBranding = false): array
     {
         $document->loadMissing(['lines', 'warehouse', 'payments', 'source:id,number', 'author:id,name']);
         $taxes = $document->lines->groupBy('tax_rate_basis_points')
             ->map(fn ($lines, $rate) => ['rate' => (int) $rate, 'base' => $lines->sum('line_excl_tax'), 'tax' => $lines->sum('line_tax')])
             ->sortKeys()->values();
 
+        $data = ['document' => $document, 'tenant' => $tenant, 'taxes' => $taxes];
+
+        // Logo, cachet et mentions : uniquement pour les documents A4 (le ticket de caisse n'en a pas
+        // besoin et s'imprime à chaque vente).
+        if (! $withBranding) {
+            return $data;
+        }
+
         $company = app(CompanyProfile::class);
 
         return [
-            'document' => $document, 'tenant' => $tenant, 'taxes' => $taxes,
+            ...$data,
             'companyLogo' => $company->pngDataUri($tenant, 'logo'),
             'companyStamp' => $company->pngDataUri($tenant, 'stamp'),
             'vatRegime' => __('company.vat_regimes.'.$company->of($tenant)->vat_regime),
