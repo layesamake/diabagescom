@@ -14,6 +14,7 @@ import { useAppContext } from '@/composables/useAppContext';
 import { index as auditIndex } from '@/routes/audit';
 import { index as backupIndex } from '@/routes/backup';
 import { index as membersIndex } from '@/routes/members';
+import { edit as notificationsEdit } from '@/routes/notifications';
 import { show as subscriptionShow } from '@/routes/subscription';
 import { index as devicesIndex } from '@/routes/sync/devices';
 import { index as warehousesIndex } from '@/routes/warehouses';
@@ -34,6 +35,9 @@ const sidebarNavItems: NavItem[] = [
         href: editAppearance(),
     },
     // Rubriques d'entreprise : visibles seulement dans un contexte d'entreprise.
+    ...(context.value
+        ? [{ title: t('notifications.nav'), href: notificationsEdit() }]
+        : []),
     ...(context.value
         ? [{ title: t('nav.subscription'), href: subscriptionShow() }]
         : []),

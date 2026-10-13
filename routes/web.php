@@ -37,6 +37,7 @@ use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\Settings\BackupController;
 use App\Http\Controllers\Settings\GoogleDriveController;
 use App\Http\Controllers\Settings\MemberController;
+use App\Http\Controllers\Settings\NotificationController;
 use App\Http\Controllers\Storefront\PublicStorefrontController;
 use App\Http\Controllers\Storefront\StorefrontController;
 use App\Http\Controllers\SubscriptionController;
@@ -94,6 +95,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('settings/warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
     Route::post('settings/warehouses', [WarehouseController::class, 'store'])->name('warehouses.store');
     Route::get('settings/audit', [AuditController::class, 'index'])->name('audit.index');
+    Route::get('settings/notifications', [NotificationController::class, 'edit'])->name('notifications.edit');
+    Route::put('settings/notifications', [NotificationController::class, 'update'])->name('notifications.update');
     Route::middleware('feature:online_store')->prefix('storefront')->name('storefront.')->group(function (): void {
         Route::get('/', [StorefrontController::class, 'index'])->name('index');
         Route::put('/', [StorefrontController::class, 'update'])->name('update');

@@ -402,6 +402,28 @@ export const fr = {
             cancel: 'Annuler',
         },
     },
+    notifications: {
+        nav: 'Notifications',
+        page_title: 'Notifications',
+        heading: 'Notifications',
+        description:
+            'Choisissez, pour chaque sujet, où être prévenu. Ces choix sont les vôtres et valent pour cette entreprise.',
+        topic: 'Sujet',
+        in_app: 'Sur l’accueil',
+        email: 'Résumé par e-mail',
+        email_hint:
+            'Un seul e-mail par jour, seulement s’il y a quelque chose à traiter. Il ne contient ni montant ni nom.',
+        save: 'Enregistrer',
+        empty: 'Aucune notification disponible avec vos droits.',
+        categories: {
+            low_stock: 'Articles sous le seuil d’alerte',
+            transfers_to_receive: 'Transferts à réceptionner',
+            overdue_invoices: 'Factures clients échues',
+            cash_to_close: 'Caisses à fermer',
+            sync_issues: 'Ventes hors connexion à revoir',
+            saas_invoice: 'Facture d’abonnement à régler',
+        },
+    },
     settings: {
         title: 'Paramètres',
         description: 'Gérez votre profil et la sécurité de votre compte.',

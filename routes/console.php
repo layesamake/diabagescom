@@ -20,6 +20,12 @@ Schedule::command('diaba:billing:remind')
     ->withoutOverlapping()
     ->onOneServer();
 
+// Résumé quotidien des points à traiter, pour les membres qui l'ont demandé.
+Schedule::command('diaba:alerts:digest')
+    ->dailyAt('07:30')
+    ->withoutOverlapping()
+    ->onOneServer();
+
 // Sauvegardes d'entreprise : suppression des archives expirées (7 jours).
 Schedule::command('diaba:backups:prune')
     ->hourly()

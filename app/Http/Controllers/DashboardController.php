@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Inventory\StockAccess;
+use App\Domain\Notifications\AlertCenter;
+use App\Domain\Notifications\NotificationPreferences;
 use App\Domain\Tenancy\TenantContext;
+use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -16,63 +20,13 @@ use Inertia\Response;
  */
 class DashboardController extends Controller
 {
-    public function __invoke(TenantContext $context, StockAccess $access): Response
+    public function __invoke(Request $request, TenantContext $context, StockAccess $access, AlertCenter $center, NotificationPreferences $preferences): Response
     {
-        $alerts = [];
-
-        if (Gate::allows('inventory.view')) {
-            // Articles sous leur seuil d'alerte, dans les dépôts accessibles.
-            $alerts['low_stock'] = DB::table('product_warehouse_settings as s')
-                ->join('products as p', 'p.id', '=', 's.product_id')
-                ->leftJoin('inventory_balances as b', fn ($j) => $j->on('b.product_id', '=', 's.product_id')->on('b.warehouse_id', '=', 's.warehouse_id'))
-                ->where('p.tenant_id', $context->tenantId())
-                ->whereIn('s.warehouse_id', $access->accessibleIds())
-                ->whereNull('p.archived_at')
-                ->whereNotNull('s.reorder_point')
-                ->whereRaw('COALESCE(b.quantity_on_hand, 0) <= s.reorder_point')
-                ->count();
-
-            $alerts['transfers_to_receive'] = DB::table('stock_transfers')
-                ->where('tenant_id', $context->tenantId())
-                ->where('status', 'in_transit')
-                ->whereIn('destination_warehouse_id', $access->accessibleIds())
-                ->count();
-        }
-
-        if (Gate::allows('sale.view')) {
-            // Factures clients échues non soldées.
-            $alerts['overdue_invoices'] = DB::table('sales_documents')
-                ->where('tenant_id', $context->tenantId())
-                ->whereIn('warehouse_id', $access->accessibleIds())
-                ->where('type', 'invoice')->where('status', 'validated')
-                ->whereIn('payment_status', ['unpaid', 'partial'])
-                ->where('due_date', '<', now()->toDateString())
-                ->count();
-        }
-
-        if (Gate::allows('cash.open_close')) {
-            // Caisses restées ouvertes depuis un jour précédent : à fermer.
-            $alerts['cash_to_close'] = DB::table('cash_sessions as s')
-                ->join('cash_registers as r', 'r.id', '=', 's.register_id')
-                ->where('s.tenant_id', $context->tenantId())
-                ->whereIn('r.warehouse_id', $access->accessibleIds())
-                ->where('s.status', 'open')
-                ->where('s.opened_at', '<', now()->startOfDay())
-                ->count();
-        }
-
-        if (Gate::allows('organization.manage')) {
-            $alerts['saas_invoice'] = DB::table('saas_invoices')->where('tenant_id', $context->tenantId())
-                ->where('status', 'open')->value('number');
-        }
-
-        if (Gate::allows('sale.view')) {
-            $alerts['sync_issues'] = DB::table('sync_commands')->where('tenant_id', $context->tenantId())
-                ->where('created_by', auth()->id())
-                ->whereIn('status', ['rejected', 'conflict', 'requires_review'])
-                ->where('created_at', '>=', now()->subDays(7))
-                ->count();
-        }
+        /** @var User $user */
+        $user = $request->user();
+        $pending = $center->pending($user);
+        $visible = array_keys(array_filter($preferences->for($user, array_keys($pending)), fn (array $p) => $p['in_app']));
+        $alerts = array_intersect_key($pending, array_flip($visible));
 
         return Inertia::render('Dashboard', [
             'figures' => $this->figures($context, $access),
