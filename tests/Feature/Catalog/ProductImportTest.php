@@ -28,9 +28,14 @@ class ProductImportTest extends TestCase
 
     private function upload(array $setup, string $content): CatalogImport
     {
-        $this->actingAs($setup['user'])->post(route('products.import.store'), ['file' => $this->csv($content)])->assertSessionHasNoErrors();
+        $response = $this->actingAs($setup['user'])->post(route('products.import.store'), ['file' => $this->csv($content)]);
+        $response->assertSessionHasNoErrors();
 
-        return app(TenantContext::class)->runAs($setup['tenant'], fn () => CatalogImport::query()->latest()->firstOrFail());
+        // L'import créé est celui de la redirection (jamais « le plus récent » : deux imports
+        // dans la même seconde ont la même date).
+        $id = basename((string) parse_url((string) $response->headers->get('Location'), PHP_URL_PATH));
+
+        return app(TenantContext::class)->runAs($setup['tenant'], fn () => CatalogImport::query()->findOrFail($id));
     }
 
     private function products(array $setup)
