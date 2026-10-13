@@ -44,7 +44,7 @@
 </div>
 @include('partials.receipt-body')
 @if ($autoprint)
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         // Impression directe à l'ouverture (vente comptoir) : la boîte de dialogue
         // du système permet de choisir l'imprimante thermique.
         window.addEventListener('load', () => setTimeout(() => window.print(), 300));

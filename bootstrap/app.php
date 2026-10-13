@@ -10,6 +10,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequireFeature;
 use App\Http\Middleware\RequireMultiFactorForPrivilegedUsers;
 use App\Http\Middleware\ResolveTenantContext;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -48,6 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
+            SecurityHeaders::class,
             EnsureAccountIsActive::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
