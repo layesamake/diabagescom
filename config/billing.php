@@ -36,6 +36,19 @@ return [
         'details' => env('BILLING_ISSUER_DETAILS'),
     ],
 
+    // Production : un prestataire réel n'encaisse que si le propriétaire l'a confirmé
+    // explicitement (BILLING_LIVE_CONFIRMED=true), en plus de ses clés officielles.
+    'live_confirmed' => (bool) env('BILLING_LIVE_CONFIRMED', false),
+
+    // Paiement en attente : premier rapprochement après ce délai (minutes) ; sans
+    // issue confirmée au bout du délai d'expiration (heures), il est annulé.
+    'reconcile_after_minutes' => 3,
+    'expire_after_hours' => 24,
+
+    // Adaptateurs de prestataires réels (classes implémentant BillingProvider),
+    // ajoutés une fois le contrat signé et les clés reçues. Vide = aucun.
+    'adapters' => [],
+
     'providers' => [
         // Simulation complète du parcours (paiement, webhook signé, rejeu) sans argent réel.
         'sandbox' => [

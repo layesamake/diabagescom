@@ -32,6 +32,12 @@ final class SandboxProvider implements BillingProvider
         return ['reference' => $reference, 'checkout_url' => route('billing.sandbox.show', $reference)];
     }
 
+    public function status(SaasPayment $payment): ?WebhookEvent
+    {
+        // La simulation ne dispose d'aucun service à interroger : seul son webhook fait foi.
+        return null;
+    }
+
     public function parseWebhook(Request $request): ?WebhookEvent
     {
         $body = $request->getContent();

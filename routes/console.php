@@ -26,6 +26,12 @@ Schedule::command('diaba:alerts:digest')
     ->withoutOverlapping()
     ->onOneServer();
 
+// Rapprochement des paiements en ligne restés en attente (webhook perdu ou en retard).
+Schedule::command('diaba:billing:reconcile')
+    ->everyTenMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();
+
 // Sauvegardes d'entreprise : suppression des archives expirées (7 jours).
 Schedule::command('diaba:backups:prune')
     ->hourly()

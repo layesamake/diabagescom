@@ -200,6 +200,58 @@ final class SaasBilling
             return [401, 'invalid_signature'];
         }
 
+        return $this->recordAndApply($provider, $event);
+    }
+
+    /**
+     * Interroge le prestataire sur un paiement en attente (webhook perdu ou en
+     * retard). Même chemin que le webhook : événement dédupliqué, effet
+     * identique, rien n'est refait si l'état est déjà connu.
+     *
+     * @return string issue : processed, duplicate, ignored… ou « skipped » (prestataire inactif), « unknown » (rien de nouveau)
+     */
+    public function reconcile(SaasPayment $payment): string
+    {
+        $gateway = app(ProviderRegistry::class)->find($payment->provider);
+
+        if ($gateway === null) {
+            return 'skipped';
+        }
+
+        $event = $gateway->status($payment);
+
+        return $event === null ? 'unknown' : $this->recordAndApply($payment->provider, $event)[1];
+    }
+
+    /**
+     * Paiement resté en attente au-delà du délai sans que le prestataire en ait
+     * confirmé l'issue : annulé, le client peut relancer. Un paiement qui
+     * aboutirait malgré tout est encore honoré par webhook ou rapprochement.
+     */
+    public function expire(SaasPayment $payment): bool
+    {
+        return DB::transaction(function () use ($payment): bool {
+            /** @var SaasPayment $locked */
+            $locked = SaasPayment::query()->withoutGlobalScope(TenantScope::class)->lockForUpdate()->findOrFail($payment->id);
+
+            if ($locked->status !== SaasPayment::PENDING || in_array($locked->provider, SaasPayment::MANUAL_PROVIDERS, true)) {
+                return false;
+            }
+
+            $locked->status = SaasPayment::CANCELLED;
+            $locked->failure_reason = 'expired';
+            $locked->save();
+            $this->audit->record('billing.payment_expired', $locked, metadata: ['provider' => $locked->provider], tenant: Tenant::query()->findOrFail($locked->tenant_id));
+
+            return true;
+        });
+    }
+
+    /**
+     * @return array{0: int, 1: string}
+     */
+    private function recordAndApply(string $provider, WebhookEvent $event): array
+    {
         if (PaymentProviderEvent::query()->where('provider', $provider)->where('external_event_id', $event->eventId)->exists()) {
             return [200, 'duplicate']; // rejeu : déjà traité, rien n'est refait
         }

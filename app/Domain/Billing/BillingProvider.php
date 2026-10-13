@@ -23,6 +23,14 @@ interface BillingProvider
     public function checkout(SaasPayment $payment, SaasInvoice $invoice): array;
 
     /**
+     * Interroge le prestataire sur l'issue d'un paiement (rapprochement quand un
+     * webhook est perdu). null = rien de nouveau. L'identifiant de l'événement
+     * doit être stable pour un même état (ex. « poll:<référence>:<état> ») afin
+     * que des interrogations répétées ne s'appliquent qu'une fois.
+     */
+    public function status(SaasPayment $payment): ?WebhookEvent;
+
+    /**
      * Événement vérifié, ou null si la signature (ou l'horodatage) est invalide.
      */
     public function parseWebhook(Request $request): ?WebhookEvent;

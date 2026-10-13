@@ -85,3 +85,23 @@ Produire une spécification OpenAPI à partir des routes/DTO validés. Chaque en
 - **Accès support** (`platform.support_access`) : ponctuel (15 min à 4 h), motivé, révocable, en lecture seule (abonnement, membres, dépôts, dernières actions, synchronisations à revoir) ; ouverture, consultation et fermeture visibles dans le journal d'audit de l'entreprise.
 - **Rapports** (`/reports`) : chiffre d'affaires TTC net des avoirs, nombre de ventes, panier moyen, par jour, dépôt, vendeur et moyen de paiement, meilleurs articles ; marge, coûts et valeur du stock avec `report.margin_view` ; créances et dettes avec `report.view_all` ; `report.view_own` limite aux ventes de l'utilisateur ; export CSV journalisé (`report.export`).
 - **Alertes d'accueil** : facture d'abonnement à régler, ventes hors connexion à revoir (en plus du stock bas, des factures échues, des caisses à fermer et des transferts).
+
+## Cadre des prestataires réels (prêt avant tout contrat)
+
+Le cadre commun est en place et testé avec un prestataire factice (`tests/Support/FakeBillingProvider.php`). Aucun prestataire réel n'est branché : `billing.adapters` est vide.
+
+**Ajouter Wave, Orange Money ou la carte** = une classe qui implémente `BillingProvider`, déclarée dans `config/billing.php` (`adapters`), avec ses clés lues dans `.env` uniquement. Elle doit fournir :
+
+- `checkout()` : crée la session de paiement chez le prestataire et renvoie la référence et l'adresse de paiement ;
+- `parseWebhook()` : vérifie la signature (et l'horodatage) du prestataire, `null` si invalide ;
+- `status()` : interroge l'état d'un paiement. L'identifiant d'événement doit être stable pour un même état (`poll:<référence>:<état>`).
+
+**Ce que le cadre apporte déjà**
+
+- Rapprochement (`diaba:billing:reconcile`, toutes les 10 min) : un paiement en attente depuis plus de 3 min est interrogé auprès du prestataire ; même traitement, mêmes protections qu'un webhook (dédoublonnage, un seul paiement réussi par facture, montant contrôlé).
+- Expiration : sans issue confirmée au bout de 24 h, le paiement est annulé (`expired`) et le client peut relancer. Un paiement qui aboutit tard reste honoré.
+- Panne du prestataire : le paiement reste en attente et est réessayé ; la commande échoue pour alerter le suivi.
+- **Garde-fou de production** : un prestataire réel n'encaisse en production que si `BILLING_LIVE_CONFIRMED=true` (décision explicite du propriétaire), en plus de ses clés.
+- Un prestataire désactivé n'est jamais interrogé et ses paiements ne sont jamais expirés.
+
+**Mise en service d'un prestataire** : contrat et clés ; adaptateur ; tests de contrat (mêmes scénarios que `LiveProviderFrameworkTest`) en mode test du prestataire sur dev ; essai bout en bout en mode test ; validation du propriétaire ; seulement alors `BILLING_LIVE_CONFIRMED=true` en production.
