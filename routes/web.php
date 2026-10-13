@@ -249,6 +249,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
         Route::delete('entries/{entry}', [JournalEntryController::class, 'destroy'])->whereUuid('entry')->name('entries.destroy');
         Route::post('entries/{entry}/post', [JournalEntryController::class, 'post'])->whereUuid('entry')->name('entries.post');
         Route::post('entries/{entry}/reverse', [JournalEntryController::class, 'reverse'])->whereUuid('entry')->name('entries.reverse');
+        Route::post('entries/{entry}/attachments', [JournalEntryController::class, 'attach'])->whereUuid('entry')->middleware('throttle:30,1')->name('entries.attachments.store');
+        Route::get('entries/{entry}/attachments/{attachment}', [JournalEntryController::class, 'download'])->whereUuid(['entry', 'attachment'])->name('entries.attachments.show');
+        Route::delete('entries/{entry}/attachments/{attachment}', [JournalEntryController::class, 'detach'])->whereUuid(['entry', 'attachment'])->name('entries.attachments.destroy');
 
         Route::get('accounts', [ChartController::class, 'index'])->name('accounts.index');
         Route::post('accounts', [ChartController::class, 'store'])->name('accounts.store');

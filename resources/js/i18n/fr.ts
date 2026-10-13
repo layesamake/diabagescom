@@ -1721,6 +1721,13 @@ export const fr = {
         delete: 'Supprimer le brouillon',
         reverse: 'Extourner',
         reverse_reason: 'Motif de l’extourne',
+        attachments: {
+            title: 'Pièces justificatives',
+            empty: 'Aucune pièce jointe.',
+            add: 'Ajouter une pièce',
+            hint: 'PDF, JPEG ou PNG, 5 Mo au plus, 10 pièces par écriture.',
+            remove: 'Retirer',
+        },
         reverse_date: 'Date de l’extourne',
         reversal_of: 'Extourne de {number}',
         reversed_by: 'Extournée par {number}',

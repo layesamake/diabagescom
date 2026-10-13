@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { ArrowLeft, CheckCircle2, Pencil, Trash2, Undo2 } from '@lucide/vue';
+import {
+    ArrowLeft,
+    CheckCircle2,
+    Paperclip,
+    Pencil,
+    Trash2,
+    Undo2,
+} from '@lucide/vue';
 import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -19,6 +26,11 @@ import {
     reverse as reverseRoute,
     show as entryShow,
 } from '@/routes/accounting/entries';
+import {
+    destroy as attachmentDestroy,
+    show as attachmentShow,
+    store as attachmentStore,
+} from '@/routes/accounting/entries/attachments';
 import { confirmAction } from '@/composables/useConfirm';
 
 const props = defineProps<{
@@ -40,8 +52,15 @@ const props = defineProps<{
             debit: number;
             credit: number;
         }[];
+        attachments: { id: string; name: string; mime: string; size: number }[];
     };
-    can: { edit: boolean; post: boolean; reverse: boolean };
+    can: {
+        edit: boolean;
+        post: boolean;
+        reverse: boolean;
+        attach: boolean;
+        detach: boolean;
+    };
 }>();
 
 defineOptions({
@@ -69,6 +88,27 @@ const options = {
     onStart: () => (processing.value = true),
     onFinish: () => (processing.value = false),
 };
+
+function upload(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (file) {
+        router.post(
+            attachmentStore(e.value.id).url,
+            { file },
+            { ...options, forceFormData: true },
+        );
+    }
+
+    input.value = '';
+}
+
+function kb(bytes: number): string {
+    return bytes >= 1048576
+        ? `${(bytes / 1048576).toFixed(1)} Mo`
+        : `${Math.max(1, Math.round(bytes / 1024))} Ko`;
+}
 
 async function post(): Promise<void> {
     if (
@@ -187,6 +227,75 @@ async function post(): Promise<void> {
                 </tbody>
             </table>
         </div>
+
+        <section class="space-y-2 rounded-lg border p-4">
+            <h2 class="flex items-center gap-2 text-sm font-semibold">
+                <Paperclip class="size-4" aria-hidden="true" />{{
+                    t('accounting.attachments.title')
+                }}
+            </h2>
+            <p
+                v-if="e.attachments.length === 0"
+                class="text-sm text-muted-foreground"
+            >
+                {{ t('accounting.attachments.empty') }}
+            </p>
+            <ul v-else class="divide-y text-sm">
+                <li
+                    v-for="a in e.attachments"
+                    :key="a.id"
+                    class="flex min-h-11 items-center justify-between gap-3"
+                >
+                    <a
+                        :href="
+                            attachmentShow({ entry: e.id, attachment: a.id })
+                                .url
+                        "
+                        class="truncate underline underline-offset-4"
+                        >{{ a.name }}</a
+                    >
+                    <span class="flex shrink-0 items-center gap-2">
+                        <span class="text-muted-foreground">{{
+                            kb(a.size)
+                        }}</span>
+                        <Button
+                            v-if="can.detach"
+                            variant="ghost"
+                            class="h-11"
+                            :disabled="processing"
+                            :aria-label="t('accounting.attachments.remove')"
+                            @click="
+                                router.delete(
+                                    attachmentDestroy({
+                                        entry: e.id,
+                                        attachment: a.id,
+                                    }).url,
+                                    options,
+                                )
+                            "
+                            ><Trash2 class="size-4"
+                        /></Button>
+                    </span>
+                </li>
+            </ul>
+            <div v-if="can.attach" class="grid gap-1">
+                <Label for="attachment">{{
+                    t('accounting.attachments.add')
+                }}</Label>
+                <Input
+                    id="attachment"
+                    type="file"
+                    accept="application/pdf,image/jpeg,image/png"
+                    class="h-11"
+                    :disabled="processing"
+                    @change="upload"
+                />
+                <p class="text-xs text-muted-foreground">
+                    {{ t('accounting.attachments.hint') }}
+                </p>
+            </div>
+            <InputError :message="errors.file" />
+        </section>
 
         <InputError :message="errors.business ?? errors.reason" />
 

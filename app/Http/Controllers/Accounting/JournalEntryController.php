@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Accounting;
 
+use App\Domain\Accounting\EntryAttachments;
 use App\Domain\Accounting\EntryLine;
 use App\Domain\Accounting\InvalidAccountingOperation;
 use App\Domain\Accounting\Ledger;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AccountingJournal;
 use App\Models\ChartAccount;
 use App\Models\JournalEntry;
+use App\Models\JournalEntryAttachment;
 use App\Models\JournalEntryLine;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -17,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class JournalEntryController extends Controller
 {
@@ -123,6 +126,7 @@ class JournalEntryController extends Controller
     {
         Gate::authorize('accounting.view');
         $entry->load(['lines.account:id,code,name', 'journal:id,code,name', 'period:id,starts_on,status', 'reversal:id,number,reversal_of_id', 'reversalOf:id,number']);
+        $attachments = JournalEntryAttachment::query()->where('entry_id', $entry->id)->orderBy('created_at')->get();
 
         return Inertia::render('accounting/EntryShow', [
             'entry' => [
@@ -143,13 +147,55 @@ class JournalEntryController extends Controller
                     'debit' => $l->debit,
                     'credit' => $l->credit,
                 ])->values(),
+                'attachments' => $attachments->map(fn (JournalEntryAttachment $a) => [
+                    'id' => $a->id, 'name' => $a->original_name, 'mime' => $a->mime, 'size' => $a->size,
+                ])->values(),
             ],
             'can' => [
+                'attach' => Gate::allows('accounting.manual_entry'),
+                'detach' => $entry->status === JournalEntry::DRAFT && Gate::allows('accounting.manual_entry'),
                 'edit' => $entry->status === JournalEntry::DRAFT && Gate::allows('accounting.manual_entry'),
                 'post' => $entry->status === JournalEntry::DRAFT && Gate::allows('accounting.post'),
                 'reverse' => $entry->status === JournalEntry::POSTED && $entry->reversal === null && $entry->reversal_of_id === null && Gate::allows('accounting.post'),
             ],
         ]);
+    }
+
+    public function attach(Request $request, JournalEntry $entry, EntryAttachments $attachments): RedirectResponse
+    {
+        Gate::authorize('accounting.manual_entry');
+        $data = $request->validate(['file' => ['required', 'file']], attributes: ['file' => 'pièce']);
+
+        /** @var User $user */
+        $user = $request->user();
+        $attachments->add($entry, $data['file'], $user);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('accounting.attachments.added')]);
+
+        return to_route('accounting.entries.show', $entry);
+    }
+
+    public function download(JournalEntry $entry, JournalEntryAttachment $attachment, EntryAttachments $attachments): StreamedResponse
+    {
+        Gate::authorize('accounting.view');
+        abort_unless($attachment->entry_id === $entry->id, 404);
+
+        return $attachments->disk()->download($attachment->path, $attachment->original_name, [
+            'Content-Type' => $attachment->mime,
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    public function detach(Request $request, JournalEntry $entry, JournalEntryAttachment $attachment, EntryAttachments $attachments): RedirectResponse
+    {
+        Gate::authorize('accounting.manual_entry');
+        abort_unless($attachment->entry_id === $entry->id, 404);
+
+        /** @var User $user */
+        $user = $request->user();
+        $attachments->remove($entry, $attachment, $user);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('accounting.attachments.removed')]);
+
+        return to_route('accounting.entries.show', $entry);
     }
 
     public function post(Request $request, JournalEntry $entry, Ledger $ledger): RedirectResponse

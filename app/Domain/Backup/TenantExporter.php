@@ -17,7 +17,7 @@ use ZipArchive;
  *   (format machine, utilisé par la restauration dans une entreprise vide) ;
  * - lisible/*.csv : articles, clients, fournisseurs, stock et ventes, à ouvrir
  *   dans Excel ;
- * - fichiers/ : photos des articles ;
+ * - fichiers/ : photos des articles et pièces justificatives ;
  * - manifest.json : version du format, schéma, nombre de lignes et empreinte
  *   SHA-256 de chaque fichier (contrôle d'intégrité à la restauration).
  *
@@ -42,7 +42,7 @@ final class TenantExporter
         'storefronts', 'storefront_products', 'storefront_orders', 'storefront_order_items',
         'sales_documents', 'sales_document_lines', 'payments', 'cash_movements',
         'chart_accounts', 'accounting_settings', 'accounting_journals', 'account_mappings', 'fiscal_years', 'accounting_periods',
-        'journal_entries', 'journal_entry_lines', 'accounting_postings', 'bank_reconciliations', 'bank_reconciliation_lines',
+        'journal_entries', 'journal_entry_lines', 'journal_entry_attachments', 'accounting_postings', 'bank_reconciliations', 'bank_reconciliation_lines',
         'audit_events',
     ];
 

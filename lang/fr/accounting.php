@@ -51,6 +51,14 @@ return [
         'opening' => 'À-nouveaux de l’exercice :year',
         'result' => 'Résultat de l’exercice :year',
     ],
+    'attachments' => [
+        'title' => 'Pièces justificatives',
+        'invalid' => 'Pièce refusée : PDF, JPEG ou PNG de 5 Mo au plus.',
+        'limit' => 'Au plus :max pièces par écriture.',
+        'draft_only' => 'Une pièce ne peut être retirée que d’un brouillon.',
+        'added' => 'Pièce ajoutée.',
+        'removed' => 'Pièce retirée.',
+    ],
     'saved' => [
         'initialized' => 'Comptabilité activée : plan SYSCOHADA, journaux et exercice créés.',
         'posted' => ':count opération(s) comptabilisée(s).',
