@@ -14,7 +14,27 @@ import {
 } from '@/routes/accounting';
 import { show as entryShow } from '@/routes/accounting/entries';
 
-type ReportType = 'balance' | 'ledger' | 'customers' | 'suppliers';
+type ReportType =
+    | 'balance'
+    | 'ledger'
+    | 'customers'
+    | 'suppliers'
+    | 'balance_sheet'
+    | 'income_statement';
+type Statement = {
+    tables: {
+        title: string;
+        rows: {
+            label: string;
+            amount: number;
+            kind: 'line' | 'subtotal' | 'total';
+            accounts: string;
+        }[];
+    }[];
+    balanced: boolean;
+    difference: number;
+    result: number;
+};
 type BalanceRow = {
     account_id: string;
     code: string;
@@ -51,7 +71,7 @@ type Ledger = {
 const props = defineProps<{
     report: ReportType;
     filters: { from: string; to: string; account: string };
-    data: BalanceRow[] | PartyRow[] | Ledger | null;
+    data: BalanceRow[] | PartyRow[] | Ledger | Statement | null;
     accounts: { code: string; name: string }[];
     can: { export: boolean };
 }>();
@@ -66,7 +86,20 @@ defineOptions({
 });
 
 const form = reactive({ ...props.filters });
-const types: ReportType[] = ['balance', 'ledger', 'customers', 'suppliers'];
+const types: ReportType[] = [
+    'balance_sheet',
+    'income_statement',
+    'balance',
+    'ledger',
+    'customers',
+    'suppliers',
+];
+const isStatement = computed(() =>
+    ['balance_sheet', 'income_statement'].includes(props.report),
+);
+const statement = computed(() =>
+    isStatement.value ? (props.data as Statement | null) : null,
+);
 const balance = computed(() =>
     props.report === 'balance' ? (props.data as BalanceRow[]) : [],
 );
@@ -121,7 +154,11 @@ const cell = 'p-2 text-right tabular-nums';
 
         <form class="flex flex-wrap items-end gap-2" @submit.prevent="load()">
             <Input
-                v-if="report === 'balance' || report === 'ledger'"
+                v-if="
+                    report === 'balance' ||
+                    report === 'ledger' ||
+                    report === 'income_statement'
+                "
                 v-model="form.from"
                 type="date"
                 class="h-11 w-40"
@@ -160,9 +197,77 @@ const cell = 'p-2 text-right tabular-nums';
             >
         </form>
 
+        <!-- États de synthèse : bilan et compte de résultat -->
+        <div v-if="isStatement" class="space-y-4">
+            <p
+                v-if="!statement"
+                class="rounded-lg border p-6 text-sm text-muted-foreground"
+            >
+                {{ t('accounting.statements.no_year') }}
+            </p>
+            <template v-else>
+                <p
+                    v-if="!statement.balanced"
+                    class="rounded-lg border border-warning-border bg-warning-soft p-3 text-sm text-warning-soft-foreground"
+                    role="alert"
+                >
+                    {{
+                        t('accounting.statements.unbalanced', {
+                            amount: formatXof(Math.abs(statement.difference)),
+                        })
+                    }}
+                </p>
+                <div
+                    v-for="table in statement.tables"
+                    :key="table.title"
+                    class="overflow-x-auto rounded-lg border"
+                >
+                    <table class="w-full min-w-[28rem] text-sm">
+                        <thead class="bg-muted/50 text-left">
+                            <tr>
+                                <th class="p-2">{{ table.title }}</th>
+                                <th class="p-2 text-muted-foreground">
+                                    {{ t('accounting.statements.accounts') }}
+                                </th>
+                                <th class="p-2 text-right">
+                                    {{ t('accounting.statements.amount') }}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="line in table.rows"
+                                :key="line.label"
+                                class="border-t"
+                                :class="{
+                                    'bg-muted/30 font-semibold':
+                                        line.kind === 'subtotal',
+                                    'bg-muted/60 font-bold':
+                                        line.kind === 'total',
+                                }"
+                            >
+                                <td class="p-2">{{ line.label }}</td>
+                                <td
+                                    class="p-2 text-xs text-muted-foreground tabular-nums"
+                                >
+                                    {{ line.accounts }}
+                                </td>
+                                <td :class="cell">
+                                    {{ formatXof(line.amount) }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-muted-foreground">
+                    {{ t('accounting.statements.disclaimer') }}
+                </p>
+            </template>
+        </div>
+
         <!-- Balance générale -->
         <div
-            v-if="report === 'balance'"
+            v-else-if="report === 'balance'"
             class="overflow-x-auto rounded-lg border"
         >
             <p

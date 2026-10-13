@@ -98,3 +98,12 @@ Les numéros de comptes ci-dessous sont des exemples de mappage, pas une liste d
 - **États** (écritures validées uniquement, bornés à l'exercice : les soldes antérieurs arrivent par les à-nouveaux) : balance générale, grand livre, balances clients et fournisseurs ; export CSV journalisé (`accounting.export`).
 - **Rapprochement bancaire** (`bank.reconcile`) sur les comptes rapprochables : lignes cochées une seule fois, rapprochement terminé seulement si le solde rapproché égale le solde du relevé.
 - Reste à faire avec l'expert-comptable : modèle complet SYSCOHADA, déclarations de TVA, états financiers (bilan, compte de résultat), règles d'arrondi.
+
+## États de synthèse : bilan et compte de résultat
+
+Comptabilité › États : **Bilan** (à la date « au », depuis le début de l'exercice qui la contient) et **Compte de résultat** (sur la période choisie), calculés sur les écritures validées uniquement, avec export CSV journalisé.
+
+- Présentation simplifiée du système normal SYSCOHADA : actif (immobilisé net, stocks, créances, trésorerie), passif (capitaux propres avec résultat de l'exercice, dettes financières, passif circulant, trésorerie-passif) ; marge commerciale, résultat d'exploitation, financier, hors activités ordinaires et net.
+- Chaque compte alimente une seule ligne. Pour les tiers (classe 4) et la trésorerie (classe 5), le sens du solde décide du côté, compte par compte (ex. avance fournisseur 409 débitrice → actif). Le bilan expose un contrôle d'équilibre et l'écart éventuel.
+- Le résultat de l'exercice en cours est calculé sur les classes 6, 7 et 8 ; après clôture, il est repris en 1301/1309 dans l'exercice suivant.
+- Limites connues : pas de colonne N-1, pas de notes annexes ni de tableau des flux, regroupement par préfixes de comptes. **À valider par l'expert-comptable** avant tout usage officiel (liasse, déclaration).

@@ -1844,7 +1844,18 @@ export const fr = {
             result_profit: 'Résultat : bénéfice',
             result_loss: 'Résultat : perte',
         },
+        statements: {
+            no_year: 'Aucun exercice comptable ne couvre cette date.',
+            unbalanced:
+                'Le bilan présente un écart de {amount} : vérifiez les écritures.',
+            accounts: 'Comptes',
+            amount: 'Montant (XOF)',
+            disclaimer:
+                'Présentation simplifiée du système normal SYSCOHADA, calculée sur les écritures validées. Le bilan est arrêté à la date « au » ; le compte de résultat couvre la période choisie. À valider avec votre expert-comptable avant tout usage officiel.',
+        },
         report_types: {
+            balance_sheet: 'Bilan',
+            income_statement: 'Compte de résultat',
             balance: 'Balance générale',
             ledger: 'Grand livre',
             customers: 'Balance clients',

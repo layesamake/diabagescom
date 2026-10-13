@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Domain\Accounting\AccountingReports;
+use App\Domain\Accounting\FinancialStatements;
 use App\Domain\Audit\AuditLog;
 use App\Http\Controllers\Controller;
 use App\Models\ChartAccount;
@@ -18,11 +19,13 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ReportController extends Controller
 {
-    public function index(Request $request, AccountingReports $reports, AuditLog $audit): Response|StreamedResponse
+    private const array REPORTS = ['balance', 'ledger', 'customers', 'suppliers', 'balance_sheet', 'income_statement'];
+
+    public function index(Request $request, AccountingReports $reports, FinancialStatements $statements, AuditLog $audit): Response|StreamedResponse
     {
         Gate::authorize('accounting.view');
 
-        $report = in_array($request->query('report'), ['balance', 'ledger', 'customers', 'suppliers'], true) ? (string) $request->query('report') : 'balance';
+        $report = in_array($request->query('report'), self::REPORTS, true) ? (string) $request->query('report') : 'balance';
         $from = CarbonImmutable::parse((string) $request->query('from', CarbonImmutable::today()->startOfYear()->toDateString()));
         $to = CarbonImmutable::parse((string) $request->query('to', CarbonImmutable::today()->toDateString()));
         $accountCode = (string) $request->query('account', '');
@@ -33,6 +36,8 @@ class ReportController extends Controller
             'ledger' => $account !== null ? $reports->generalLedger($account, $from, $to) : null,
             'customers' => $reports->partyBalances('customer', $to),
             'suppliers' => $reports->partyBalances('supplier', $to),
+            'balance_sheet' => $statements->balanceSheet($to),
+            'income_statement' => $statements->incomeStatement($from, $to),
             default => $reports->trialBalance($from, $to),
         };
 
@@ -71,6 +76,7 @@ class ReportController extends Controller
                     array_map(fn (array $l) => [$l['date'], $l['journal'], $l['number'], $l['label'], $l['debit'], $l['credit'], $l['balance']], $data['lines'] ?? [])),
                 'customers', 'suppliers' => array_merge([['Code', 'Nom', 'Débit', 'Crédit', 'Solde']],
                     array_map(fn (array $r) => [$r['code'], $r['name'], $r['debit'], $r['credit'], $r['balance']], $data ?? [])),
+                'balance_sheet', 'income_statement' => $this->statementRows($data),
                 default => array_merge([['Compte', 'Intitulé', 'Solde d’ouverture', 'Débit', 'Crédit', 'Solde de clôture']],
                     array_map(fn (array $r) => [$r['code'], $r['name'], $r['opening'], $r['debit'], $r['credit'], $r['closing']], $data ?? [])),
             };
@@ -81,5 +87,28 @@ class ReportController extends Controller
 
             fclose($out);
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * Lignes d'un état de synthèse : un bloc par tableau (Actif, Passif…).
+     *
+     * @param  array<int|string, mixed>|null  $data
+     * @return list<list<int|string>>
+     */
+    private function statementRows(?array $data): array
+    {
+        $rows = [];
+
+        foreach ($data['tables'] ?? [] as $table) {
+            $rows[] = [$table['title'], 'Comptes', 'Montant (XOF)'];
+
+            foreach ($table['rows'] as $line) {
+                $rows[] = [$line['label'], $line['accounts'], $line['amount']];
+            }
+
+            $rows[] = [];
+        }
+
+        return $rows;
     }
 }
