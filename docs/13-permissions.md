@@ -14,6 +14,7 @@ Une permission est une action atomique exprimée en `domaine.action`. Les rôles
 | Clients/fournisseurs | `customer.view/manage`, `supplier.view/manage` |
 | Ventes | `sale.view`, `sale.create`, `sale.update_draft`, `sale.validate`, `sale.cancel`, `sale.discount_standard`, `sale.discount_exception`, `sale.sell_negative_stock` |
 | Achats | `purchase.view`, `purchase.create`, `purchase.update_draft`, `purchase.receive`, `purchase.validate`, `purchase.cancel` |
+| Demandes d’achat | `purchase_request.view`, `purchase_request.create`, `purchase_request.approve` — vendeur et dépôt : voir et créer (leurs propres demandes) ; achats : voir, créer, approuver et voir toutes celles de leurs dépôts ; direction : voir et approuver. L’approbation par l’auteur lui-même est permise mais signalée dans l’audit. |
 | Stock | `inventory.view`, `inventory.transfer_create`, `inventory.transfer_ship`, `inventory.transfer_receive`, `inventory.count_create`, `inventory.count_validate`, `inventory.adjust` |
 | Trésorerie | `cash.view_own`, `cash.view_all`, `cash.open_close`, `cash.receive`, `cash.expense`, `cash.refund`, `bank.view`, `bank.reconcile` |
 | Comptabilité | `accounting.view`, `accounting.manual_entry`, `accounting.post`, `accounting.period_close`, `accounting.settings`, `accounting.export` |

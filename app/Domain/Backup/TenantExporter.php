@@ -37,7 +37,7 @@ final class TenantExporter
         'product_categories', 'products', 'product_barcodes', 'product_warehouse_settings', 'customers', 'suppliers',
         'cash_registers', 'cash_sessions', 'stock_operations', 'inventory_movements', 'inventory_balances',
         'stock_transfers', 'stock_transfer_lines', 'inventory_counts', 'inventory_count_lines',
-        'purchase_orders', 'purchase_order_lines', 'goods_receipts', 'goods_receipt_lines',
+        'purchase_orders', 'purchase_order_lines', 'purchase_requests', 'purchase_request_lines', 'goods_receipts', 'goods_receipt_lines',
         'supplier_invoices', 'supplier_invoice_lines', 'supplier_returns', 'supplier_return_lines',
         'storefronts', 'storefront_products', 'storefront_orders', 'storefront_order_items',
         'sales_documents', 'sales_document_lines', 'payments', 'cash_movements',

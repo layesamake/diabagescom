@@ -32,6 +32,7 @@ final class PermissionCatalog
         'supplier' => ['view', 'manage'],
         'sale' => ['view', 'create', 'update_draft', 'validate', 'cancel', 'discount_standard', 'discount_exception', 'sell_negative_stock'],
         'purchase' => ['view', 'create', 'update_draft', 'receive', 'validate', 'cancel'],
+        'purchase_request' => ['view', 'create', 'approve'],
         'inventory' => ['view', 'transfer_create', 'transfer_ship', 'transfer_receive', 'count_create', 'count_validate', 'adjust'],
         'cash' => ['view_own', 'view_all', 'open_close', 'receive', 'expense', 'refund'],
         'bank' => ['view', 'reconcile'],
@@ -61,13 +62,14 @@ final class PermissionCatalog
                 'organization.view', 'warehouse.view', 'catalog.view', 'customer.view', 'customer.manage',
                 'sale.view', 'sale.create', 'sale.update_draft', 'sale.validate', 'sale.discount_standard',
                 'cash.view_own', 'cash.open_close', 'cash.receive', 'report.view_own',
+                'purchase_request.view', 'purchase_request.create',
             ],
         ],
         'warehouse_manager' => [
             'name' => 'Gestionnaire de dépôt',
             'permissions' => [
                 'organization.view', 'warehouse.view', 'catalog.view', 'supplier.view', 'sale.view',
-                'purchase.view', 'purchase.receive',
+                'purchase.view', 'purchase.receive', 'purchase_request.view', 'purchase_request.create',
                 'inventory.view', 'inventory.transfer_create', 'inventory.transfer_ship', 'inventory.transfer_receive',
                 'inventory.count_create', 'inventory.count_validate', 'inventory.adjust',
                 'report.view_own', 'report.export',
@@ -78,6 +80,7 @@ final class PermissionCatalog
             'permissions' => [
                 'organization.view', 'warehouse.view', 'catalog.view', 'supplier.view', 'supplier.manage',
                 'purchase.view', 'purchase.create', 'purchase.update_draft', 'purchase.receive', 'purchase.validate', 'purchase.cancel',
+                'purchase_request.view', 'purchase_request.create', 'purchase_request.approve',
                 'inventory.view', 'accounting.view', 'report.view_own', 'report.export',
             ],
         ],
@@ -97,6 +100,7 @@ final class PermissionCatalog
                 'organization.view', 'warehouse.view', 'catalog.view', 'customer.view', 'supplier.view',
                 'sale.view', 'purchase.view', 'inventory.view', 'cash.view_all', 'bank.view', 'accounting.view',
                 'report.view_all', 'report.margin_view', 'report.export',
+                'purchase_request.view', 'purchase_request.approve',
             ],
         ],
     ];

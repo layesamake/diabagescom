@@ -30,6 +30,7 @@ use App\Http\Controllers\Platform\SupportController;
 use App\Http\Controllers\Platform\TenantController;
 use App\Http\Controllers\Platform\TenantProfileController;
 use App\Http\Controllers\Purchases\PurchaseOrderController;
+use App\Http\Controllers\Purchases\PurchaseRequestController;
 use App\Http\Controllers\Purchases\ReceiptController;
 use App\Http\Controllers\Purchases\SupplierInvoiceController;
 use App\Http\Controllers\RestoreController;
@@ -231,6 +232,18 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
         Route::post('orders/{order}/confirm', [PurchaseOrderController::class, 'confirm'])->whereUuid('order')->name('orders.confirm');
         Route::post('orders/{order}/cancel', [PurchaseOrderController::class, 'cancel'])->whereUuid('order')->name('orders.cancel');
         Route::post('orders/{order}/receive', [PurchaseOrderController::class, 'receive'])->whereUuid('order')->name('orders.receive');
+
+        Route::get('requests', [PurchaseRequestController::class, 'index'])->name('requests.index');
+        Route::get('requests/create', [PurchaseRequestController::class, 'create'])->name('requests.create');
+        Route::post('requests', [PurchaseRequestController::class, 'store'])->name('requests.store');
+        Route::get('requests/{purchaseRequest}', [PurchaseRequestController::class, 'show'])->whereUuid('purchaseRequest')->name('requests.show');
+        Route::get('requests/{purchaseRequest}/edit', [PurchaseRequestController::class, 'edit'])->whereUuid('purchaseRequest')->name('requests.edit');
+        Route::put('requests/{purchaseRequest}', [PurchaseRequestController::class, 'update'])->whereUuid('purchaseRequest')->name('requests.update');
+        Route::post('requests/{purchaseRequest}/submit', [PurchaseRequestController::class, 'submit'])->whereUuid('purchaseRequest')->name('requests.submit');
+        Route::post('requests/{purchaseRequest}/approve', [PurchaseRequestController::class, 'approve'])->whereUuid('purchaseRequest')->name('requests.approve');
+        Route::post('requests/{purchaseRequest}/reject', [PurchaseRequestController::class, 'reject'])->whereUuid('purchaseRequest')->name('requests.reject');
+        Route::post('requests/{purchaseRequest}/cancel', [PurchaseRequestController::class, 'cancel'])->whereUuid('purchaseRequest')->name('requests.cancel');
+        Route::post('requests/{purchaseRequest}/convert', [PurchaseRequestController::class, 'convert'])->whereUuid('purchaseRequest')->middleware('throttle:20,1')->name('requests.convert');
 
         Route::get('receipts/{receipt}', [ReceiptController::class, 'show'])->whereUuid('receipt')->name('receipts.show');
         Route::post('receipts/{receipt}/returns', [ReceiptController::class, 'storeReturn'])->whereUuid('receipt')->name('receipts.returns.store');

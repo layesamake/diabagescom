@@ -1,6 +1,23 @@
 <?php
 
 return [
+    'requests' => [
+        'title' => 'Demandes d’achat',
+        'saved' => 'Demande enregistrée (brouillon).',
+        'submitted' => 'Demande :number envoyée pour approbation.',
+        'approved' => 'Demande approuvée.',
+        'rejected' => 'Demande refusée.',
+        'cancelled' => 'Demande annulée.',
+        'converted' => 'Commande fournisseur créée en brouillon : complétez les coûts puis confirmez-la.',
+        'order_note' => 'Issue de la demande d’achat :number.',
+        'errors' => [
+            'not_draft' => 'Cette demande est déjà envoyée : elle ne peut plus être modifiée.',
+            'not_submitted' => 'Seule une demande envoyée peut être approuvée ou refusée.',
+            'not_approved' => 'Seule une demande approuvée peut devenir une commande.',
+            'cannot_cancel' => 'Cette demande ne peut plus être annulée.',
+            'duplicate' => '« :product » figure deux fois : regroupez les quantités sur une seule ligne.',
+        ],
+    ],
     'errors' => [
         'not_draft' => 'Ce document est validé : il ne peut plus être modifié.',
         'stale' => 'Ce document a été modifié entre-temps. Rechargez la page avant d’enregistrer.',

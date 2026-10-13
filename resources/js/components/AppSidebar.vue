@@ -11,6 +11,7 @@ import {
     Package,
     Receipt,
     Settings,
+    ClipboardList,
     ShoppingBasket,
     ShoppingBag,
     ShoppingCart,
@@ -45,6 +46,7 @@ import { edit as editProfile } from '@/routes/profile';
 import { index as reportsIndex } from '@/routes/reports';
 import { index as purchaseInvoicesIndex } from '@/routes/purchases/invoices';
 import { index as purchaseOrdersIndex } from '@/routes/purchases/orders';
+import { index as purchaseRequestsIndex } from '@/routes/purchases/requests';
 import { index as salesIndex } from '@/routes/sales';
 import { index as stockIndex } from '@/routes/stock';
 import { index as storefrontIndex } from '@/routes/storefront';
@@ -130,6 +132,12 @@ const navGroups = computed<NavGroup[]>(() => {
         {
             label: t('nav.group_buy'),
             items: [
+                ...item(
+                    can('purchase_request.view'),
+                    t('purchases.requests.nav'),
+                    purchaseRequestsIndex(),
+                    ClipboardList,
+                ),
                 ...item(
                     can('purchase.view'),
                     t('purchases.nav'),

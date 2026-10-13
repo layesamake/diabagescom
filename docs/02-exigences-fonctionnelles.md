@@ -102,3 +102,7 @@ Un utilisateur est rattaché à une entreprise et peut être affecté à un ou p
 
 - Dans l’application : stock faible, factures échues, caisse à fermer, conflits de synchronisation, fin d’essai, abonnement impayé et échec d’intégration.
 - Prévoir une architecture de canaux e-mail/push/WhatsApp, mais n’activer que les canaux validés. Les notifications ne doivent jamais divulguer de données sensibles sur un écran verrouillé.
+
+### Demandes d'achat (mise en œuvre)
+
+Achats › Demandes d'achat : un collaborateur exprime un besoin (articles et quantités, sans prix ni fournisseur), l'envoie (numéro `DA-AAAA-NNNNN`), un approbateur l'approuve ou la refuse (motif obligatoire), puis les achats la transforment en commande fournisseur en brouillon (coûts préremplis avec le coût standard, un seul passage). Brouillon modifiable par son auteur ; annulation avec motif une fois envoyée ; chaque étape est auditée. Chacun ne voit que ses demandes, sauf les achats et approbateurs (toutes celles de leurs dépôts).
