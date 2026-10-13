@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Accounting;
 use App\Domain\Accounting\AccountingReports;
 use App\Domain\Accounting\FinancialStatements;
 use App\Domain\Audit\AuditLog;
+use App\Domain\Reports\ReportExporter;
+use App\Domain\Reports\TabularReport;
 use App\Http\Controllers\Controller;
 use App\Models\ChartAccount;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,7 +24,7 @@ class ReportController extends Controller
 {
     private const array REPORTS = ['balance', 'ledger', 'customers', 'suppliers', 'balance_sheet', 'income_statement'];
 
-    public function index(Request $request, AccountingReports $reports, FinancialStatements $statements, AuditLog $audit): Response|StreamedResponse
+    public function index(Request $request, AccountingReports $reports, FinancialStatements $statements, AuditLog $audit, ReportExporter $exporter): Response|StreamedResponse|HttpResponse
     {
         Gate::authorize('accounting.view');
 
@@ -46,6 +49,14 @@ class ReportController extends Controller
             $audit->record('accounting.exported', metadata: ['report' => $report, 'from' => $from->toDateString(), 'to' => $to->toDateString(), 'account' => $accountCode ?: null]);
 
             return $this->csv($report, $data, "{$report}-{$from->toDateString()}-{$to->toDateString()}.csv");
+        }
+
+        if (in_array($request->query('format'), ReportExporter::FORMATS, true)) {
+            Gate::authorize('accounting.export');
+            $format = (string) $request->query('format');
+            $audit->record('accounting.exported', metadata: ['report' => $report, 'format' => $format, 'from' => $from->toDateString(), 'to' => $to->toDateString(), 'account' => $accountCode ?: null]);
+
+            return $exporter->respond($format, $this->tabular($report, $data, $from, $to), "{$report}-{$from->toDateString()}-{$to->toDateString()}");
         }
 
         return Inertia::render('accounting/Reports', [
@@ -87,6 +98,45 @@ class ReportController extends Controller
 
             fclose($out);
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * Rapport en tableaux, pour l'export Excel et PDF.
+     *
+     * @param  array<int|string, mixed>|null  $data
+     */
+    private function tabular(string $report, ?array $data, CarbonImmutable $from, CarbonImmutable $to): TabularReport
+    {
+        $title = __("accounting.report_titles.{$report}");
+        $period = in_array($report, ['balance_sheet', 'customers', 'suppliers'], true)
+            ? __('accounting.export.as_of', ['date' => $to->format('d/m/Y')])
+            : __('accounting.export.period', ['from' => $from->format('d/m/Y'), 'to' => $to->format('d/m/Y')]);
+
+        $sections = match ($report) {
+            'ledger' => [TabularReport::section(null, ['Date', 'Journal', 'Pièce', 'Libellé', 'Débit', 'Crédit', 'Solde'], array_merge(
+                [['Solde d’ouverture', '', '', '', '', '', (int) ($data['opening'] ?? 0)]],
+                array_map(fn (array $l) => [$l['date'], $l['journal'], $l['number'], $l['label'], $l['debit'], $l['credit'], $l['balance']], $data['lines'] ?? []),
+                [['Solde de clôture', '', '', '', '', '', (int) ($data['closing'] ?? 0)]],
+            ), [0, count($data['lines'] ?? []) + 1])],
+            'customers', 'suppliers' => [TabularReport::section(null, ['Code', 'Nom', 'Débit', 'Crédit', 'Solde'],
+                array_map(fn (array $r) => [$r['code'], $r['name'], $r['debit'], $r['credit'], $r['balance']], $data ?? []))],
+            'balance_sheet', 'income_statement' => array_map(function (array $table): array {
+                $strong = [];
+
+                foreach ($table['rows'] as $i => $line) {
+                    if ($line['kind'] !== 'line') {
+                        $strong[] = $i;
+                    }
+                }
+
+                return TabularReport::section($table['title'], ['Poste', 'Comptes', 'Montant (XOF)'],
+                    array_map(fn (array $l) => [$l['label'], $l['accounts'], $l['amount']], $table['rows']), $strong);
+            }, $data['tables'] ?? []),
+            default => [TabularReport::section(null, ['Compte', 'Intitulé', 'Solde d’ouverture', 'Débit', 'Crédit', 'Solde de clôture'],
+                array_map(fn (array $r) => [$r['code'], $r['name'], $r['opening'], $r['debit'], $r['credit'], $r['closing']], $data ?? []))],
+        };
+
+        return new TabularReport($title, $period, $sections);
     }
 
     /**

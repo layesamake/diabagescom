@@ -60,16 +60,15 @@ const form = reactive({
     warehouse: props.filters.warehouse ?? '',
 });
 const maxDay = computed(() => Math.max(1, ...props.byDay.map((d) => d.total)));
-const csvUrl = computed(
-    () =>
-        reportsIndex({
-            query: {
-                ...props.filters,
-                warehouse: props.filters.warehouse ?? '',
-                format: 'csv',
-            },
-        }).url,
-);
+const exportFormats = ['csv', 'xlsx', 'pdf'] as const;
+const exportUrl = (format: (typeof exportFormats)[number]) =>
+    reportsIndex({
+        query: {
+            ...props.filters,
+            warehouse: props.filters.warehouse ?? '',
+            format,
+        },
+    }).url;
 const cards = computed(() => [
     { label: t('reports.revenue'), value: formatXof(props.summary.total) },
     { label: t('reports.sales_count'), value: String(props.summary.sales) },
@@ -159,13 +158,20 @@ function apply(): void {
             <Button type="submit" variant="outline" class="h-11">{{
                 t('accounting.filter')
             }}</Button>
-            <Button v-if="can.export" as-child variant="ghost" class="h-11"
-                ><a :href="csvUrl"
-                    ><Download class="size-4" />{{
-                        t('accounting.export_csv')
-                    }}</a
-                ></Button
-            >
+            <template v-if="can.export">
+                <Button
+                    v-for="f in exportFormats"
+                    :key="f"
+                    as-child
+                    variant="ghost"
+                    class="h-11"
+                    ><a :href="exportUrl(f)"
+                        ><Download class="size-4" />{{
+                            t(`accounting.export_${f}`)
+                        }}</a
+                    ></Button
+                >
+            </template>
         </form>
 
         <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4">

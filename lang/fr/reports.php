@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'title' => 'Rapport des ventes',
+    'summary' => 'Résumé',
+    'indicator' => 'Indicateur',
+    'value' => 'Valeur',
+    'revenue' => 'Chiffre d’affaires TTC (XOF)',
+    'excl_tax' => 'Chiffre d’affaires HT (XOF)',
+    'sales_count' => 'Nombre de ventes',
+    'average_basket' => 'Panier moyen (XOF)',
+    'cost' => 'Coût des ventes (XOF)',
+    'margin' => 'Marge (XOF)',
+    'receivables' => 'Créances clients (XOF)',
+    'payables' => 'Dettes fournisseurs (XOF)',
+    'stock_value' => 'Valeur du stock (XOF)',
+    'by_day' => 'Par jour',
+    'by_warehouse' => 'Par dépôt',
+    'by_method' => 'Par moyen de paiement',
+    'by_seller' => 'Par vendeur',
+    'top_products' => 'Meilleurs articles',
+    'date' => 'Date',
+    'warehouse' => 'Dépôt',
+    'method' => 'Moyen de paiement',
+    'product' => 'Article',
+    'quantity' => 'Quantité',
+    'seller' => 'Vendeur',
+];

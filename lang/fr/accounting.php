@@ -35,6 +35,18 @@ return [
         'locked' => 'verrouillée',
         'closed' => 'clôturée',
     ],
+    'report_titles' => [
+        'balance_sheet' => 'Bilan',
+        'income_statement' => 'Compte de résultat',
+        'balance' => 'Balance générale',
+        'ledger' => 'Grand livre',
+        'customers' => 'Balance clients',
+        'suppliers' => 'Balance fournisseurs',
+    ],
+    'export' => [
+        'as_of' => 'Situation au :date',
+        'period' => 'Du :from au :to',
+    ],
     'statements' => [
         'assets' => 'ACTIF',
         'liabilities' => 'PASSIF',

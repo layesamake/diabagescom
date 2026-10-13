@@ -124,12 +124,11 @@ function load(report: ReportType = props.report): void {
     );
 }
 
-const csvUrl = computed(
-    () =>
-        reportsRoute({
-            query: { report: props.report, ...props.filters, format: 'csv' },
-        }).url,
-);
+const exportFormats = ['csv', 'xlsx', 'pdf'] as const;
+const exportUrl = (format: (typeof exportFormats)[number]) =>
+    reportsRoute({
+        query: { report: props.report, ...props.filters, format },
+    }).url;
 const cell = 'p-2 text-right tabular-nums';
 </script>
 
@@ -184,17 +183,20 @@ const cell = 'p-2 text-right tabular-nums';
             <Button type="submit" variant="outline" class="h-11">{{
                 t('accounting.filter')
             }}</Button>
-            <Button
-                v-if="can.export && data"
-                as-child
-                variant="ghost"
-                class="h-11"
-                ><a :href="csvUrl"
-                    ><Download class="size-4" />{{
-                        t('accounting.export_csv')
-                    }}</a
-                ></Button
-            >
+            <template v-if="can.export && data">
+                <Button
+                    v-for="f in exportFormats"
+                    :key="f"
+                    as-child
+                    variant="ghost"
+                    class="h-11"
+                    ><a :href="exportUrl(f)"
+                        ><Download class="size-4" />{{
+                            t(`accounting.export_${f}`)
+                        }}</a
+                    ></Button
+                >
+            </template>
         </form>
 
         <!-- États de synthèse : bilan et compte de résultat -->
