@@ -21,6 +21,8 @@ const props = defineProps<{
     canEdit: boolean;
     inputId: string;
     size?: 'sm' | 'lg';
+    /** « contain » pour un logo ou un cachet (jamais rogné). */
+    fit?: 'cover' | 'contain';
 }>();
 
 const preview = ref<string | null>(null);
@@ -75,8 +77,13 @@ async function remove(): Promise<void> {
             v-if="preview || imageUrl"
             :src="preview ?? imageUrl ?? ''"
             :alt="alt"
-            :class="size === 'sm' ? 'size-14' : 'size-40'"
-            class="rounded-lg border object-cover"
+            class="rounded-lg border"
+            :class="[
+                size === 'sm' ? 'size-14' : 'size-40',
+                fit === 'contain'
+                    ? 'bg-white object-contain p-1'
+                    : 'object-cover',
+            ]"
         />
         <span
             v-else

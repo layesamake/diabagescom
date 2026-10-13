@@ -2,6 +2,7 @@
 
 namespace App\Domain\Sales;
 
+use App\Domain\Organization\CompanyProfile;
 use App\Models\SalesDocument;
 use App\Models\Tenant;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -61,7 +62,14 @@ final class SalesDocumentPdf
             ->map(fn ($lines, $rate) => ['rate' => (int) $rate, 'base' => $lines->sum('line_excl_tax'), 'tax' => $lines->sum('line_tax')])
             ->sortKeys()->values();
 
-        return ['document' => $document, 'tenant' => $tenant, 'taxes' => $taxes];
+        $company = app(CompanyProfile::class);
+
+        return [
+            'document' => $document, 'tenant' => $tenant, 'taxes' => $taxes,
+            'companyLogo' => $company->pngDataUri($tenant, 'logo'),
+            'companyStamp' => $company->pngDataUri($tenant, 'stamp'),
+            'vatRegime' => __('company.vat_regimes.'.$company->of($tenant)->vat_regime),
+        ];
     }
 
     public function filename(SalesDocument $document, string $format = self::FORMAT_A4): string

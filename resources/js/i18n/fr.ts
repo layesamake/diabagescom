@@ -402,6 +402,38 @@ export const fr = {
             cancel: 'Annuler',
         },
     },
+    company: {
+        nav: 'Entreprise',
+        page_title: 'Entreprise',
+        heading: 'Fiche de l’entreprise',
+        description:
+            'Votre identité sur les documents et sur la boutique en ligne.',
+        identity: 'Identité visuelle',
+        logo: 'Logo',
+        logo_hint:
+            'Affiché sur vos devis et factures et sur votre boutique en ligne.',
+        stamp: 'Cachet / signature',
+        stamp_hint:
+            'Imprimé en bas des devis, factures et avoirs. Idéal : image sur fond transparent (PNG).',
+        cover: 'Image de la devanture (facultative)',
+        cover_hint: 'Bandeau en haut de votre boutique en ligne.',
+        tax_title: 'Régime de TVA',
+        tax_hint:
+            'Mentionné sur vos documents. Les taux de TVA se règlent dans Catalogue › Réglages. À valider avec votre expert-comptable.',
+        regimes: {
+            real: 'Assujetti à la TVA (régime du réel)',
+            cgu: 'Contribution globale unique (CGU) — non assujetti à la TVA',
+            exempt: 'Non assujetti ou exonéré de TVA',
+        },
+        location_title: 'Localisation',
+        maps: 'Lien Google Maps',
+        maps_hint:
+            'Dans Google Maps : Partager › Copier le lien. Il apparaît sur votre boutique en ligne.',
+        maps_open: 'Vérifier le lien',
+        save: 'Enregistrer',
+        read_only:
+            'Seul l’administrateur de l’entreprise peut modifier cette fiche.',
+    },
     notifications: {
         nav: 'Notifications',
         page_title: 'Notifications',
@@ -1136,6 +1168,9 @@ export const fr = {
             submit: 'Valider la commande',
             contact: 'Contacter l’entreprise',
             call: 'Appeler',
+            map: 'Itinéraire',
+            logo_alt: 'Logo de {name}',
+            cover_alt: 'Devanture de {name}',
             email: 'Email',
             whatsapp: 'WhatsApp',
             confirmation: 'Commande reçue',

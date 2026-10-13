@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Storefront;
 
+use App\Domain\Organization\CompanyProfile;
 use App\Domain\Storefront\StorefrontOrderNotifier;
 use App\Domain\Storefront\StorefrontStock;
 use App\Domain\Subscriptions\FeatureAccess;
@@ -13,6 +14,7 @@ use App\Models\Product;
 use App\Models\Storefront;
 use App\Models\StorefrontOrder;
 use App\Models\StorefrontProduct;
+use App\Models\TenantProfile;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,7 +67,7 @@ class PublicStorefrontController extends Controller
         })->values();
 
         return Inertia::render('storefront/Public', [
-            'storefront' => ['name' => $storefront->tenant->display_name, ...$storefront->only(['slug', 'tagline', 'description', 'phone', 'email', 'whatsapp', 'address', 'opening_hours', 'accepts_orders', 'delivery_enabled'])],
+            'storefront' => ['name' => $storefront->tenant->display_name, ...$this->brand($storefront, app(CompanyProfile::class)), ...$storefront->only(['slug', 'tagline', 'description', 'phone', 'email', 'whatsapp', 'address', 'opening_hours', 'accepts_orders', 'delivery_enabled'])],
             'products' => ['data' => $products, 'prev_page_url' => null, 'next_page_url' => null],
             'categories' => $categories,
             'filters' => ['q' => $q, 'category' => $categoryId],
@@ -189,6 +191,17 @@ class PublicStorefrontController extends Controller
         return CatalogImages::response($record->image_path);
     }
 
+    /**
+     * Logo ou devanture de l'entreprise, affichés sur la boutique publique.
+     */
+    public function brandImage(string $slug, string $slot, FeatureAccess $access, CompanyProfile $company): StreamedResponse
+    {
+        $storefront = $this->activeStorefront($slug, $access);
+        $column = TenantProfile::IMAGES[$slot] ?? abort(404);
+
+        return CatalogImages::response($company->of($storefront->tenant)->{$column});
+    }
+
     private function activeStorefront(string $slug, FeatureAccess $access): Storefront
     {
         $storefront = Storefront::query()->where('slug', $slug)->where('enabled', true)->firstOrFail();
@@ -196,6 +209,23 @@ class PublicStorefrontController extends Controller
         abort_unless(in_array($status, ['trialing', 'active', 'read_only'], true), 404);
 
         return $storefront;
+    }
+
+    /**
+     * Identité affichée sur la boutique : logo, devanture (facultative) et lien Google Maps.
+     *
+     * @return array<string, string|null>
+     */
+    private function brand(Storefront $storefront, CompanyProfile $company): array
+    {
+        $profile = $company->of($storefront->tenant);
+        $url = fn (string $route, ?string $path): ?string => $path === null ? null : route($route, [$storefront->slug, 'v' => $profile->version]);
+
+        return [
+            'logo_url' => $url('storefront.logo', $profile->logo_path),
+            'cover_url' => $url('storefront.cover', $profile->cover_path),
+            'maps_url' => $profile->maps_url,
+        ];
     }
 
     /** @return array<string, mixed> */

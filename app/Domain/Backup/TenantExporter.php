@@ -33,7 +33,7 @@ final class TenantExporter
 
     /** Tables métier sauvegardées (toutes portent tenant_id). */
     public const array TABLES = [
-        'units', 'tax_rates', 'warehouses', 'roles', 'tenant_memberships', 'warehouse_memberships', 'tenant_sequences',
+        'units', 'tax_rates', 'tenant_profiles', 'warehouses', 'roles', 'tenant_memberships', 'warehouse_memberships', 'tenant_sequences',
         'product_categories', 'products', 'product_barcodes', 'product_warehouse_settings', 'customers', 'suppliers',
         'cash_registers', 'cash_sessions', 'stock_operations', 'inventory_movements', 'inventory_balances',
         'stock_transfers', 'stock_transfer_lines', 'inventory_counts', 'inventory_count_lines',

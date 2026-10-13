@@ -139,3 +139,11 @@ Une écriture comptabilisée respecte obligatoirement `SUM(debit) = SUM(credit)`
 - **Caisse** : `cash_registers` (une « Caisse principale » créée avec chaque dépôt), `cash_sessions` (une seule ouverte par caisse, index unique partiel), `cash_movements` signés. Une sortie ne peut dépasser les espèces présentes ; fermeture avec montant compté, écart calculé (`CHECK difference = counted − expected`) et justification obligatoire si écart.
 - **Achats** : commande fournisseur (brouillon → confirmée → partiellement reçue → reçue, ou soldée) ; **réception** = entrée en stock au coût HT (coût moyen pondéré) ; **facture fournisseur** : la dette naît à sa validation (politique à confirmer par l'expert-comptable), une même référence fournisseur ne peut être validée deux fois ; règlements partiels ; **retour fournisseur** depuis une réception : sortie de stock et avoir imputé sur la facture liée.
 - **PDF** (dompdf) : A4 pour devis, commande, facture et avoir ; ticket 80 mm pour le reçu. Seuls les documents numérotés s'impriment. Les mentions légales de l'entreprise (NINEA, RCCM, adresse, logo client) seront ajoutées avec le profil entreprise.
+
+## Fiche de l'entreprise (`tenant_profiles`)
+
+Une ligne par entreprise : `vat_regime` (`real` assujetti au régime du réel, `cgu` contribution globale unique, `exempt` non assujetti/exonéré), `maps_url` (lien de partage Google Maps uniquement, https), `logo_path`, `stamp_path` (cachet/signature), `cover_path` (devanture, facultative), `version`.
+
+- Édition : Paramètres › Entreprise (`organization.manage` ; lecture avec `organization.view`) ; chaque changement est audité.
+- Images ré-encodées en WebP sans métadonnées (`ImageStore`), rangées sous `tenants/<id>/profile/` donc incluses dans la sauvegarde ; servies par lien signé dans l'application et, pour le logo et la devanture, par la boutique publique.
+- Le logo, le cachet/signature et le régime de TVA figurent sur les devis, factures et avoirs PDF. Le régime est une **mention** : il ne modifie pas les taux appliqués (réglés dans Catalogue › Réglages) ; à valider avec l'expert-comptable.

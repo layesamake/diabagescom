@@ -35,6 +35,7 @@ use App\Http\Controllers\Sales\PosController;
 use App\Http\Controllers\Sales\SalesDocumentController;
 use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\Settings\BackupController;
+use App\Http\Controllers\Settings\CompanyController;
 use App\Http\Controllers\Settings\GoogleDriveController;
 use App\Http\Controllers\Settings\MemberController;
 use App\Http\Controllers\Settings\NotificationController;
@@ -56,6 +57,8 @@ Route::prefix('boutique/{slug}')->group(function (): void {
     Route::post('orders', [PublicStorefrontController::class, 'order'])->middleware('throttle:20,1')->name('storefront.orders.store');
     Route::get('orders/{order}/confirmation', [PublicStorefrontController::class, 'confirmation'])->name('storefront.order.confirmation');
     Route::get('products/{product}/image', [PublicStorefrontController::class, 'image'])->whereUuid('product')->middleware('throttle:120,1')->name('storefront.products.image');
+    Route::get('logo', [PublicStorefrontController::class, 'brandImage'])->defaults('slot', 'logo')->middleware('throttle:120,1')->name('storefront.logo');
+    Route::get('cover', [PublicStorefrontController::class, 'brandImage'])->defaults('slot', 'cover')->middleware('throttle:120,1')->name('storefront.cover');
 });
 
 // Pages légales publiques (versions provisoires, à faire valider par un juriste).
@@ -95,6 +98,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('settings/warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
     Route::post('settings/warehouses', [WarehouseController::class, 'store'])->name('warehouses.store');
     Route::get('settings/audit', [AuditController::class, 'index'])->name('audit.index');
+    Route::get('settings/company', [CompanyController::class, 'edit'])->name('company.edit');
+    Route::put('settings/company', [CompanyController::class, 'update'])->name('company.update');
+    Route::post('settings/company/images/{slot}', [CompanyController::class, 'uploadImage'])->whereIn('slot', ['logo', 'stamp', 'cover'])->middleware('throttle:20,1')->name('company.images.store');
+    Route::delete('settings/company/images/{slot}', [CompanyController::class, 'removeImage'])->whereIn('slot', ['logo', 'stamp', 'cover'])->name('company.images.destroy');
+    Route::get('settings/company/images/{slot}', [CompanyController::class, 'image'])->whereIn('slot', ['logo', 'stamp', 'cover'])->middleware('signed')->name('company.images.show');
     Route::get('settings/notifications', [NotificationController::class, 'edit'])->name('notifications.edit');
     Route::put('settings/notifications', [NotificationController::class, 'update'])->name('notifications.update');
     Route::middleware('feature:online_store')->prefix('storefront')->name('storefront.')->group(function (): void {

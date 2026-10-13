@@ -34,6 +34,9 @@ type Storefront = {
     whatsapp: string | null;
     address: string | null;
     opening_hours: string | null;
+    logo_url: string | null;
+    cover_url: string | null;
+    maps_url: string | null;
     accepts_orders: boolean;
     delivery_enabled: boolean;
 };
@@ -257,15 +260,36 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
         >
             {{ notice }}
         </p>
+        <img
+            v-if="storefront.cover_url"
+            :src="storefront.cover_url"
+            :alt="t('storefront.public.cover_alt', { name: storefront.name })"
+            class="h-40 w-full object-cover sm:h-56"
+        />
         <header class="border-b bg-white">
             <div
                 class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6"
             >
-                <div>
-                    <p class="text-2xl font-bold">{{ storefront.name }}</p>
-                    <p v-if="storefront.tagline" class="text-muted-foreground">
-                        {{ storefront.tagline }}
-                    </p>
+                <div class="flex items-center gap-4">
+                    <img
+                        v-if="storefront.logo_url"
+                        :src="storefront.logo_url"
+                        :alt="
+                            t('storefront.public.logo_alt', {
+                                name: storefront.name,
+                            })
+                        "
+                        class="size-16 rounded-lg border bg-white object-contain p-1"
+                    />
+                    <div>
+                        <p class="text-2xl font-bold">{{ storefront.name }}</p>
+                        <p
+                            v-if="storefront.tagline"
+                            class="text-muted-foreground"
+                        >
+                            {{ storefront.tagline }}
+                        </p>
+                    </div>
                 </div>
                 <div class="flex flex-wrap gap-2 text-sm">
                     <a
@@ -278,6 +302,13 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                         :href="`mailto:${storefront.email}`"
                         class="rounded-md border px-3 py-2"
                         >{{ t('storefront.public.email') }}</a
+                    ><a
+                        v-if="storefront.maps_url"
+                        :href="storefront.maps_url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="rounded-md border px-3 py-2"
+                        >{{ t('storefront.public.map') }}</a
                     ><a
                         v-if="whatsappUrl"
                         :href="whatsappUrl"

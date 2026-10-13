@@ -1,0 +1,130 @@
+<?php
+
+namespace App\Domain\Organization;
+
+use App\Domain\Audit\AuditLog;
+use App\Domain\Catalog\ImageStore;
+use App\Domain\Subscriptions\FeatureAccess;
+use App\Models\Tenant;
+use App\Models\TenantProfile;
+use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+
+/**
+ * Fiche de l'entreprise : régime de TVA, localisation Google Maps, logo,
+ * cachet/signature et devanture. Les images sont ré-encodées par ImageStore
+ * (WebP, sans métadonnées) et rangées par entreprise, donc sauvegardées avec elle.
+ */
+final class CompanyProfile
+{
+    public function __construct(
+        private readonly ImageStore $images,
+        private readonly AuditLog $audit,
+        private readonly FeatureAccess $access,
+    ) {}
+
+    public function of(Tenant $tenant): TenantProfile
+    {
+        return TenantProfile::query()->firstOrNew(['tenant_id' => $tenant->id]);
+    }
+
+    /**
+     * @param  array{vat_regime: string, maps_url?: string|null}  $data
+     */
+    public function update(Tenant $tenant, array $data, User $actor): TenantProfile
+    {
+        $this->access->assertCanWrite($tenant);
+        $maps = isset($data['maps_url']) && trim($data['maps_url']) !== '' ? trim($data['maps_url']) : null;
+
+        if ($maps !== null && ! self::isGoogleMapsUrl($maps)) {
+            throw ValidationException::withMessages(['maps_url' => __('company.maps_invalid')]);
+        }
+
+        return DB::transaction(function () use ($tenant, $data, $maps, $actor): TenantProfile {
+            $profile = $this->of($tenant);
+            $before = ['vat_regime' => $profile->vat_regime, 'maps_url' => $profile->maps_url];
+            $profile->forceFill(['tenant_id' => $tenant->id, 'vat_regime' => $data['vat_regime'], 'maps_url' => $maps])->save();
+            $this->audit->record('company.profile_updated', $tenant, before: $before, after: ['vat_regime' => $profile->vat_regime, 'maps_url' => $profile->maps_url], actor: $actor, tenant: $tenant);
+
+            return $profile;
+        });
+    }
+
+    public function setImage(Tenant $tenant, string $slot, ?UploadedFile $file, User $actor): TenantProfile
+    {
+        $column = TenantProfile::IMAGES[$slot] ?? throw new \InvalidArgumentException('Unknown image slot.');
+        $this->access->assertCanWrite($tenant);
+
+        $path = $file !== null ? $this->images->store($file, "tenants/{$tenant->id}/profile") : null;
+        $profile = $this->of($tenant);
+        $previous = $profile->{$column};
+
+        try {
+            DB::transaction(function () use ($profile, $tenant, $column, $path, $slot, $actor): void {
+                $profile->forceFill(['tenant_id' => $tenant->id, $column => $path, 'version' => $profile->version + 1])->save();
+                $this->audit->record($path === null ? 'company.image_removed' : 'company.image_changed', $tenant, metadata: ['image' => $slot], actor: $actor, tenant: $tenant);
+            });
+        } catch (\Throwable $e) {
+            $this->images->delete($path);
+
+            throw $e;
+        }
+
+        $this->images->delete($previous);
+
+        return $profile;
+    }
+
+    /**
+     * Image en PNG (transparence conservée) intégrée au PDF : le moteur PDF n'a
+     * besoin d'accéder ni au disque ni au réseau.
+     */
+    public function pngDataUri(Tenant $tenant, string $slot): ?string
+    {
+        $column = TenantProfile::IMAGES[$slot] ?? null;
+        $path = $column !== null ? $this->of($tenant)->{$column} : null;
+
+        if ($path === null || ! Storage::disk(ImageStore::DISK)->exists($path)) {
+            return null;
+        }
+
+        $image = @imagecreatefromstring((string) Storage::disk(ImageStore::DISK)->get($path));
+
+        if ($image === false) {
+            return null;
+        }
+
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
+        ob_start();
+        imagepng($image);
+        $png = (string) ob_get_clean();
+        imagedestroy($image);
+
+        return 'data:image/png;base64,'.base64_encode($png);
+    }
+
+    /**
+     * Lien de partage Google Maps uniquement (https). Les codes « intégrer une
+     * carte » (iframe) et les autres sites sont refusés.
+     */
+    public static function isGoogleMapsUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+
+        if ($parts === false || ($parts['scheme'] ?? '') !== 'https' || isset($parts['user']) || ! isset($parts['host'])) {
+            return false;
+        }
+
+        $host = strtolower($parts['host']);
+        $path = $parts['path'] ?? '';
+
+        return $host === 'maps.app.goo.gl'
+            || $host === 'maps.google.com'
+            || ($host === 'goo.gl' && str_starts_with($path, '/maps'))
+            || (preg_match('/^(www\.)?google\.[a-z]{2,3}(\.[a-z]{2})?$/', $host) === 1 && str_starts_with($path, '/maps'));
+    }
+}

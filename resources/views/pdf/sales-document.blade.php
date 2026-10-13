@@ -32,6 +32,9 @@
 <table class="header">
     <tr>
         <td style="width: 55%">
+            @if (! empty($companyLogo))
+                <img src="{{ $companyLogo }}" alt="" style="max-height: 52px; max-width: 170px; margin-bottom: 6px;">
+            @endif
             <h1>{{ $tenant->display_name }}</h1>
             <div>{{ $tenant->legal_name }}</div>
             <div class="muted">{{ $document->warehouse->name }}@if ($document->warehouse->address) — {{ $document->warehouse->address }}@endif</div>
@@ -134,6 +137,20 @@
 @if ($document->notes)
     <p class="muted" style="margin-top: 16px;">{{ $document->notes }}</p>
 @endif
+
+<table style="margin-top: 18px;">
+    <tr>
+        <td style="width: 55%; vertical-align: bottom;" class="muted">{{ __('company.pdf.vat_regime') }} : {{ $vatRegime }}</td>
+        <td style="width: 45%; text-align: center;">
+            <div class="muted">{{ __('company.pdf.stamp') }}</div>
+            @if (! empty($companyStamp))
+                <img src="{{ $companyStamp }}" alt="" style="max-height: 90px; max-width: 200px;">
+            @else
+                <div style="height: 60px;"></div>
+            @endif
+        </td>
+    </tr>
+</table>
 
 <div class="footer">
     <img src="{{ $logo }}" alt="DIABA GESCOM"> {{ __('sales.pdf.provisional_rules') }} — {{ $document->number }}
