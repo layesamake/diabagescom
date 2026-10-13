@@ -159,6 +159,15 @@ const features = [
     },
 ];
 
+const storeBenefits = [
+    'Votre propre adresse web à partager sur WhatsApp, Facebook ou sur votre vitrine',
+    'Vos articles, prix et photos, publiés en un clic depuis votre catalogue',
+    'Votre logo, la photo de votre devanture et un bouton Itinéraire Google Maps',
+    'Vos clients commandent depuis leur téléphone, même avec un réseau instable',
+    'Vous êtes prévenu, vous confirmez : la commande devient un document de vente',
+    'Le stock est contrôlé : pas de commande d’un article épuisé',
+];
+
 const steps = [
     {
         title: 'Créez votre compte',
@@ -306,6 +315,9 @@ const yearlyKnown = computed(() =>
                     <a href="#fonctions" class="hover:text-foreground"
                         >Fonctions</a
                     >
+                    <a href="#boutique" class="hover:text-foreground"
+                        >Boutique en ligne</a
+                    >
                     <a href="#tarifs" class="hover:text-foreground">Tarifs</a>
                     <a href="#faq" class="hover:text-foreground">Questions</a>
                     <a href="#contact" class="hover:text-foreground">Contact</a>
@@ -333,6 +345,12 @@ const yearlyKnown = computed(() =>
                     class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:py-20 lg:grid-cols-2"
                 >
                     <div class="space-y-6">
+                        <a
+                            href="#boutique"
+                            class="mr-2 inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1 text-sm font-medium text-primary-foreground"
+                            ><Store class="size-4" aria-hidden="true" />Nouveau
+                            : votre boutique en ligne</a
+                        >
                         <p
                             class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm text-muted-foreground"
                         >
@@ -534,6 +552,137 @@ const yearlyKnown = computed(() =>
                             </p>
                         </li>
                     </ul>
+                </div>
+            </section>
+
+            <!-- Boutique en ligne -->
+            <section id="boutique" class="scroll-mt-20 border-y bg-muted/40">
+                <div
+                    class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2"
+                >
+                    <div class="space-y-6">
+                        <p
+                            class="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
+                        >
+                            <Store class="size-4" aria-hidden="true" />Boutique
+                            en ligne
+                        </p>
+                        <h2
+                            class="text-3xl font-bold tracking-tight text-balance md:text-4xl"
+                        >
+                            Vendez aussi quand votre boutique est fermée
+                        </h2>
+                        <p class="text-lg text-muted-foreground">
+                            Vos articles ont leur vitrine sur internet, à votre
+                            nom. Vos clients choisissent et commandent depuis
+                            leur téléphone ; vous recevez la commande dans DIABA
+                            GESCOM, déjà liée à votre stock et à votre caisse.
+                        </p>
+                        <ul class="space-y-3">
+                            <li
+                                v-for="b in storeBenefits"
+                                :key="b"
+                                class="flex gap-3 text-sm"
+                            >
+                                <CircleCheck
+                                    class="mt-0.5 size-5 shrink-0 text-[var(--color-brand-teal)] dark:text-[var(--color-brand-teal-light)]"
+                                    aria-hidden="true"
+                                />
+                                <span>{{ b }}</span>
+                            </li>
+                        </ul>
+                        <p class="text-sm text-muted-foreground">
+                            Pas de paiement en ligne à gérer : le client règle à
+                            la livraison ou au retrait. Inclus dans les formules
+                            marquées « Boutique en ligne » ci-dessous.
+                        </p>
+                        <div class="flex flex-col gap-3 sm:flex-row">
+                            <Button as-child size="lg" class="h-12 text-base">
+                                <Link
+                                    :href="signedIn ? dashboard() : register()"
+                                    >Essayer gratuitement
+                                    <ArrowRight
+                                        class="size-4"
+                                        aria-hidden="true"
+                                /></Link>
+                            </Button>
+                            <Button
+                                as-child
+                                size="lg"
+                                variant="outline"
+                                class="h-12 text-base"
+                            >
+                                <a href="#tarifs">Voir les formules</a>
+                            </Button>
+                        </div>
+                    </div>
+
+                    <!-- Aperçu d'une boutique (dessiné en CSS : rien à télécharger) -->
+                    <div class="mx-auto w-full max-w-md" aria-hidden="true">
+                        <div
+                            class="overflow-hidden rounded-2xl border bg-white text-slate-900 shadow-2xl"
+                        >
+                            <div
+                                class="h-24 bg-gradient-to-r from-[var(--color-brand-navy)] to-[var(--color-brand-teal)]"
+                            />
+                            <div class="flex items-center gap-3 border-b p-4">
+                                <span
+                                    class="-mt-10 flex size-14 shrink-0 items-center justify-center rounded-xl border-2 border-white bg-slate-100 text-xl font-bold text-[var(--color-brand-navy)] shadow"
+                                    >A</span
+                                >
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-bold">
+                                        Boutique Aminata
+                                    </p>
+                                    <p class="truncate text-xs text-slate-500">
+                                        Alimentation générale · Dakar
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 p-3 text-[11px]">
+                                <span class="rounded-md border px-2 py-1"
+                                    >Appeler</span
+                                ><span class="rounded-md border px-2 py-1"
+                                    >Itinéraire</span
+                                ><span class="rounded-md border px-2 py-1"
+                                    >WhatsApp</span
+                                >
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 p-3 pt-0">
+                                <div
+                                    v-for="item in [
+                                        ['Riz parfumé 5 kg', 8500],
+                                        ['Huile 1 L', 1500],
+                                        ['Sucre 1 kg', 750],
+                                        ['Lait en poudre', 3200],
+                                    ]"
+                                    :key="item[0]"
+                                    class="rounded-lg border p-2"
+                                >
+                                    <span
+                                        class="mb-2 block h-12 rounded bg-slate-100"
+                                    />
+                                    <p class="truncate text-[11px] font-medium">
+                                        {{ item[0] }}
+                                    </p>
+                                    <p
+                                        class="text-[11px] font-bold tabular-nums"
+                                    >
+                                        {{ formatXof(item[1] as number) }}
+                                    </p>
+                                    <span
+                                        class="mt-1 block rounded bg-slate-900 py-1 text-center text-[10px] text-white"
+                                        >Commander</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                        <p
+                            class="mt-3 text-center text-xs text-muted-foreground"
+                        >
+                            Exemple de boutique
+                        </p>
+                    </div>
                 </div>
             </section>
 
