@@ -23,8 +23,10 @@ use App\Models\StorefrontProduct;
 use App\Models\TaxRate;
 use App\Models\Tenant;
 use App\Models\Unit;
+use App\Notifications\StorefrontOrderReceivedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -333,5 +335,51 @@ class StorefrontTest extends TestCase
             ->assertSessionHasErrors('customer_phone');
 
         $this->assertSame(2, StorefrontOrder::query()->count());
+    }
+
+    public function test_seller_is_notified_by_email_of_a_new_web_order_once(): void
+    {
+        Notification::fake();
+        $setup = $this->createTenantWithMember();
+        $product = $this->publish($setup['tenant'], 'tsi-informatique');
+        Storefront::query()->where('slug', 'tsi-informatique')->update(['email' => 'vendeur@example.com']);
+        $this->stock($setup, $product, '10');
+        $payload = $this->orderPayload($product);
+
+        $this->post(route('storefront.orders.store', 'tsi-informatique'), $payload)->assertRedirect();
+        $this->post(route('storefront.orders.store', 'tsi-informatique'), $payload)->assertRedirect();
+
+        Notification::assertSentOnDemandTimes(StorefrontOrderReceivedNotification::class, 1);
+    }
+
+    public function test_without_a_shop_email_company_admins_are_notified(): void
+    {
+        Notification::fake();
+        $setup = $this->createTenantWithMember();
+        $product = $this->publish($setup['tenant'], 'tsi-informatique');
+        $this->stock($setup, $product, '10');
+
+        $this->post(route('storefront.orders.store', 'tsi-informatique'), $this->orderPayload($product))->assertRedirect();
+
+        Notification::assertSentTo($setup['user'], StorefrontOrderReceivedNotification::class);
+    }
+
+    public function test_public_order_input_is_stripped_of_markup_and_bad_phones_are_refused(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $product = $this->publish($setup['tenant'], 'tsi-informatique');
+        $this->stock($setup, $product, '10');
+
+        $this->post(route('storefront.orders.store', 'tsi-informatique'), $this->orderPayload($product, [
+            'customer_name' => '<script>alert(1)</script>Awa', 'notes' => "<b>vite</b>\x07",
+        ]))->assertRedirect();
+        $order = StorefrontOrder::query()->firstOrFail();
+        $this->assertSame('alert(1)Awa', $order->customer_name);
+        $this->assertSame('vite', $order->notes);
+
+        $this->post(route('storefront.orders.store', 'tsi-informatique'), $this->orderPayload($product, [
+            'customer_phone' => "77'; DROP TABLE users;--",
+        ]))->assertSessionHasErrors('customer_phone');
+        $this->assertSame(1, StorefrontOrder::query()->count());
     }
 }

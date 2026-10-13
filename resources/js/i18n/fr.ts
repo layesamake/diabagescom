@@ -1111,7 +1111,7 @@ export const fr = {
             pickup: 'Retrait sur place',
             delivery: 'Livraison',
             notes: 'Commentaire',
-            submit: 'Envoyer la commande',
+            submit: 'Valider la commande',
             contact: 'Contacter l’entreprise',
             call: 'Appeler',
             email: 'Email',
@@ -1124,6 +1124,16 @@ export const fr = {
                 'Votre panier est vide. Touchez « Commander » sur un article.',
             all_categories: 'Toutes les catégories',
             out_of_stock: 'Rupture de stock',
+            fulfillment: 'Mode de réception',
+            less: 'Diminuer la quantité',
+            more: 'Augmenter la quantité',
+            available: '{count} disponible(s)',
+            offline:
+                'Vous êtes hors connexion. Vous pouvez encore préparer une commande : elle partira dès le retour du réseau.',
+            pending:
+                '{count} commande(s) enregistrée(s) sur cet appareil, envoi automatique au retour du réseau.',
+            saved_offline:
+                'Commande enregistrée sur votre appareil. Elle sera envoyée automatiquement dès que la connexion reviendra.',
             categories: 'Catégories',
         },
     },

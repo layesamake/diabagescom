@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Storefront;
 
+use App\Domain\Storefront\StorefrontOrderNotifier;
 use App\Domain\Storefront\StorefrontStock;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
@@ -71,7 +72,7 @@ class PublicStorefrontController extends Controller
         ]);
     }
 
-    public function order(CreateStorefrontOrderRequest $request, string $slug, FeatureAccess $access, StorefrontStock $stock): RedirectResponse
+    public function order(CreateStorefrontOrderRequest $request, string $slug, FeatureAccess $access, StorefrontStock $stock, StorefrontOrderNotifier $notifier): RedirectResponse
     {
         $storefront = $this->activeStorefront($slug, $access);
         abort_unless($storefront->accepts_orders, 404);
@@ -124,6 +125,7 @@ class PublicStorefrontController extends Controller
 
         try {
             $order = $this->createOrder($storefront, $data, $key, $listings, $products);
+            $notifier->notify($storefront, $order);
         } catch (UniqueConstraintViolationException $e) {
             $order = StorefrontOrder::query()->where('storefront_id', $storefront->id)->where('idempotency_key', $key)->first() ?? throw $e;
         }
