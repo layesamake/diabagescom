@@ -37,7 +37,7 @@ class CompanyProfileTest extends TestCase
             ->where('profile.images.logo', null)
             ->where('can.manage', true));
 
-        $this->actingAs($setup['user'])->put(route('company.update'), ['vat_regime' => 'cgu', 'maps_url' => 'https://maps.app.goo.gl/AbCd1234'])->assertRedirect();
+        $this->actingAs($setup['user'])->put(route('company.update'), ['legal_name' => 'Ma Société SARL', 'display_name' => 'Ma Société', 'vat_regime' => 'cgu', 'maps_url' => 'https://maps.app.goo.gl/AbCd1234'])->assertRedirect();
 
         $this->actingAs($setup['user'])->get(route('company.edit'))->assertInertia(fn (Assert $p) => $p
             ->where('profile.vat_regime', 'cgu')->where('profile.maps_url', 'https://maps.app.goo.gl/AbCd1234'));
@@ -56,18 +56,18 @@ class CompanyProfileTest extends TestCase
             'https://www.google.com/search?q=maps',
             'javascript:alert(1)',
         ] as $bad) {
-            $this->actingAs($setup['user'])->put(route('company.update'), ['vat_regime' => 'real', 'maps_url' => $bad])->assertSessionHasErrors('maps_url');
+            $this->actingAs($setup['user'])->put(route('company.update'), ['legal_name' => 'Ma Société SARL', 'display_name' => 'Ma Société', 'vat_regime' => 'real', 'maps_url' => $bad])->assertSessionHasErrors('maps_url');
         }
 
         foreach (['https://www.google.com/maps/place/Dakar', 'https://maps.google.com/?q=14.69,-17.44', 'https://goo.gl/maps/abc', 'https://www.google.sn/maps/@14.7,-17.4,15z'] as $good) {
-            $this->actingAs($setup['user'])->put(route('company.update'), ['vat_regime' => 'real', 'maps_url' => $good])->assertSessionHasNoErrors();
+            $this->actingAs($setup['user'])->put(route('company.update'), ['legal_name' => 'Ma Société SARL', 'display_name' => 'Ma Société', 'vat_regime' => 'real', 'maps_url' => $good])->assertSessionHasNoErrors();
         }
 
         // Vider le champ retire la localisation.
-        $this->actingAs($setup['user'])->put(route('company.update'), ['vat_regime' => 'real', 'maps_url' => ''])->assertSessionHasNoErrors();
+        $this->actingAs($setup['user'])->put(route('company.update'), ['legal_name' => 'Ma Société SARL', 'display_name' => 'Ma Société', 'vat_regime' => 'real', 'maps_url' => ''])->assertSessionHasNoErrors();
         $this->assertNull(TenantProfile::query()->findOrFail($setup['tenant']->id)->maps_url);
 
-        $this->actingAs($setup['user'])->put(route('company.update'), ['vat_regime' => 'bogus'])->assertSessionHasErrors('vat_regime');
+        $this->actingAs($setup['user'])->put(route('company.update'), ['legal_name' => 'Ma Société SARL', 'display_name' => 'Ma Société', 'vat_regime' => 'bogus'])->assertSessionHasErrors('vat_regime');
     }
 
     public function test_images_are_reencoded_stored_per_company_and_replaceable(): void
@@ -105,7 +105,7 @@ class CompanyProfileTest extends TestCase
         $cashier = $this->member($setup, 'cashier');
 
         $this->actingAs($cashier['user'])->get(route('company.edit'))->assertInertia(fn (Assert $p) => $p->where('can.manage', false));
-        $this->actingAs($cashier['user'])->put(route('company.update'), ['vat_regime' => 'exempt'])->assertForbidden();
+        $this->actingAs($cashier['user'])->put(route('company.update'), ['legal_name' => 'Ma Société SARL', 'display_name' => 'Ma Société', 'vat_regime' => 'exempt'])->assertForbidden();
         $this->actingAs($cashier['user'])->post(route('company.images.store', 'logo'), ['image' => UploadedFile::fake()->image('l.png')])->assertForbidden();
         $this->actingAs($cashier['user'])->delete(route('company.images.destroy', 'logo'))->assertForbidden();
 
@@ -118,7 +118,7 @@ class CompanyProfileTest extends TestCase
     {
         $setup = $this->createTenantWithMember();
         app(TenantContext::class)->runAs($setup['tenant'], fn () => Storefront::query()->create(['tenant_id' => $setup['tenant']->id, 'slug' => 'ma-boutique', 'enabled' => true]));
-        $this->actingAs($setup['user'])->put(route('company.update'), ['vat_regime' => 'real', 'maps_url' => 'https://maps.app.goo.gl/AbCd1234']);
+        $this->actingAs($setup['user'])->put(route('company.update'), ['legal_name' => 'Ma Société SARL', 'display_name' => 'Ma Société', 'vat_regime' => 'real', 'maps_url' => 'https://maps.app.goo.gl/AbCd1234']);
         $this->actingAs($setup['user'])->post(route('company.images.store', 'logo'), ['image' => UploadedFile::fake()->image('l.png', 200, 200)]);
         app(TenantContext::class)->clear();
         auth()->logout();
@@ -141,7 +141,7 @@ class CompanyProfileTest extends TestCase
         $setup = $this->createTenantWithMember();
         $this->actingAs($setup['user'])->post(route('company.images.store', 'logo'), ['image' => UploadedFile::fake()->image('l.png', 200, 100)]);
         $this->actingAs($setup['user'])->post(route('company.images.store', 'stamp'), ['image' => UploadedFile::fake()->image('s.png', 200, 100)]);
-        $this->actingAs($setup['user'])->put(route('company.update'), ['vat_regime' => 'cgu', 'maps_url' => '']);
+        $this->actingAs($setup['user'])->put(route('company.update'), ['legal_name' => 'Ma Société SARL', 'display_name' => 'Ma Société', 'vat_regime' => 'cgu', 'maps_url' => '']);
 
         $rice = $this->makeProduct($setup);
         $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '10', 1000]]);

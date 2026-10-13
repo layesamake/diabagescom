@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import PhotoField from '@/components/PhotoField.vue';
@@ -21,6 +21,13 @@ const props = defineProps<{
     profile: {
         vat_regime: string;
         maps_url: string | null;
+        phone: string | null;
+        email: string | null;
+        address: string | null;
+        city: string | null;
+        ninea: string | null;
+        rccm: string | null;
+        document_footer: string | null;
         images: {
             logo: string | null;
             stamp: string | null;
@@ -41,12 +48,38 @@ const page = usePage();
 const errors = computed(() => page.props.errors as Record<string, string>);
 const vatRegime = ref(props.profile.vat_regime);
 const mapsUrl = ref(props.profile.maps_url ?? '');
+const form = reactive({
+    legal_name: props.company.legal_name,
+    display_name: props.company.display_name,
+    phone: props.profile.phone ?? '',
+    email: props.profile.email ?? '',
+    address: props.profile.address ?? '',
+    city: props.profile.city ?? '',
+    ninea: props.profile.ninea ?? '',
+    rccm: props.profile.rccm ?? '',
+    document_footer: props.profile.document_footer ?? '',
+});
+const fields = [
+    { key: 'legal_name', label: 'company.legal_name', type: 'text', max: 160 },
+    {
+        key: 'display_name',
+        label: 'company.display_name',
+        type: 'text',
+        max: 80,
+    },
+    { key: 'phone', label: 'company.phone', type: 'tel', max: 32 },
+    { key: 'email', label: 'company.email', type: 'email', max: 255 },
+    { key: 'address', label: 'company.address', type: 'text', max: 200 },
+    { key: 'city', label: 'company.city', type: 'text', max: 80 },
+    { key: 'ninea', label: 'company.ninea', type: 'text', max: 30 },
+    { key: 'rccm', label: 'company.rccm', type: 'text', max: 40 },
+] as const;
 const processing = ref(false);
 
 function save(): void {
     router.put(
         update().url,
-        { vat_regime: vatRegime.value, maps_url: mapsUrl.value },
+        { ...form, vat_regime: vatRegime.value, maps_url: mapsUrl.value },
         {
             preserveScroll: true,
             onStart: () => (processing.value = true),
@@ -108,6 +141,45 @@ const images = [
         </section>
 
         <form class="space-y-6 border-t pt-6" @submit.prevent="save">
+            <fieldset class="space-y-3" :disabled="!can.manage">
+                <legend class="text-lg font-semibold">
+                    {{ t('company.details_title') }}
+                </legend>
+                <p class="text-xs text-muted-foreground">
+                    {{ t('company.details_hint') }}
+                </p>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div v-for="f in fields" :key="f.key" class="grid gap-1">
+                        <Label :for="`company-${f.key}`">{{
+                            t(f.label)
+                        }}</Label>
+                        <Input
+                            :id="`company-${f.key}`"
+                            v-model="form[f.key]"
+                            :type="f.type"
+                            :maxlength="f.max"
+                            class="h-11"
+                        />
+                        <InputError :message="errors[f.key]" />
+                    </div>
+                </div>
+                <div class="grid gap-1">
+                    <Label for="company-footer">{{
+                        t('company.document_footer')
+                    }}</Label>
+                    <Input
+                        id="company-footer"
+                        v-model="form.document_footer"
+                        maxlength="300"
+                        class="h-11"
+                    />
+                    <p class="text-xs text-muted-foreground">
+                        {{ t('company.document_footer_hint') }}
+                    </p>
+                    <InputError :message="errors.document_footer" />
+                </div>
+            </fieldset>
+
             <fieldset class="space-y-2" :disabled="!can.manage">
                 <legend class="text-lg font-semibold">
                     {{ t('company.tax_title') }}

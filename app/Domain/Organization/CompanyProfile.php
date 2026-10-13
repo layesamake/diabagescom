@@ -32,7 +32,10 @@ final class CompanyProfile
     }
 
     /**
-     * @param  array{vat_regime: string, maps_url?: string|null}  $data
+     * Seules les clés présentes sont modifiées (le support n'envoie que le
+     * régime de TVA et le lien Maps). Les champs vides deviennent « non renseigné ».
+     *
+     * @param  array<string, mixed>  $data
      */
     public function update(Tenant $tenant, array $data, User $actor, ?string $reason = null, bool $bypassSubscription = false): TenantProfile
     {
@@ -45,9 +48,31 @@ final class CompanyProfile
 
         return DB::transaction(function () use ($tenant, $data, $maps, $actor, $reason): TenantProfile {
             $profile = $this->of($tenant);
-            $before = ['vat_regime' => $profile->vat_regime, 'maps_url' => $profile->maps_url];
-            $profile->forceFill(['tenant_id' => $tenant->id, 'vat_regime' => $data['vat_regime'], 'maps_url' => $maps])->save();
-            $this->audit->record('company.profile_updated', $tenant, before: $before, after: ['vat_regime' => $profile->vat_regime, 'maps_url' => $profile->maps_url], metadata: $this->reasonMetadata($reason), actor: $actor, tenant: $tenant);
+            $names = ['legal_name' => $tenant->legal_name, 'display_name' => $tenant->display_name];
+            $keys = ['vat_regime', 'maps_url', ...TenantProfile::DETAILS];
+            $before = [...$names, ...$profile->only($keys)];
+
+            $values = ['tenant_id' => $tenant->id, 'vat_regime' => $data['vat_regime'], 'maps_url' => $maps];
+
+            foreach (TenantProfile::DETAILS as $field) {
+                if (array_key_exists($field, $data)) {
+                    $text = is_string($data[$field]) ? trim($data[$field]) : '';
+                    $values[$field] = $text === '' ? null : $text;
+                }
+            }
+
+            $profile->forceFill($values)->save();
+
+            foreach (['legal_name', 'display_name'] as $field) {
+                if (isset($data[$field]) && is_string($data[$field]) && trim($data[$field]) !== '') {
+                    $tenant->{$field} = trim($data[$field]);
+                }
+            }
+
+            $tenant->save();
+            $this->audit->record('company.profile_updated', $tenant, before: $before, after: [
+                'legal_name' => $tenant->legal_name, 'display_name' => $tenant->display_name, ...$profile->only($keys),
+            ], metadata: $this->reasonMetadata($reason), actor: $actor, tenant: $tenant);
 
             return $profile;
         });
@@ -84,6 +109,25 @@ final class CompanyProfile
     private function reasonMetadata(?string $reason): array
     {
         return $reason !== null && trim($reason) !== '' ? ['reason' => trim($reason), 'by' => 'platform'] : [];
+    }
+
+    /**
+     * Coordonnées à imprimer sur les documents : lignes d'adresse et de contact,
+     * mentions légales (NINEA, RCCM) et mention de bas de page.
+     *
+     * @return array{lines: list<string>, legal: string, footer: string|null}
+     */
+    public function documentInfo(Tenant $tenant): array
+    {
+        $p = $this->of($tenant);
+        $address = trim(implode(', ', array_filter([$p->address, $p->city])));
+        $contact = trim(implode(' · ', array_filter([$p->phone, $p->email])));
+        $legal = trim(implode(' · ', array_filter([
+            filled($p->ninea) ? 'NINEA : '.$p->ninea : null,
+            filled($p->rccm) ? 'RCCM : '.$p->rccm : null,
+        ])));
+
+        return ['lines' => array_values(array_filter([$address, $contact])), 'legal' => $legal, 'footer' => filled($p->document_footer) ? $p->document_footer : null];
     }
 
     /**

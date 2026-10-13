@@ -37,6 +37,12 @@
             @endif
             <h1>{{ $tenant->display_name }}</h1>
             <div>{{ $tenant->legal_name }}</div>
+            @foreach ($companyInfo['lines'] as $infoLine)
+                <div class="muted">{{ $infoLine }}</div>
+            @endforeach
+            @if ($companyInfo['legal'] !== '')
+                <div class="muted">{{ $companyInfo['legal'] }}</div>
+            @endif
             <div class="muted">{{ $document->warehouse->name }}@if ($document->warehouse->address) — {{ $document->warehouse->address }}@endif</div>
         </td>
         <td style="width: 45%" class="num">
@@ -151,6 +157,10 @@
         </td>
     </tr>
 </table>
+
+@if ($companyInfo['footer'])
+    <p class="muted" style="margin-top: 14px; text-align: center;">{{ $companyInfo['footer'] }}</p>
+@endif
 
 <div class="footer">
     <img src="{{ $logo }}" alt="DIABA GESCOM"> {{ __('sales.pdf.provisional_rules') }} — {{ $document->number }}

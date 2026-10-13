@@ -11,6 +11,13 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $tenant_id
  * @property string $vat_regime
  * @property string|null $maps_url
+ * @property string|null $phone
+ * @property string|null $email
+ * @property string|null $address
+ * @property string|null $city
+ * @property string|null $ninea
+ * @property string|null $rccm
+ * @property string|null $document_footer
  * @property string|null $logo_path
  * @property string|null $stamp_path
  * @property string|null $cover_path
@@ -20,6 +27,9 @@ use Illuminate\Database\Eloquent\Model;
 class TenantProfile extends Model
 {
     public const array VAT_REGIMES = ['real', 'cgu', 'exempt'];
+
+    /** Coordonnées et mentions légales modifiables par l'entreprise. */
+    public const array DETAILS = ['phone', 'email', 'address', 'city', 'ninea', 'rccm', 'document_footer'];
 
     /** Images gérables : emplacement => colonne. */
     public const array IMAGES = ['logo' => 'logo_path', 'stamp' => 'stamp_path', 'cover' => 'cover_path'];

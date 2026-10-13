@@ -408,6 +408,20 @@ export const fr = {
         heading: 'Fiche de l’entreprise',
         description:
             'Votre identité sur les documents et sur la boutique en ligne.',
+        details_title: 'Coordonnées et mentions légales',
+        details_hint:
+            'Imprimées en en-tête de vos devis, factures et avoirs. Les champs vides ne s’impriment pas.',
+        legal_name: 'Raison sociale',
+        display_name: 'Nom commercial',
+        phone: 'Téléphone',
+        email: 'E-mail',
+        address: 'Adresse',
+        city: 'Ville',
+        ninea: 'NINEA',
+        rccm: 'RCCM',
+        document_footer: 'Mention de bas de page',
+        document_footer_hint:
+            'Ex. conditions de paiement, coordonnées bancaires, « Merci de votre confiance ».',
         identity: 'Identité visuelle',
         logo: 'Logo',
         logo_hint:

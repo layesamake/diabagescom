@@ -69,6 +69,7 @@ final class SalesDocumentPdf
             'companyLogo' => $company->pngDataUri($tenant, 'logo'),
             'companyStamp' => $company->pngDataUri($tenant, 'stamp'),
             'vatRegime' => __('company.vat_regimes.'.$company->of($tenant)->vat_regime),
+            'companyInfo' => $company->documentInfo($tenant),
         ];
     }
 

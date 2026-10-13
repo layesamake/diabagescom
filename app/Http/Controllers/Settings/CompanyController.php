@@ -33,6 +33,7 @@ class CompanyController extends Controller
             'profile' => [
                 'vat_regime' => $profile->vat_regime,
                 'maps_url' => $profile->maps_url,
+                ...$profile->only(TenantProfile::DETAILS),
                 'images' => collect(TenantProfile::IMAGES)->map(fn (string $column, string $slot) => CatalogImages::url(
                     'company.images.show', $profile->{$column}, ['slot' => $slot], $profile->version,
                 ))->all(),
@@ -46,9 +47,22 @@ class CompanyController extends Controller
     {
         Gate::authorize('organization.manage');
         $data = $request->validate([
+            'legal_name' => ['required', 'string', 'min:2', 'max:160'],
+            'display_name' => ['required', 'string', 'min:2', 'max:80'],
             'vat_regime' => ['required', Rule::in(TenantProfile::VAT_REGIMES)],
             'maps_url' => ['nullable', 'string', 'max:500'],
-        ], attributes: ['vat_regime' => 'régime de TVA', 'maps_url' => 'lien Google Maps']);
+            'phone' => ['nullable', 'string', 'max:32', 'regex:/^[0-9 +().-]*$/'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'address' => ['nullable', 'string', 'max:200'],
+            'city' => ['nullable', 'string', 'max:80'],
+            'ninea' => ['nullable', 'string', 'max:30', 'regex:/^[A-Za-z0-9 .\/-]*$/'],
+            'rccm' => ['nullable', 'string', 'max:40', 'regex:/^[A-Za-z0-9 .\/-]*$/'],
+            'document_footer' => ['nullable', 'string', 'max:300'],
+        ], attributes: [
+            'legal_name' => 'raison sociale', 'display_name' => 'nom commercial', 'vat_regime' => 'régime de TVA',
+            'maps_url' => 'lien Google Maps', 'phone' => 'téléphone', 'email' => 'e-mail', 'address' => 'adresse',
+            'city' => 'ville', 'ninea' => 'NINEA', 'rccm' => 'RCCM', 'document_footer' => 'mention de bas de page',
+        ]);
 
         /** @var User $user */
         $user = $request->user();
