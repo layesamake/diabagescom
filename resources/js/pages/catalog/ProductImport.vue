@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { ArrowLeft, CircleAlert, CircleCheck } from '@lucide/vue';
+import { ArrowLeft, CircleAlert, CircleCheck, Download } from '@lucide/vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
     create as importCreate,
     show as importShow,
     store as importStore,
+    template as importTemplate,
 } from '@/routes/products/import';
 
 type ImportState = {
@@ -82,6 +83,13 @@ const example =
                 <pre
                     class="overflow-x-auto rounded bg-muted p-3 font-mono text-xs"
                     >{{ example }}</pre>
+                <Button as-child variant="outline" class="h-11">
+                    <a :href="importTemplate().url"
+                        ><Download class="size-4" />{{
+                            t('import.template')
+                        }}</a
+                    >
+                </Button>
             </section>
 
             <Form

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
-import { Archive, ArchiveRestore, Pencil, Plus } from '@lucide/vue';
+import { Archive, ArchiveRestore, Pencil, Plus, Upload } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -11,7 +11,9 @@ import { Spinner } from '@/components/ui/spinner';
 import { t } from '@/i18n';
 import { formatXof } from '@/lib/money';
 import * as customers from '@/routes/customers';
+import * as customersImport from '@/routes/customers/import';
 import * as suppliers from '@/routes/suppliers';
+import * as suppliersImport from '@/routes/suppliers/import';
 import type { Paginated } from '@/types';
 import EmptyState from '@/components/EmptyState.vue';
 
@@ -39,6 +41,11 @@ const props = defineProps<{
 
 const routes = computed(() =>
     props.type === 'customer' ? customers : suppliers,
+);
+const importHref = computed(() =>
+    props.type === 'customer'
+        ? customersImport.create()
+        : suppliersImport.create(),
 );
 const title = computed(() =>
     props.type === 'customer' ? t('parties.customers') : t('parties.suppliers'),
@@ -96,13 +103,20 @@ function toggleArchive(party: Party): void {
                         : t('parties.suppliers_description')
                 "
             />
-            <Button v-if="canManage" class="h-11" @click="editing = 'new'">
-                <Plus class="size-4" />{{
-                    type === 'customer'
-                        ? t('parties.add_customer')
-                        : t('parties.add_supplier')
-                }}
-            </Button>
+            <div v-if="canManage" class="flex flex-wrap gap-2">
+                <Button class="h-11" @click="editing = 'new'">
+                    <Plus class="size-4" />{{
+                        type === 'customer'
+                            ? t('parties.add_customer')
+                            : t('parties.add_supplier')
+                    }}
+                </Button>
+                <Button as-child variant="outline" class="h-11">
+                    <Link :href="importHref"
+                        ><Upload class="size-4" />{{ t('import.button') }}</Link
+                    >
+                </Button>
+            </div>
         </div>
 
         <section

@@ -176,67 +176,7 @@ final class ProductImport
      */
     private function parse(string $content): array
     {
-        $content = preg_replace('/^\xEF\xBB\xBF/', '', $content) ?? '';
-
-        if (! mb_check_encoding($content, 'UTF-8')) {
-            $content = mb_convert_encoding($content, 'UTF-8', 'Windows-1252');
-        }
-
-        $firstLine = strtok($content, "\r\n") ?: '';
-        $delimiter = substr_count($firstLine, ';') >= substr_count($firstLine, ',') ? ';' : ',';
-
-        // Lecteur CSV natif : gère les champs entre guillemets contenant des retours à la ligne.
-        $stream = fopen('php://temp', 'r+') ?: throw new \RuntimeException('Unable to open a temporary stream.');
-        fwrite($stream, $content);
-        rewind($stream);
-
-        $records = [];
-        while (($record = fgetcsv($stream, null, $delimiter, '"', '')) !== false) {
-            $records[] = $record;
-
-            if (count($records) > self::MAX_ROWS + 1) {
-                fclose($stream);
-
-                throw ValidationException::withMessages(['file' => __('catalog.import.too_many_rows', ['max' => self::MAX_ROWS])]);
-            }
-        }
-        fclose($stream);
-
-        if (count($records) < 2) {
-            throw ValidationException::withMessages(['file' => __('catalog.import.empty')]);
-        }
-
-        $headers = array_map(
-            fn (?string $h) => self::HEADERS[mb_strtolower(trim((string) $h))] ?? null,
-            $records[0],
-        );
-
-        foreach (['sku', 'name', 'unit', 'sale_price'] as $required) {
-            if (! in_array($required, $headers, true)) {
-                throw ValidationException::withMessages(['file' => __('catalog.import.missing_column', ['column' => __("catalog.import.columns.{$required}")])]);
-            }
-        }
-
-        $rows = [];
-
-        foreach (array_slice($records, 1) as $index => $values) {
-            if ($values === [null] || implode('', array_map('strval', $values)) === '') {
-                continue;
-            }
-
-            // Numéro de ligne tel que vu dans le tableur (en-tête = ligne 1).
-            $row = ['_line' => (string) ($index + 2)];
-
-            foreach ($headers as $position => $field) {
-                if ($field !== null) {
-                    $row[$field] = trim((string) ($values[$position] ?? ''));
-                }
-            }
-
-            $rows[] = $row;
-        }
-
-        return $rows;
+        return CsvTable::parse($content, self::HEADERS, ['sku', 'name', 'unit', 'sale_price'], self::MAX_ROWS);
     }
 
     /**

@@ -690,6 +690,20 @@ export const fr = {
         empty: 'Aucun dépôt.',
     },
     catalog: {
+        labels: {
+            button: 'Étiquettes',
+            title: 'Étiquettes de codes-barres',
+            hint: 'Cochez les articles (seuls ceux qui ont un code-barres), réglez le format puis imprimez. Un code interne se génère depuis la fiche de l’article.',
+            copies: 'Exemplaires par article',
+            size: 'Format',
+            layout: 'Support',
+            sheet: 'Planche A4',
+            roll: 'Rouleau d’étiquettes',
+            show_price: 'Afficher le prix',
+            select_page: 'Tout cocher sur cette page',
+            open: 'Imprimer ({count})',
+            select: 'Étiquette de {name}',
+        },
         nav: 'Articles',
         title: 'Articles',
         description:
@@ -947,6 +961,23 @@ export const fr = {
         archived_badge: 'Archivé',
         terms_days: '{days} j',
     },
+    partyImport: {
+        title_customers: 'Importer des clients',
+        title_suppliers: 'Importer des fournisseurs',
+        back_customers: 'Retour aux clients',
+        back_suppliers: 'Retour aux fournisseurs',
+        description:
+            'Ajoutez ou mettez à jour vos contacts à partir d’un fichier CSV (Excel : « Enregistrer sous… CSV »).',
+        format_customers:
+            'Première ligne : les noms de colonnes. Obligatoire : nom. Facultatives : code, telephone, email, adresse, ville, ninea, delai_paiement (jours), notes, plafond_credit (XOF).',
+        format_suppliers:
+            'Première ligne : les noms de colonnes. Obligatoire : nom. Facultatives : code, telephone, email, adresse, ville, ninea, delai_paiement (jours), notes.',
+        matching:
+            'Un contact déjà enregistré est mis à jour, sans doublon : il est retrouvé par son code, sinon par son NINEA, son e-mail ou son téléphone, sinon par son nom. Une cellule vide ne remplace jamais une valeur existante.',
+        to_create: '{count} contact(s) à créer',
+        to_update: '{count} contact(s) à mettre à jour',
+        result: '{created} créé(s), {updated} mis à jour, {unchanged} inchangé(s).',
+    },
     import: {
         title: 'Importer des articles',
         description:
@@ -969,6 +1000,8 @@ export const fr = {
         applied: 'Import appliqué le {date}.',
         result: '{created} créé(s), {updated} mis à jour, {unchanged} inchangé(s), {categories} catégorie(s) créée(s).',
         new_import: 'Importer un autre fichier',
+        button: 'Importer (CSV)',
+        template: 'Télécharger le modèle (CSV)',
         recent: 'Imports récents',
         status: {
             previewed: 'Analysé',

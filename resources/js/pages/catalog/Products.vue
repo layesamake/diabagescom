@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Package, Plus, ScanBarcode, Settings2, Upload } from '@lucide/vue';
+import {
+    Package,
+    Plus,
+    Printer,
+    ScanBarcode,
+    Settings2,
+    Tags,
+    Upload,
+} from '@lucide/vue';
 import { ref, watch } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
@@ -13,6 +21,7 @@ import {
     create as productCreate,
     edit as productEdit,
     index as productsIndex,
+    labels as labelsRoute,
 } from '@/routes/products';
 import { create as importCreate } from '@/routes/products/import';
 import type { Option, Paginated, ProductRow } from '@/types';
@@ -32,6 +41,37 @@ const props = defineProps<{
 }>();
 
 const q = ref(props.filters.q);
+// Étiquettes : sélection d'articles (avec code-barres) puis impression dans un nouvel onglet.
+const labelMode = ref(false);
+const selected = ref<string[]>([]);
+const labelCopies = ref(1);
+const labelSize = ref('50x30');
+const labelLayout = ref('sheet');
+const labelPrice = ref(true);
+
+function selectPage(): void {
+    selected.value = props.products.data
+        .filter((p) => p.barcode)
+        .map((p) => p.id);
+}
+
+function openLabels(): void {
+    const copies = Math.min(
+        100,
+        Math.max(1, Math.floor(labelCopies.value || 1)),
+    );
+    const url = labelsRoute({
+        query: {
+            ids: selected.value,
+            copies,
+            size: labelSize.value,
+            layout: labelLayout.value,
+            price: labelPrice.value ? 1 : 0,
+            print: 1,
+        },
+    }).url;
+    window.open(url, '_blank', 'noopener');
+}
 const category = ref(props.filters.category);
 const status = ref(props.filters.status);
 
@@ -86,6 +126,16 @@ watch([category, status], search);
                         }}</Link
                     >
                 </Button>
+                <Button
+                    type="button"
+                    :variant="labelMode ? 'default' : 'outline'"
+                    class="h-11"
+                    :aria-pressed="labelMode"
+                    @click="labelMode = !labelMode"
+                    ><Tags class="size-4" />{{
+                        t('catalog.labels.button')
+                    }}</Button
+                >
                 <Button as-child variant="ghost" class="h-11">
                     <Link :href="catalogSettings()"
                         ><Settings2 class="size-4" />{{
@@ -162,6 +212,95 @@ watch([category, status], search);
             </div>
         </form>
 
+        <!-- Étiquettes : choisir des articles, puis imprimer une planche ou un rouleau. -->
+        <section
+            v-if="labelMode"
+            class="space-y-3 rounded-lg border bg-muted/30 p-4"
+            aria-labelledby="labels-title"
+        >
+            <h2 id="labels-title" class="font-semibold">
+                {{ t('catalog.labels.title') }}
+            </h2>
+            <p class="text-sm text-muted-foreground">
+                {{ t('catalog.labels.hint') }}
+            </p>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="grid gap-1">
+                    <Label for="label-copies">{{
+                        t('catalog.labels.copies')
+                    }}</Label>
+                    <Input
+                        id="label-copies"
+                        v-model.number="labelCopies"
+                        type="number"
+                        min="1"
+                        max="100"
+                        inputmode="numeric"
+                        class="h-11"
+                    />
+                </div>
+                <div class="grid gap-1">
+                    <Label for="label-size">{{
+                        t('catalog.labels.size')
+                    }}</Label>
+                    <select
+                        id="label-size"
+                        v-model="labelSize"
+                        :class="selectClass"
+                    >
+                        <option value="50x30">50 × 30 mm</option>
+                        <option value="70x40">70 × 40 mm</option>
+                        <option value="40x25">40 × 25 mm</option>
+                    </select>
+                </div>
+                <div class="grid gap-1">
+                    <Label for="label-layout">{{
+                        t('catalog.labels.layout')
+                    }}</Label>
+                    <select
+                        id="label-layout"
+                        v-model="labelLayout"
+                        :class="selectClass"
+                    >
+                        <option value="sheet">
+                            {{ t('catalog.labels.sheet') }}
+                        </option>
+                        <option value="roll">
+                            {{ t('catalog.labels.roll') }}
+                        </option>
+                    </select>
+                </div>
+                <label
+                    class="flex min-h-11 items-center gap-2 self-end text-sm"
+                >
+                    <input
+                        v-model="labelPrice"
+                        type="checkbox"
+                        class="size-5"
+                    />
+                    {{ t('catalog.labels.show_price') }}
+                </label>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <Button
+                    type="button"
+                    variant="outline"
+                    class="h-11"
+                    @click="selectPage"
+                    >{{ t('catalog.labels.select_page') }}</Button
+                >
+                <Button
+                    type="button"
+                    class="h-11"
+                    :disabled="selected.length === 0"
+                    @click="openLabels"
+                    ><Printer class="size-4" />{{
+                        t('catalog.labels.open', { count: selected.length })
+                    }}</Button
+                >
+            </div>
+        </section>
+
         <EmptyState
             v-if="products.data.length === 0"
             :hint="filters.q ? undefined : t('empty.products')"
@@ -175,10 +314,29 @@ watch([category, status], search);
 
         <!-- Liste en cartes : lisible sur smartphone, sans défilement horizontal. -->
         <ul v-else class="divide-y rounded-lg border">
-            <li v-for="product in products.data" :key="product.id">
+            <li
+                v-for="product in products.data"
+                :key="product.id"
+                class="flex items-center"
+            >
+                <label
+                    v-if="labelMode"
+                    class="flex min-h-16 w-12 shrink-0 items-center justify-center"
+                >
+                    <input
+                        v-model="selected"
+                        type="checkbox"
+                        :value="product.id"
+                        :disabled="!product.barcode"
+                        class="size-5"
+                        :aria-label="
+                            t('catalog.labels.select', { name: product.name })
+                        "
+                    />
+                </label>
                 <Link
                     :href="productEdit(product.id)"
-                    class="flex min-h-16 items-center gap-3 p-3 hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
+                    class="flex min-h-16 min-w-0 flex-1 items-center gap-3 p-3 hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
                 >
                     <img
                         v-if="product.image_url"

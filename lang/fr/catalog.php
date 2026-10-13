@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'labels' => [
+        'title' => 'Étiquettes de codes-barres',
+        'print' => 'Imprimer :count étiquette(s)',
+        'close' => 'Fermer',
+        'skipped' => 'Sans code-barres, non imprimé : :names.',
+        'too_many' => 'Au plus :max étiquettes à la fois.',
+    ],
     'barcode' => [
         'invalid_format' => 'Ce code-barres contient des caractères non autorisés ou est trop long.',
         'invalid_checksum' => 'La clé de contrôle de ce code-barres est fausse : vérifiez la saisie ou rescannez.',
@@ -56,6 +63,21 @@ return [
             'name' => 'nom',
             'unit' => 'unite',
             'sale_price' => 'prix_vente',
+        ],
+        'party_fields' => [
+            'code' => 'Code', 'tax_number' => 'NINEA', 'email' => 'E-mail', 'phone' => 'Téléphone', 'name' => 'Nom',
+            'address_line' => 'Adresse', 'city' => 'Ville', 'notes' => 'Notes',
+        ],
+        'party_errors' => [
+            'name' => 'Nom absent, trop court ou trop long (2 à 160 caractères).',
+            'code' => 'Code invalide (lettres, chiffres, - et _, 20 caractères maximum).',
+            'phone' => 'Téléphone invalide (chiffres, espaces, + ( ) . -).',
+            'email' => 'Adresse e-mail invalide.',
+            'too_long' => ':field trop long (:max caractères maximum).',
+            'terms' => 'Délai de paiement invalide : nombre entier de jours, 365 au plus.',
+            'credit' => 'Plafond de crédit invalide : nombre entier en XOF, sans décimales.',
+            'duplicate' => 'Même contact déjà présent à la ligne :line du fichier.',
+            'ambiguous' => 'Plusieurs contacts existants correspondent à ce repère (:field) : précisez le code.',
         ],
         'errors' => [
             'sku' => 'Référence (SKU) absente ou invalide (lettres, chiffres, . _ / -, 40 caractères maximum).',

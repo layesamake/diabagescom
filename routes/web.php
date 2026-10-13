@@ -10,7 +10,9 @@ use App\Http\Controllers\Billing\BillingController;
 use App\Http\Controllers\Billing\SandboxCheckoutController;
 use App\Http\Controllers\Billing\WebhookController;
 use App\Http\Controllers\Cash\CashController;
+use App\Http\Controllers\Catalog\LabelController;
 use App\Http\Controllers\Catalog\PartyController;
+use App\Http\Controllers\Catalog\PartyImportController;
 use App\Http\Controllers\Catalog\ProductController;
 use App\Http\Controllers\Catalog\ProductImportController;
 use App\Http\Controllers\Catalog\ReferenceDataController;
@@ -136,11 +138,13 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('catalog/lookup', [ProductController::class, 'lookup'])->middleware('throttle:120,1')->name('products.lookup');
     Route::get('catalog/import', [ProductImportController::class, 'create'])->name('products.import.create');
     Route::post('catalog/import', [ProductImportController::class, 'store'])->middleware('throttle:10,1')->name('products.import.store');
+    Route::get('catalog/import/template', [ProductImportController::class, 'template'])->name('products.import.template');
     Route::get('catalog/import/{import}', [ProductImportController::class, 'show'])->whereUuid('import')->name('products.import.show');
     Route::post('catalog/import/{import}/apply', [ProductImportController::class, 'apply'])->whereUuid('import')->name('products.import.apply');
     Route::get('catalog/products/{product}', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('catalog/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::post('catalog/products/{product}/archive', [ProductController::class, 'archive'])->name('products.archive');
+    Route::get('catalog/labels', [LabelController::class, 'show'])->middleware('throttle:30,1')->name('products.labels');
     Route::post('catalog/products/{product}/barcodes', [ProductController::class, 'addBarcode'])->name('products.barcodes.store');
     Route::delete('catalog/products/{product}/barcodes/{barcode}', [ProductController::class, 'removeBarcode'])->name('products.barcodes.destroy');
     Route::post('catalog/products/{product}/image', [ProductController::class, 'uploadImage'])->middleware('throttle:20,1')->name('products.image.store');
@@ -280,6 +284,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
 
     // Tiers
     foreach (['customers' => 'customer', 'suppliers' => 'supplier'] as $path => $party) {
+        Route::get("{$path}/import", [PartyImportController::class, 'create'])->defaults('party', $party)->name("{$path}.import.create");
+        Route::get("{$path}/import/template", [PartyImportController::class, 'template'])->defaults('party', $party)->name("{$path}.import.template");
+        Route::post("{$path}/import", [PartyImportController::class, 'store'])->defaults('party', $party)->middleware('throttle:10,1')->name("{$path}.import.store");
+        Route::get("{$path}/import/{import}", [PartyImportController::class, 'show'])->defaults('party', $party)->whereUuid('import')->name("{$path}.import.show");
+        Route::post("{$path}/import/{import}/apply", [PartyImportController::class, 'apply'])->defaults('party', $party)->whereUuid('import')->name("{$path}.import.apply");
         Route::get($path, [PartyController::class, 'index'])->defaults('party', $party)->name("{$path}.index");
         Route::post($path, [PartyController::class, 'store'])->defaults('party', $party)->name("{$path}.store");
         Route::put("{$path}/{party}", [PartyController::class, 'update'])->defaults('party', $party)->whereUuid('party')->name("{$path}.update");

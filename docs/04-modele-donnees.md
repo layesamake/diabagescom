@@ -147,3 +147,10 @@ Une ligne par entreprise : `vat_regime` (`real` assujetti au régime du réel, `
 - Édition : Paramètres › Entreprise (`organization.manage` ; lecture avec `organization.view`) ; chaque changement est audité.
 - Images ré-encodées en WebP sans métadonnées (`ImageStore`), rangées sous `tenants/<id>/profile/` donc incluses dans la sauvegarde ; servies par lien signé dans l'application et, pour le logo et la devanture, par la boutique publique.
 - Le logo, le cachet/signature et le régime de TVA figurent sur les devis, factures et avoirs PDF. Le régime est une **mention** : il ne modifie pas les taux appliqués (réglés dans Catalogue › Réglages) ; à valider avec l'expert-comptable.
+
+## Import CSV et étiquettes
+
+- **Articles, clients, fournisseurs** : Catalogue › Importer, Clients › Importer (CSV), Fournisseurs › Importer (CSV). Même parcours : modèle CSV à télécharger, aperçu validé ligne par ligne (rien n'est écrit), puis application tout-ou-rien après revalidation ; un import ne s'applique qu'une fois (`catalog_imports`, type `products`, `customers` ou `suppliers`) et est audité.
+- **Rapprochement sans doublon** : articles par SKU ; contacts par code s'il est fourni (code inconnu = nouveau contact), sinon par NINEA, téléphone (préfixe +221 ignoré) puis e-mail, sinon par nom. Un contact trouvé est mis à jour ; une cellule vide n'efface jamais une valeur existante ; un contact archivé le reste.
+- Lecture tolérante aux fichiers Excel : séparateur `;` ou `,`, UTF-8 (avec ou sans BOM) ou Windows-1252, 5 000 lignes au plus.
+- **Étiquettes** : Catalogue › Étiquettes (cases à cocher, exemplaires, format 50×30 / 70×40 / 40×25 mm, planche A4 ou rouleau, prix facultatif). Codes EAN-13, UPC-A, code interne, Code 128 et QR dessinés en SVG par le serveur ; encodages recoupés avec une bibliothèque de référence et lus par un décodeur indépendant.
