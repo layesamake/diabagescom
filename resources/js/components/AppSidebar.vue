@@ -45,8 +45,8 @@ import { index as customersIndex } from '@/routes/customers';
 import { index as guideIndex } from '@/routes/guide';
 import { create as posCreate } from '@/routes/pos';
 import { index as productsIndex } from '@/routes/products';
-import { edit as editProfile } from '@/routes/profile';
 import { index as reportsIndex } from '@/routes/reports';
+import { index as settingsIndex } from '@/routes/settings';
 import { index as purchaseInvoicesIndex } from '@/routes/purchases/invoices';
 import { index as purchaseOrdersIndex } from '@/routes/purchases/orders';
 import { index as purchaseRequestsIndex } from '@/routes/purchases/requests';
@@ -231,7 +231,7 @@ const navGroups = computed<NavGroup[]>(() => {
                 ...item(
                     Boolean(page.props.context),
                     t('nav.settings'),
-                    editProfile(),
+                    settingsIndex(),
                     Settings,
                 ),
             ],

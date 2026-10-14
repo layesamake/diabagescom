@@ -19,6 +19,7 @@ use App\Http\Controllers\Catalog\ReferenceDataController;
 use App\Http\Controllers\ContextController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuideController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Inventory\CountController;
 use App\Http\Controllers\Inventory\StockController;
 use App\Http\Controllers\Inventory\TransferController;
@@ -88,6 +89,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('reports', [SalesReportController::class, 'index'])->name('reports.index');
+
+    // Recherche globale (Ctrl+K) : articles, clients, fournisseurs, documents.
+    Route::get('search', SearchController::class)->middleware('throttle:120,1')->name('search.index');
 
     // Guide de démarrage : propre à chaque utilisateur, sans permission particulière.
     Route::get('guide', [GuideController::class, 'index'])->name('guide.index');

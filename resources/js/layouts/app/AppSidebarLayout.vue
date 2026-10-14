@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppContent from '@/components/AppContent.vue';
+import CommandPalette from '@/components/CommandPalette.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import GuideBanner from '@/components/GuideBanner.vue';
 import GuideTour from '@/components/GuideTour.vue';
@@ -36,6 +37,7 @@ withDefaults(defineProps<Props>(), {
         <Toaster />
         <ConfirmDialog />
         <GuideTour />
+        <CommandPalette />
         <MobileBottomNav />
     </AppShell>
 </template>
