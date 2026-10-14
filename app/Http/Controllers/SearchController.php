@@ -8,7 +8,6 @@ use App\Models\Product;
 use App\Models\SalesDocument;
 use App\Models\Supplier;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -40,12 +39,20 @@ class SearchController extends Controller
                 ->map(fn (Product $p) => ['id' => $p->id, 'label' => $p->name, 'detail' => $p->sku])->all()
             : [];
 
+        // Mêmes critères que les listes de clients et de fournisseurs : nom, code exact, téléphone.
+        $matchParty = fn (Builder $w): Builder => $w
+            ->whereRaw('diaba_search_text(name) LIKE diaba_search_text(?)', [$like])
+            ->orWhereRaw('upper(code) = upper(?)', [$q])
+            ->orWhere('phone', 'like', $like);
+
         $customers = Gate::allows('customer.view')
-            ? $this->parties(Customer::query(), $q, $like)->map(fn (Customer $c) => ['id' => $c->id, 'label' => $c->name, 'detail' => $c->code])->all()
+            ? Customer::query()->whereNull('archived_at')->where($matchParty)->orderBy('name')->limit(self::LIMIT)->get(['id', 'code', 'name'])
+                ->map(fn (Customer $c) => ['id' => $c->id, 'label' => $c->name, 'detail' => $c->code])->all()
             : [];
 
         $suppliers = Gate::allows('supplier.view')
-            ? $this->parties(Supplier::query(), $q, $like)->map(fn (Supplier $s) => ['id' => $s->id, 'label' => $s->name, 'detail' => $s->code])->all()
+            ? Supplier::query()->whereNull('archived_at')->where($matchParty)->orderBy('name')->limit(self::LIMIT)->get(['id', 'code', 'name'])
+                ->map(fn (Supplier $s) => ['id' => $s->id, 'label' => $s->name, 'detail' => $s->code])->all()
             : [];
 
         $documents = Gate::allows('sale.view')
@@ -65,21 +72,5 @@ class SearchController extends Controller
             : [];
 
         return response()->json(['products' => $products, 'customers' => $customers, 'suppliers' => $suppliers, 'documents' => $documents]);
-    }
-
-    /**
-     * @template TModel of Customer|Supplier
-     *
-     * @param  Builder<TModel>  $query
-     * @return Collection<int, TModel>
-     */
-    private function parties(Builder $query, string $q, string $like): Collection
-    {
-        return $query->whereNull('archived_at')
-            ->where(fn (Builder $w) => $w
-                ->whereRaw('diaba_search_text(name) LIKE diaba_search_text(?)', [$like])
-                ->orWhereRaw('upper(code) = upper(?)', [$q])
-                ->orWhere('phone', 'like', $like))
-            ->orderBy('name')->limit(self::LIMIT)->get(['id', 'code', 'name']);
     }
 }
