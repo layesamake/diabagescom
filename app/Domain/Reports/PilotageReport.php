@@ -28,6 +28,8 @@ final class PilotageReport
         User $user,
         bool $all,
         bool $canSeeMargin,
+        bool $canSeeInventory,
+        bool $canSeePurchases,
         array $warehouseIds,
         ?string $warehouseId,
         CarbonImmutable $from,
@@ -37,9 +39,10 @@ final class PilotageReport
         string $timezone,
     ): array {
         $selectedWarehouses = $warehouseId !== null ? [$warehouseId] : $warehouseIds;
-        $current = $this->metrics($user, $all, $canSeeMargin, $selectedWarehouses, $from, $to);
-        $previous = $this->metrics($user, $all, $canSeeMargin, $selectedWarehouses, $previousFrom, $previousTo);
-        $products = $this->products($user, $all, $canSeeMargin, $selectedWarehouses, $from, $to);
+        $current = $this->metrics($user, $all, $canSeeMargin, $canSeeInventory, $canSeePurchases, $selectedWarehouses, $from, $to);
+        $previous = $this->metrics($user, $all, $canSeeMargin, $canSeeInventory, $canSeePurchases, $selectedWarehouses, $previousFrom, $previousTo);
+        $products = $this->products($user, $all, $canSeeMargin, $canSeeInventory, $selectedWarehouses, $from, $to);
+        $priorityMetrics = $canSeeMargin ? $this->productPriorityMetrics($user, $all, $selectedWarehouses, $from, $to) : null;
         $receivables = $all ? $this->receivables($selectedWarehouses, CarbonImmutable::now($timezone)->startOfDay()) : null;
 
         return [
@@ -58,7 +61,7 @@ final class PilotageReport
                 'total' => $row['revenue'],
             ]),
             'receivables' => $receivables,
-            'priorities' => $this->priorities($current, $products, $receivables, $canSeeMargin),
+            'priorities' => $this->priorities($current, $priorityMetrics, $receivables, $canSeeMargin),
         ];
     }
 
@@ -66,7 +69,7 @@ final class PilotageReport
      * @param  list<string>  $warehouseIds
      * @return array<string, int|null>
      */
-    private function metrics(User $user, bool $all, bool $canSeeMargin, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): array
+    private function metrics(User $user, bool $all, bool $canSeeMargin, bool $canSeeInventory, bool $canSeePurchases, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): array
     {
         $documents = $this->documents($user, $all, $warehouseIds, $from, $to);
         $signed = "CASE WHEN d.type = 'credit_note' THEN -1 ELSE 1 END";
@@ -85,22 +88,23 @@ final class PilotageReport
                     WHEN d.type = 'invoice' THEN ROUND(l.quantity * l.unit_cost)
                     WHEN d.type = 'credit_note' AND l.restock THEN -ROUND(l.quantity * l.unit_cost)
                     ELSE 0 END), 0) AS cost,
-                COALESCE(SUM(CASE WHEN l.product_type <> 'service' AND l.unit_cost IS NULL THEN {$signed} * l.line_excl_tax ELSE 0 END), 0) AS missing_revenue")->first();
+                COALESCE(SUM(ABS(l.line_excl_tax)) FILTER (WHERE l.product_type <> 'service' AND l.unit_cost IS NULL), 0) AS missing_revenue,
+                COALESCE(SUM(ABS(l.line_excl_tax)) FILTER (WHERE l.product_type <> 'service'), 0) AS eligible_revenue")->first();
             $cost = (int) $costs?->cost;
-            $missingCostRevenue = max(0, (int) $costs?->missing_revenue);
-            $excl = (int) $totals?->excl;
-            $costCoverageBasisPoints = $excl > 0
-                ? max(0, min(10000, (int) round((($excl - $missingCostRevenue) * 10000) / $excl)))
+            $missingCostRevenue = (int) $costs?->missing_revenue;
+            $eligibleRevenue = (int) $costs?->eligible_revenue;
+            $costCoverageBasisPoints = $eligibleRevenue > 0
+                ? max(0, min(10000, (int) round((($eligibleRevenue - $missingCostRevenue) * 10000) / $eligibleRevenue)))
                 : null;
         }
 
-        $stockValue = $canSeeMargin ? (int) DB::table('inventory_balances')
+        $stockValue = $canSeeMargin && $canSeeInventory ? (int) DB::table('inventory_balances')
             ->where('tenant_id', $this->context->tenantId())
             ->whereIn('warehouse_id', $warehouseIds)
             ->where('quantity_on_hand', '>', 0)
             ->sum(DB::raw('ROUND(quantity_on_hand * average_cost)')) : null;
 
-        $payables = $all ? (int) DB::table('supplier_invoices')
+        $payables = $all && $canSeePurchases ? (int) DB::table('supplier_invoices')
             ->where('tenant_id', $this->context->tenantId())
             ->where('status', 'validated')
             ->whereIn('warehouse_id', $warehouseIds)
@@ -156,7 +160,7 @@ final class PilotageReport
      * @param  list<string>  $warehouseIds
      * @return Collection<int, array<string, bool|int|string|null>>
      */
-    private function products(User $user, bool $all, bool $canSeeMargin, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): Collection
+    private function products(User $user, bool $all, bool $canSeeMargin, bool $canSeeInventory, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): Collection
     {
         $stock = DB::table('inventory_balances')
             ->where('tenant_id', $this->context->tenantId())
@@ -187,7 +191,7 @@ final class PilotageReport
             ->limit(25)
             ->get();
 
-        return $rows->map(function ($row) use ($canSeeMargin): array {
+        return $rows->map(function ($row) use ($canSeeMargin, $canSeeInventory): array {
             $revenueExclTax = (int) $row->revenue_excl_tax;
             $cost = (int) $row->cost;
             $margin = $canSeeMargin ? $revenueExclTax - $cost : null;
@@ -204,8 +208,10 @@ final class PilotageReport
                 'cost' => $canSeeMargin ? $cost : null,
                 'margin' => $margin,
                 'margin_rate_basis_points' => $margin !== null && $revenueExclTax > 0 ? (int) round(($margin * 10000) / $revenueExclTax) : null,
-                'cost_complete' => (int) $row->missing_cost_lines === 0,
-                'stock' => $row->product_type === 'service' ? null : ($row->stock !== null ? (string) $row->stock : '0.000'),
+                'cost_complete' => $canSeeMargin ? (int) $row->missing_cost_lines === 0 : null,
+                'stock' => $canSeeInventory && $row->product_type !== 'service'
+                    ? ($row->stock !== null ? (string) $row->stock : '0.000')
+                    : null,
                 'last_sale' => $row->last_sale !== null ? CarbonImmutable::parse((string) $row->last_sale)->toIso8601String() : null,
             ];
         });
@@ -264,12 +270,45 @@ final class PilotageReport
     }
 
     /**
+     * @param  list<string>  $warehouseIds
+     * @return array{negative_amount: int, negative_count: int, missing_count: int}
+     */
+    private function productPriorityMetrics(User $user, bool $all, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): array
+    {
+        $signed = "CASE WHEN d.type = 'credit_note' THEN -1 ELSE 1 END";
+        $perProduct = $this->documents($user, $all, $warehouseIds, $from, $to)()
+            ->join('sales_document_lines as l', function ($join): void {
+                $join->on('l.document_id', '=', 'd.id')->on('l.tenant_id', '=', 'd.tenant_id');
+            })
+            ->selectRaw("l.product_id,
+                SUM({$signed} * l.line_excl_tax) - COALESCE(SUM(CASE
+                    WHEN l.product_type = 'service' THEN 0
+                    WHEN l.unit_cost IS NULL THEN 0
+                    WHEN d.type = 'invoice' THEN ROUND(l.quantity * l.unit_cost)
+                    WHEN d.type = 'credit_note' AND l.restock THEN -ROUND(l.quantity * l.unit_cost)
+                    ELSE 0 END), 0) AS margin,
+                COUNT(*) FILTER (WHERE l.product_type <> 'service' AND l.unit_cost IS NULL) AS missing_cost_lines")
+            ->groupBy('l.product_id');
+        $row = DB::query()->fromSub($perProduct, 'product_metrics')
+            ->selectRaw('COALESCE(SUM(ABS(margin)) FILTER (WHERE margin < 0), 0) AS negative_amount,
+                COUNT(*) FILTER (WHERE margin < 0) AS negative_count,
+                COUNT(*) FILTER (WHERE missing_cost_lines > 0) AS missing_count')
+            ->first();
+
+        return [
+            'negative_amount' => (int) $row?->negative_amount,
+            'negative_count' => (int) $row?->negative_count,
+            'missing_count' => (int) $row?->missing_count,
+        ];
+    }
+
+    /**
      * @param  array<string, int|null>  $summary
-     * @param  Collection<int, array<string, int|string|bool|null>>  $products
+     * @param  array{negative_amount: int, negative_count: int, missing_count: int}|null  $productMetrics
      * @param  array<string, mixed>|null  $receivables
      * @return list<array<string, int|string>>
      */
-    private function priorities(array $summary, Collection $products, ?array $receivables, bool $canSeeMargin): array
+    private function priorities(array $summary, ?array $productMetrics, ?array $receivables, bool $canSeeMargin): array
     {
         $priorities = [];
 
@@ -284,15 +323,13 @@ final class PilotageReport
             ];
         }
 
-        if ($canSeeMargin) {
-            $negative = $products->filter(fn (array $product): bool => $product['margin'] !== null && $product['margin'] < 0);
-
-            if ($negative->isNotEmpty()) {
+        if ($canSeeMargin && $productMetrics !== null) {
+            if ($productMetrics['negative_count'] > 0) {
                 $priorities[] = [
                     'type' => 'negative_margin',
                     'level' => 'urgent',
-                    'amount' => abs((int) $negative->sum('margin')),
-                    'count' => $negative->count(),
+                    'amount' => $productMetrics['negative_amount'],
+                    'count' => $productMetrics['negative_count'],
                     'message' => 'Des articles ont une marge négative sur la période.',
                     'action' => 'Examiner les articles',
                 ];
@@ -303,7 +340,7 @@ final class PilotageReport
                     'type' => 'missing_cost',
                     'level' => 'important',
                     'amount' => (int) $summary['missing_cost_revenue'],
-                    'count' => $products->where('cost_complete', false)->count(),
+                    'count' => $productMetrics['missing_count'],
                     'message' => 'Certains coûts historiques manquent : la marge est partielle.',
                     'action' => 'Voir les articles concernés',
                 ];
@@ -317,12 +354,21 @@ final class PilotageReport
     private function documents(User $user, bool $all, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): callable
     {
         return fn (): Builder => DB::table('sales_documents as d')
+            ->leftJoin('sales_documents as source', function ($join): void {
+                $join->on('source.id', '=', 'd.source_document_id')->on('source.tenant_id', '=', 'd.tenant_id');
+            })
             ->where('d.tenant_id', $this->context->tenantId())
             ->whereIn('d.type', ['invoice', 'credit_note'])
             ->where('d.status', 'validated')
             ->whereBetween('d.validated_at', [$from, $to])
             ->whereIn('d.warehouse_id', $warehouseIds)
-            ->when(! $all, fn (Builder $query) => $query->where('d.created_by', $user->id));
+            ->when(! $all, fn (Builder $query) => $query->where(function (Builder $scope) use ($user): void {
+                $scope->where(function (Builder $invoices) use ($user): void {
+                    $invoices->where('d.type', 'invoice')->where('d.created_by', $user->id);
+                })->orWhere(function (Builder $credits) use ($user): void {
+                    $credits->where('d.type', 'credit_note')->where('source.created_by', $user->id);
+                });
+            }));
     }
 
     /**
@@ -389,12 +435,17 @@ final class PilotageReport
         $signed = "CASE WHEN d.type = 'credit_note' THEN -1 ELSE 1 END";
 
         return DB::table('sales_documents as d')
+            ->leftJoin('sales_documents as source', function ($join): void {
+                $join->on('source.id', '=', 'd.source_document_id')->on('source.tenant_id', '=', 'd.tenant_id');
+            })
             ->where('d.tenant_id', $this->context->tenantId())
             ->whereIn('d.type', ['invoice', 'credit_note'])
             ->where('d.status', 'validated')
             ->whereBetween('d.validated_at', [$from, $to])
             ->whereIn('d.warehouse_id', $warehouseIds)
-            ->join('users as u', 'u.id', '=', 'd.created_by')
+            ->join('users as u', function ($join): void {
+                $join->on('u.id', '=', DB::raw('COALESCE(source.created_by, d.created_by)'));
+            })
             ->selectRaw("u.name, SUM({$signed} * d.total) AS total")
             ->groupBy('u.id', 'u.name')->orderByDesc('total')->get()
             ->map(fn ($row): array => ['label' => (string) $row->name, 'total' => (int) $row->total]);
@@ -406,11 +457,24 @@ final class PilotageReport
      */
     private function byMethod(User $user, bool $all, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): Collection
     {
-        $documents = $this->documents($user, $all, $warehouseIds, $from, $to);
-
         return DB::table('payments as p')
+            ->join('sales_documents as d', function ($join): void {
+                $join->on('d.id', '=', 'p.sales_document_id')->on('d.tenant_id', '=', 'p.tenant_id');
+            })
+            ->leftJoin('sales_documents as source', function ($join): void {
+                $join->on('source.id', '=', 'd.source_document_id')->on('source.tenant_id', '=', 'd.tenant_id');
+            })
             ->where('p.tenant_id', $this->context->tenantId())
-            ->whereIn('p.sales_document_id', $documents()->select('d.id'))
+            ->whereBetween('p.paid_at', [$from, $to])
+            ->whereIn('d.warehouse_id', $warehouseIds)
+            ->where('d.status', 'validated')
+            ->when(! $all, fn (Builder $query) => $query->where(function (Builder $scope) use ($user): void {
+                $scope->where(function (Builder $invoices) use ($user): void {
+                    $invoices->where('d.type', 'invoice')->where('d.created_by', $user->id);
+                })->orWhere(function (Builder $credits) use ($user): void {
+                    $credits->where('d.type', 'credit_note')->where('source.created_by', $user->id);
+                });
+            }))
             ->selectRaw("p.method, SUM(CASE WHEN p.direction = 'in' THEN p.amount ELSE -p.amount END) AS total")
             ->groupBy('p.method')->orderByDesc('total')->get()
             ->map(fn ($row): array => ['method' => (string) $row->method, 'total' => (int) $row->total]);

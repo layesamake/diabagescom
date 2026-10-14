@@ -38,6 +38,10 @@ class SalesReportController extends Controller
         $user = $request->user();
         $all = Gate::allows('report.view_all');
         $margin = Gate::allows('report.margin_view');
+        $inventory = Gate::allows('inventory.view');
+        $purchases = Gate::allows('purchase.view');
+        $catalog = Gate::allows('catalog.view');
+        $sales = Gate::allows('sale.view');
         $warehouses = $access->accessibleIds();
         $timezone = $context->tenant()->timezone;
         $today = CarbonImmutable::now($timezone);
@@ -52,6 +56,8 @@ class SalesReportController extends Controller
             $user,
             $all,
             $margin,
+            $inventory,
+            $purchases,
             $warehouses,
             $warehouse,
             $fromLocal->utc(),
@@ -154,7 +160,15 @@ class SalesReportController extends Controller
             'receivables' => $data['receivables'],
             'priorities' => $data['priorities'],
             'freshness' => now()->setTimezone($timezone)->toIso8601String(),
-            'can' => ['all' => $all, 'margin' => $margin, 'export' => Gate::allows('report.export')],
+            'can' => [
+                'all' => $all,
+                'margin' => $margin,
+                'inventory' => $inventory,
+                'purchases' => $purchases,
+                'catalog' => $catalog,
+                'sales' => $sales,
+                'export' => Gate::allows('report.export'),
+            ],
         ]);
     }
 }

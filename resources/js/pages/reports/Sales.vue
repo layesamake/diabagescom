@@ -41,7 +41,7 @@ type ProductRow = {
     cost: number | null;
     margin: number | null;
     margin_rate_basis_points: number | null;
-    cost_complete: boolean;
+    cost_complete: boolean | null;
     stock: string | null;
     last_sale: string | null;
 };
@@ -104,7 +104,15 @@ const props = defineProps<{
     receivables: Receivables | null;
     priorities: Priority[];
     freshness: string;
-    can: { all: boolean; margin: boolean; export: boolean };
+    can: {
+        all: boolean;
+        margin: boolean;
+        inventory: boolean;
+        purchases: boolean;
+        catalog: boolean;
+        sales: boolean;
+        export: boolean;
+    };
 }>();
 
 defineOptions({
@@ -218,6 +226,16 @@ function formatQuantity(value: string, unit: string): string {
     return `${quantity} ${unit}`;
 }
 
+function stockLabel(product: ProductRow): string {
+    if (product.type === 'service') {
+        return t('reports.service');
+    }
+
+    return product.stock === null
+        ? '—'
+        : formatQuantity(product.stock, product.unit);
+}
+
 function variation(metric: MetricKey): {
     text: string;
     direction: 'up' | 'down' | 'flat';
@@ -254,7 +272,7 @@ function variation(metric: MetricKey): {
 function priorityHref(priority: Priority): string {
     return priority.type === 'receivables'
         ? salesIndex({ query: { type: 'invoice', status: 'unpaid' } }).url
-        : reportsIndex({ query: { ...props.filters, focus: 'products' } }).url;
+        : `${reportsIndex({ query: props.filters }).url}#products`;
 }
 </script>
 
@@ -462,7 +480,11 @@ function priorityHref(priority: Priority): string {
         </section>
 
         <section
-            v-if="can.all || summary.stock_value !== null"
+            v-if="
+                receivables ||
+                summary.stock_value !== null ||
+                summary.payables !== null
+            "
             class="space-y-3"
             aria-labelledby="situation-title"
         >
@@ -489,6 +511,17 @@ function priorityHref(priority: Priority): string {
                     </dt>
                     <dd class="text-2xl font-bold tabular-nums">
                         {{ formatXof(receivables.overdue) }}
+                    </dd>
+                </div>
+                <div
+                    v-if="summary.payables !== null"
+                    class="rounded-xl border bg-card p-4"
+                >
+                    <dt class="text-sm text-muted-foreground">
+                        {{ t('reports.payables') }}
+                    </dt>
+                    <dd class="text-2xl font-bold tabular-nums">
+                        {{ formatXof(summary.payables) }}
                     </dd>
                 </div>
                 <div
@@ -552,7 +585,12 @@ function priorityHref(priority: Priority): string {
                         {{ formatXof(priority.amount) }} · {{ priority.count }}
                         {{ t('reports.elements') }}
                     </p>
-                    <Button as-child variant="link" class="mt-2 h-auto p-0">
+                    <Button
+                        v-if="priority.type !== 'receivables' || can.sales"
+                        as-child
+                        variant="link"
+                        class="mt-2 h-auto p-0"
+                    >
                         <Link :href="priorityHref(priority)"
                             >{{ priority.action }} <ArrowRight class="size-4"
                         /></Link>
@@ -776,7 +814,11 @@ function priorityHref(priority: Priority): string {
                                     {{ product.sku }}
                                 </p>
                             </div>
-                            <Button as-child variant="ghost" size="sm"
+                            <Button
+                                v-if="can.catalog"
+                                as-child
+                                variant="ghost"
+                                size="sm"
                                 ><Link :href="productEdit(product.id)"
                                     ><ArrowRight class="size-4" /><span
                                         class="sr-only"
@@ -832,19 +874,12 @@ function priorityHref(priority: Priority): string {
                                     {{ t('reports.stock') }}
                                 </dt>
                                 <dd>
-                                    {{
-                                        product.stock === null
-                                            ? t('reports.service')
-                                            : formatQuantity(
-                                                  product.stock,
-                                                  product.unit,
-                                              )
-                                    }}
+                                    {{ stockLabel(product) }}
                                 </dd>
                             </div>
                         </dl>
                         <p
-                            v-if="!product.cost_complete"
+                            v-if="product.cost_complete === false"
                             class="mt-2 text-xs text-amber-700 dark:text-amber-300"
                         >
                             {{ t('reports.cost_missing') }}
@@ -901,7 +936,9 @@ function priorityHref(priority: Priority): string {
                                     >
                                         {{ product.sku
                                         }}<span
-                                            v-if="!product.cost_complete"
+                                            v-if="
+                                                product.cost_complete === false
+                                            "
                                             class="text-amber-700 dark:text-amber-300"
                                         >
                                             ·
@@ -952,14 +989,7 @@ function priorityHref(priority: Priority): string {
                                     }}
                                 </td>
                                 <td class="p-3 text-right tabular-nums">
-                                    {{
-                                        product.stock === null
-                                            ? t('reports.service')
-                                            : formatQuantity(
-                                                  product.stock,
-                                                  product.unit,
-                                              )
-                                    }}
+                                    {{ stockLabel(product) }}
                                 </td>
                                 <td class="p-3">
                                     {{
@@ -969,7 +999,11 @@ function priorityHref(priority: Priority): string {
                                     }}
                                 </td>
                                 <td class="p-3">
-                                    <Button as-child variant="ghost" size="sm"
+                                    <Button
+                                        v-if="can.catalog"
+                                        as-child
+                                        variant="ghost"
+                                        size="sm"
                                         ><Link :href="productEdit(product.id)"
                                             ><ArrowRight class="size-4" /><span
                                                 class="sr-only"
@@ -1031,7 +1065,7 @@ function priorityHref(priority: Priority): string {
                     {{ t('reports.missing_due_dates') }}</span
                 >
             </p>
-            <Button as-child variant="outline"
+            <Button v-if="can.sales" as-child variant="outline"
                 ><Link
                     :href="
                         salesIndex({

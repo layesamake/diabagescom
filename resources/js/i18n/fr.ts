@@ -2232,7 +2232,7 @@ export const fr = {
         date: 'Date',
         product_profitability: 'Rentabilité des articles',
         product_profitability_hint:
-            'Articles classés par contribution à la marge, avec leur stock actuel et leur dernière vente.',
+            'Articles classés par chiffre d’affaires HT, avec leur marge autorisée, leur stock actuel et leur dernière vente.',
         no_product_sales: 'Aucun article vendu sur la période',
         no_product_sales_hint:
             'Essayez une période plus longue ou un autre dépôt.',
