@@ -111,6 +111,7 @@
     --color-brand-navy: #002456;
     --color-brand-teal: #018270;
     --color-brand-teal-light: #01a985;
+    --color-brand-teal-dark: #015a4d;
     --color-brand-gold: #e8a304;
     --color-brand-white: #ffffff;
     --color-ink: #10213d;
@@ -306,4 +307,33 @@
     ::-webkit-scrollbar-button {
         display: none;
     }
+}
+
+/*
+  Barre du haut : vert foncé de la marque, écritures blanches, dans les deux
+  thèmes. Les couleurs sémantiques sont redéfinies seulement ici : les
+  composants de la barre (entreprise, dépôt, recherche, aide, état réseau,
+  fil d'Ariane) gardent leurs classes et s'adaptent tout seuls. Les menus et
+  boîtes de dialogue s'ouvrent hors de la barre et gardent le thème normal.
+*/
+.app-topbar {
+    background-color: var(--color-brand-teal-dark);
+    color: #ffffff;
+    --foreground: #ffffff;
+    --muted-foreground: rgb(255 255 255 / 0.82);
+    --background: rgb(255 255 255 / 0.1);
+    --muted: rgb(255 255 255 / 0.16);
+    --accent: rgb(255 255 255 / 0.16);
+    --accent-foreground: #ffffff;
+    --border: rgb(255 255 255 / 0.3);
+    --input: rgb(255 255 255 / 0.4);
+    --ring: #ffffff;
+    --sidebar-border: rgb(255 255 255 / 0.2);
+    --success-soft: rgb(255 255 255 / 0.16);
+    --success-soft-foreground: #ffffff;
+    --success-border: rgb(255 255 255 / 0.45);
+}
+
+.dark .app-topbar {
+    background-color: #0a3f37;
 }

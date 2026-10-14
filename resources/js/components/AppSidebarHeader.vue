@@ -19,7 +19,7 @@ withDefaults(
 
 <template>
     <header
-        class="flex shrink-0 flex-col border-b border-sidebar-border/70 px-4 py-2 md:px-4"
+        class="app-topbar flex shrink-0 flex-col border-b border-sidebar-border/70 px-4 py-2 md:rounded-t-xl md:px-4"
     >
         <div class="flex min-h-11 items-center gap-2">
             <SidebarTrigger class="-ml-1 size-11 md:size-8" />
