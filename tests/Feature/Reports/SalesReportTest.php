@@ -3,6 +3,7 @@
 namespace Tests\Feature\Reports;
 
 use App\Models\AuditEvent;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Feature\Sales\SalesTestHelpers;
@@ -55,5 +56,50 @@ class SalesReportTest extends TestCase
 
         // Responsable achats : report.view_own accordé, donc accès limité à ses propres ventes (aucune).
         $this->actingAs($purchaser['user'])->get(route('reports.index'))->assertInertia(fn (Assert $page) => $page->where('summary.total', 0));
+    }
+
+    public function test_pilotage_compares_equivalent_periods_and_explains_overdue_receivables(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $rice = $this->makeProduct($setup, 'RIZ', 'U', 1000);
+        $customer = $this->makeCustomer($setup, 100000, 0);
+        $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '20', 1000]]);
+
+        CarbonImmutable::setTestNow('2026-10-13 10:00:00');
+        $session = $this->openSession($setup);
+        $this->sell($setup, $session, [[$rice->id, '1']], [['cash', 1000]], $customer->id);
+
+        CarbonImmutable::setTestNow('2026-10-14 10:00:00');
+        $this->sell($setup, $session, [[$rice->id, '2']], [['cash', 4000]], $customer->id);
+
+        $this->actingAs($setup['user'])->get(route('reports.index', [
+            'from' => '2026-10-14',
+            'to' => '2026-10-14',
+            'warehouse' => $setup['warehouse']->id,
+        ]))->assertInertia(fn (Assert $page) => $page
+            ->component('reports/Sales')
+            ->where('period.from', '2026-10-14')
+            ->where('period.to', '2026-10-14')
+            ->where('period.previous_from', '2026-10-13')
+            ->where('period.previous_to', '2026-10-13')
+            ->where('period.timezone', 'Africa/Dakar')
+            ->where('summary.total', 4000)
+            ->where('summary.margin', 1390)
+            ->where('comparison.total.value', 2000)
+            ->where('comparison.total.change', 2000)
+            ->where('comparison.total.change_basis_points', 10000)
+            ->where('receivables.total', 1000)
+            ->where('receivables.overdue', 1000)
+            ->where('receivables.aging.1_7.amount', 1000)
+            ->where('receivables.aging.1_7.count', 1)
+            ->where('products.0.sku', 'RIZ')
+            ->where('products.0.unit', 'U')
+            ->where('products.0.quantity', '2.000')
+            ->where('products.0.revenue_excl_tax', 3390)
+            ->where('products.0.margin', 1390)
+            ->where('products.0.stock', '17.000')
+            ->has('priorities'));
+
+        CarbonImmutable::setTestNow();
     }
 }
