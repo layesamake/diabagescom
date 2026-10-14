@@ -2,9 +2,12 @@
 
 namespace Tests\Feature\Reports;
 
+use App\Domain\Sales\CreditNoteService;
+use App\Domain\Sales\PaymentService;
 use App\Models\AuditEvent;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Feature\Sales\SalesTestHelpers;
 use Tests\TestCase;
@@ -102,6 +105,74 @@ class SalesReportTest extends TestCase
             ->where('products.0.margin', 1390)
             ->where('products.0.stock', '17.000')
             ->has('priorities'));
+
+        CarbonImmutable::setTestNow();
+    }
+
+    public function test_own_scope_hides_stock_and_cost_metadata_without_permissions(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $rice = $this->makeProduct($setup, 'RIZ', 'U', 1000);
+        $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '10', 1000]]);
+        $cashier = $this->member($setup, 'cashier');
+        $this->sell($cashier, $this->openSession($setup), [[$rice->id, '1']], [['cash', 2000]]);
+
+        $this->actingAs($cashier['user'])->get(route('reports.index'))->assertInertia(fn (Assert $page) => $page
+            ->where('products.0.stock', null)
+            ->where('products.0.cost', null)
+            ->where('products.0.cost_complete', null)
+            ->where('can.inventory', false)
+            ->where('can.catalog', true)
+            ->where('can.sales', true));
+    }
+
+    public function test_credit_note_is_attributed_to_the_source_invoice_seller(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $rice = $this->makeProduct($setup, 'RIZ', 'U', 1000);
+        $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '10', 1000]]);
+        $cashier = $this->member($setup, 'cashier');
+        $session = $this->openSession($setup);
+
+        CarbonImmutable::setTestNow('2026-10-13 10:00:00');
+        $sale = $this->sell($cashier, $session, [[$rice->id, '1']], [['cash', 2000]]);
+        CarbonImmutable::setTestNow('2026-10-14 10:00:00');
+        app(CreditNoteService::class)->create($sale, [[
+            'line_id' => $sale->lines()->value('id'),
+            'quantity' => '1',
+            'restock' => false,
+        ]], 'Geste commercial', $setup['user'], (string) Str::uuid());
+
+        $this->actingAs($cashier['user'])->get(route('reports.index', [
+            'from' => '2026-10-14',
+            'to' => '2026-10-14',
+        ]))->assertInertia(fn (Assert $page) => $page
+            ->where('summary.total', -2000)
+            ->where('byDay.0.total', -2000));
+
+        CarbonImmutable::setTestNow();
+    }
+
+    public function test_payment_breakdown_uses_payment_date_not_invoice_date(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $rice = $this->makeProduct($setup, 'RIZ', 'U', 1000);
+        $customer = $this->makeCustomer($setup, 100000, 30);
+        $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '10', 1000]]);
+        $session = $this->openSession($setup);
+
+        CarbonImmutable::setTestNow('2026-10-13 10:00:00');
+        $sale = $this->sell($setup, $session, [[$rice->id, '1']], [], $customer->id);
+        CarbonImmutable::setTestNow('2026-10-14 10:00:00');
+        app(PaymentService::class)->receive($sale, [['method' => 'transfer', 'amount' => 2000]], null, $setup['user'], (string) Str::uuid());
+
+        $this->actingAs($setup['user'])->get(route('reports.index', [
+            'from' => '2026-10-14',
+            'to' => '2026-10-14',
+        ]))->assertInertia(fn (Assert $page) => $page
+            ->where('summary.total', 0)
+            ->where('byMethod.0.method', 'transfer')
+            ->where('byMethod.0.total', 2000));
 
         CarbonImmutable::setTestNow();
     }
