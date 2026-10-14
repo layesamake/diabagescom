@@ -76,7 +76,7 @@ class DashboardController extends Controller
         ];
 
         return array_slice(
-            array_values(array_filter(self::ACTION_ORDER[$track] ?? self::ACTION_ORDER['member'], fn (string $key): bool => $allowed[$key] ?? false)),
+            array_values(array_filter(self::ACTION_ORDER[$track] ?? self::ACTION_ORDER['member'], fn (string $key): bool => $allowed[$key])),
             0,
             self::MAX_ACTIONS,
         );
