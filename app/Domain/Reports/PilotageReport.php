@@ -334,7 +334,7 @@ final class PilotageReport
 
         return $this->documents($user, $all, $warehouseIds, $from, $to)()
             ->selectRaw("DATE(d.validated_at AT TIME ZONE ?) AS day, SUM({$signed} * d.total) AS total, COUNT(*) FILTER (WHERE d.type = 'invoice') AS sales", [$timezone])
-            ->groupByRaw('DATE(d.validated_at AT TIME ZONE ?)', [$timezone])
+            ->groupBy('day')
             ->orderBy('day')->get()
             ->map(fn ($row): array => ['day' => (string) $row->day, 'total' => (int) $row->total, 'sales' => (int) $row->sales]);
     }
