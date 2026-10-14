@@ -153,7 +153,7 @@ final class PilotageReport
 
     /**
      * @param  list<string>  $warehouseIds
-     * @return Collection<int, array<string, int|string|null>>
+     * @return Collection<int, array<string, bool|int|string|null>>
      */
     private function products(User $user, bool $all, bool $canSeeMargin, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): Collection
     {
@@ -324,7 +324,10 @@ final class PilotageReport
             ->when(! $all, fn (Builder $query) => $query->where('d.created_by', $user->id));
     }
 
-    /** @param list<string> $warehouseIds */
+    /**
+     * @param  list<string>  $warehouseIds
+     * @return Collection<int, array{day: string, total: int, sales: int}>
+     */
     private function byDay(User $user, bool $all, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to, string $timezone): Collection
     {
         $signed = "CASE WHEN d.type = 'credit_note' THEN -1 ELSE 1 END";
@@ -336,7 +339,10 @@ final class PilotageReport
             ->map(fn ($row): array => ['day' => (string) $row->day, 'total' => (int) $row->total, 'sales' => (int) $row->sales]);
     }
 
-    /** @param list<string> $warehouseIds */
+    /**
+     * @param  list<string>  $warehouseIds
+     * @return Collection<int, array{label: string, total: int}>
+     */
     private function byWarehouse(User $user, bool $all, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): Collection
     {
         $signed = "CASE WHEN d.type = 'credit_note' THEN -1 ELSE 1 END";
@@ -350,7 +356,10 @@ final class PilotageReport
             ->map(fn ($row): array => ['label' => (string) $row->name, 'total' => (int) $row->total]);
     }
 
-    /** @param list<string> $warehouseIds */
+    /**
+     * @param  list<string>  $warehouseIds
+     * @return Collection<int, array{label: string, total: int}>
+     */
     private function bySeller(array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): Collection
     {
         $signed = "CASE WHEN d.type = 'credit_note' THEN -1 ELSE 1 END";
@@ -367,7 +376,10 @@ final class PilotageReport
             ->map(fn ($row): array => ['label' => (string) $row->name, 'total' => (int) $row->total]);
     }
 
-    /** @param list<string> $warehouseIds */
+    /**
+     * @param  list<string>  $warehouseIds
+     * @return Collection<int, array{method: string, total: int}>
+     */
     private function byMethod(User $user, bool $all, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): Collection
     {
         $documents = $this->documents($user, $all, $warehouseIds, $from, $to);
