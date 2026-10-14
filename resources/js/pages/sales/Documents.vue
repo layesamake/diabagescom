@@ -157,6 +157,39 @@ const paymentBadge: Record<string, string> = {
 
         <EmptyState v-if="documents.data.length === 0" :hint="t('empty.sales')">
             {{ t('sales.empty') }}
+            <template v-if="can.pos || can.create" #action>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <Button
+                        v-if="can.pos && filters.type === 'invoice'"
+                        as-child
+                        class="h-11"
+                    >
+                        <Link :href="posCreate()"
+                            ><ShoppingCart class="size-4" />{{
+                                t('sales.pos')
+                            }}</Link
+                        >
+                    </Button>
+                    <Button
+                        v-if="can.create && filters.type !== 'credit_note'"
+                        as-child
+                        :variant="
+                            can.pos && filters.type === 'invoice'
+                                ? 'outline'
+                                : 'default'
+                        "
+                        class="h-11"
+                    >
+                        <Link :href="salesCreate(filters.type)"
+                            ><Plus class="size-4" />{{
+                                t(
+                                    `sales.new_${filters.type as 'quote' | 'order' | 'invoice'}`,
+                                )
+                            }}</Link
+                        >
+                    </Button>
+                </div>
+            </template>
         </EmptyState>
 
         <ul v-else class="divide-y rounded-lg border">

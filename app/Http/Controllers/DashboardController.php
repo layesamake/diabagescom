@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Domain\Inventory\StockAccess;
 use App\Domain\Notifications\AlertCenter;
 use App\Domain\Notifications\NotificationPreferences;
+use App\Domain\Onboarding\StartGuide;
+use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -16,11 +18,27 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Accueil : chiffres du jour, raccourcis et alertes adaptés aux permissions.
+ * Accueil : chiffres du jour, actions du rôle et alertes adaptés aux permissions.
  */
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, TenantContext $context, StockAccess $access, AlertCenter $center, NotificationPreferences $preferences): Response
+    /**
+     * Actions rapides de l'accueil : celles que le rôle utilise le plus, dans
+     * l'ordre de son métier, limitées à ce que ses permissions autorisent.
+     */
+    private const array ACTION_ORDER = [
+        'admin' => ['sell', 'quote', 'cash', 'purchase', 'product', 'stock', 'reports', 'accounting'],
+        'cashier' => ['sell', 'quote', 'cash', 'customer', 'reports'],
+        'warehouse' => ['stock', 'receive', 'transfer', 'count', 'product'],
+        'purchaser' => ['purchase', 'request', 'supplier', 'stock', 'reports'],
+        'accountant' => ['accounting', 'reports', 'cash', 'purchase'],
+        'management' => ['reports', 'sell', 'stock', 'cash', 'accounting'],
+        'member' => ['sell', 'quote', 'cash', 'purchase', 'product', 'stock', 'reports', 'accounting'],
+    ];
+
+    private const int MAX_ACTIONS = 6;
+
+    public function __invoke(Request $request, TenantContext $context, StockAccess $access, AlertCenter $center, NotificationPreferences $preferences, StartGuide $guide, FeatureAccess $features): Response
     {
         /** @var User $user */
         $user = $request->user();
@@ -31,13 +49,37 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard', [
             'figures' => $this->figures($context, $access),
             'alerts' => $alerts,
-            'shortcuts' => [
-                'sell' => Gate::allows('sale.create') && Gate::allows('sale.validate'),
-                'quote' => Gate::allows('sale.create'),
-                'cash' => Gate::any(['cash.view_own', 'cash.view_all']),
-                'purchase' => Gate::allows('purchase.view'),
-            ],
+            'actions' => $this->actions($guide->track(), $features->hasFeature($context->tenant(), FeatureAccess::FEATURE_ACCOUNTING)),
         ]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function actions(string $track, bool $accounting): array
+    {
+        $allowed = [
+            'sell' => Gate::allows('sale.create') && Gate::allows('sale.validate'),
+            'quote' => Gate::allows('sale.create'),
+            'cash' => Gate::any(['cash.view_own', 'cash.view_all']),
+            'purchase' => Gate::allows('purchase.view'),
+            'product' => Gate::allows('catalog.create'),
+            'stock' => Gate::allows('inventory.view'),
+            'reports' => Gate::any(['report.view_own', 'report.view_all']),
+            'accounting' => $accounting && Gate::allows('accounting.view'),
+            'customer' => Gate::allows('customer.manage'),
+            'supplier' => Gate::allows('supplier.manage'),
+            'receive' => Gate::allows('purchase.receive'),
+            'transfer' => Gate::allows('inventory.transfer_create'),
+            'count' => Gate::allows('inventory.count_create'),
+            'request' => Gate::allows('purchase_request.create'),
+        ];
+
+        return array_slice(
+            array_values(array_filter(self::ACTION_ORDER[$track] ?? self::ACTION_ORDER['member'], fn (string $key): bool => $allowed[$key] ?? false)),
+            0,
+            self::MAX_ACTIONS,
+        );
     }
 
     /**

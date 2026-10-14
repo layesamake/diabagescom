@@ -103,6 +103,15 @@ const badge: Record<Status, string> = {
             :hint="t('empty.purchases')"
         >
             {{ t('purchases.empty') }}
+            <template v-if="can.create" #action>
+                <Button as-child class="h-11"
+                    ><Link :href="orderCreate()"
+                        ><Plus class="size-4" />{{
+                            t('purchases.new_order')
+                        }}</Link
+                    ></Button
+                >
+            </template>
         </EmptyState>
         <ul v-else class="divide-y rounded-lg border">
             <li v-for="order in orders.data" :key="order.id">
