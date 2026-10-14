@@ -9,6 +9,7 @@ auth.json
 .github
 .claude
 .claude.md.md
+codes-secrets
 _scaffold
 node_modules
 vendor
