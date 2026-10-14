@@ -35,6 +35,7 @@ export const fr = {
     nav: {
         dashboard: 'Accueil',
         guide: 'Guide de démarrage',
+        help_center: 'Centre d’aide',
         audit: "Journal d'audit",
         devices: 'Appareils',
         subscription: 'Abonnement',
@@ -133,6 +134,8 @@ export const fr = {
     help: {
         button: 'Aide sur cette page',
         title: 'À quoi sert cette page ?',
+        'help/Index':
+            'Le centre d’aide : des étapes simples pour les tâches courantes, les questions les plus fréquentes et le sens des mots du métier.\nTapez un mot dans la recherche pour ne voir que ce qui le concerne.',
         'guide/Index':
             'Votre guide de démarrage : les étapes à suivre, adaptées à votre rôle. Une étape se coche toute seule dès qu’elle est faite ; vous pouvez aussi la cocher vous-même ou la remettre à plus tard.\nLe bouton « Faire la visite » vous montre où se trouve chaque rubrique.',
         Dashboard:
@@ -185,6 +188,78 @@ export const fr = {
             'Le journal de toutes les actions importantes : qui a fait quoi et quand. Il ne peut pas être modifié.',
         'sync/Queue':
             'Les ventes faites sans connexion Internet. Elles sont envoyées automatiquement dès que la connexion revient.\nSi une vente est refusée (stock insuffisant, par exemple), vous pouvez la corriger ici.',
+        'accounting/Accounts':
+            'Votre plan comptable (SYSCOHADA) et les comptes utilisés par la comptabilisation automatique des ventes, achats, paiements et du stock.\nCe paramétrage est proposé à titre provisoire : faites-le valider par votre expert-comptable avant tout usage officiel.',
+        'accounting/Entries':
+            'Toutes les écritures comptables : celles créées automatiquement par vos ventes et achats, et vos écritures diverses.\nUne écriture en brouillon se modifie ; une fois validée, elle ne change plus et se corrige par une écriture inverse.',
+        'accounting/EntryForm':
+            "Saisissez une écriture diverse : choisissez les comptes et les montants au débit et au crédit. Le total du débit doit égaler celui du crédit pour pouvoir valider.\nEnregistrez d'abord en brouillon ; vous pourrez la relire et joindre vos pièces justificatives avant de la valider.",
+        'accounting/EntryShow':
+            "Le détail d'une écriture : ses lignes au débit et au crédit, son état et ses pièces justificatives.\nUn brouillon peut être modifié ou supprimé ; une écriture validée est figée. Ajoutez le justificatif (PDF ou photo) pour garder la preuve avec l'écriture.",
+        'accounting/Reconciliation':
+            "Le rapprochement bancaire : comparez votre relevé de banque avec les écritures de votre compte.\nDémarrez un rapprochement, puis cochez les écritures qui figurent sur votre relevé : le montant rapproché et l'écart avec le relevé vous disent s'il reste quelque chose à vérifier.",
+        'accounting/Reports':
+            'Les états comptables : bilan, compte de résultat, balance, grand livre et balances des clients et fournisseurs.\nChoisissez la date ou la période, puis exportez en fichier si besoin. Présentation simplifiée, à faire valider par votre expert-comptable.',
+        'catalog/PartyImport':
+            "Importez vos clients ou vos fournisseurs depuis un fichier CSV (exportable depuis Excel).\nTéléchargez d'abord le modèle, remplissez-le, puis envoyez-le : un aperçu ligne par ligne vous montre ce qui sera ajouté et ce qui est à corriger. Rien n'est enregistré avant votre confirmation.",
+        'catalog/ReferenceData':
+            "Les listes utilisées par vos articles : catégories, unités de vente (pièce, kg, litre…) et taux de taxe.\nUn nouveau taux ne s'applique qu'aux opérations futures : les documents déjà validés ne changent pas. Faites valider les taux réglementaires par votre expert-comptable.",
+        'inventory/CountShow':
+            'Un inventaire : saisissez la quantité réellement comptée pour chaque article. Le stock théorique est figé au moment de la validation.\nÀ la validation, les écarts sont enregistrés comme des mouvements de stock, avec leur motif, et restent consultables.',
+        'inventory/TransferForm':
+            "Préparez un transfert de marchandise d'un dépôt vers un autre : choisissez l'origine, la destination, puis les articles et les quantités.\nLe stock quitte le dépôt d'origine à l'expédition et n'entre dans le dépôt de destination qu'à la réception.",
+        'inventory/TransferShow':
+            "Le suivi d'un transfert entre deux dépôts. Expédiez-le depuis le dépôt d'origine ; le dépôt de destination le réceptionne ensuite.\nÀ la réception, indiquez la quantité réellement reçue si elle diffère de ce qui a été envoyé.",
+        'platform/Billing':
+            "La facturation des abonnements de la plateforme : factures émises aux entreprises, paiements déclarés ou reçus, et avoirs.\nVérifiez un paiement avant de le valider ; l'annulation d'une facture d'abonnement demande un motif et reste tracée.",
+        'platform/Dashboard':
+            'Le tableau de bord de la plateforme : abonnements, essais qui se terminent bientôt, factures en retard et encaissements.\nCliquez sur une entreprise pour ouvrir sa fiche. Les données métier des entreprises (ventes, clients…) ne sont jamais visibles ici.',
+        'platform/Plans':
+            "Les formules proposées aux entreprises : limites (utilisateurs, dépôts) et tarifs en XOF.\nUn tarif vide signifie « non encore validé » : la formule ne peut pas être achetée tant qu'il n'est pas fixé.",
+        'platform/Support':
+            "L'assistance d'une entreprise cliente : consultation de sa fiche (logo, devanture, régime de TVA, lien Maps) avec un motif obligatoire.\nChaque consultation ou modification est enregistrée dans le journal de l'entreprise. Le cachet n'est jamais affiché.",
+        'platform/TenantCreate':
+            "Créez l'espace d'une entreprise cliente : son compte administrateur, son premier dépôt et son essai gratuit.\nL'administrateur reçoit une invitation par e-mail pour choisir son mot de passe.",
+        'platform/TenantShow':
+            "La fiche d'une entreprise cliente : sa formule, l'état de son abonnement, ses options et son historique.\nVous pouvez changer de formule, arrêter l'abonnement (tout de suite ou à l'échéance) ou ouvrir un accès d'assistance limité dans le temps et tracé. Toute action sensible demande un motif.",
+        'platform/Tenants':
+            "La liste des entreprises clientes avec l'état de leur abonnement (essai, actif, en retard, suspendu).\nOuvrez une fiche pour agir, ou créez un nouveau client. Les données métier des entreprises ne sont pas visibles ici.",
+        'purchases/InvoiceForm':
+            "Saisissez une facture reçue d'un fournisseur : choisissez le fournisseur, sa référence, les lignes et les montants.\nEnregistrez en brouillon pour relire ; elle reçoit son numéro et devient payable une fois validée.",
+        'purchases/InvoiceShow':
+            "Le détail d'une facture fournisseur. Une fois validée, elle compte dans ce que vous devez à ce fournisseur.\nEnregistrez ici chaque règlement (total ou partiel) : le reste à payer se met à jour.",
+        'purchases/OrderShow':
+            "Le détail d'une commande fournisseur. Confirmez-la pour lui donner son numéro : elle ne se modifie plus.\nÀ la livraison, utilisez « Réceptionner » et saisissez les quantités réellement reçues : le stock se met à jour tout de suite.",
+        'purchases/ReceiptShow':
+            'Une réception de marchandises : ce qui est entré en stock, quand et par qui.\nSi une partie doit repartir chez le fournisseur, faites un retour : les quantités sortent du stock et leur montant est déduit de la facture liée.',
+        'purchases/RequestForm':
+            "Exprimez un besoin d'achat : choisissez les articles et les quantités souhaitées. Pas de prix ni de fournisseur à ce stade.\nEnregistrez en brouillon, puis envoyez la demande pour qu'elle soit examinée.",
+        'purchases/RequestShow':
+            "Le suivi d'une demande d'achat : brouillon, envoyée, approuvée ou refusée, puis transformée en commande.\nUne demande envoyée ne se modifie plus. Un approbateur la valide ou la refuse en donnant un motif ; les achats la transforment ensuite en commande fournisseur.",
+        'purchases/Requests':
+            "Les demandes d'achat : un collaborateur exprime un besoin, un approbateur le valide, puis les achats le transforment en commande fournisseur.\nVous ne voyez que vos propres demandes, sauf si votre rôle est lié aux achats ou à l'approbation.",
+        'settings/Appearance':
+            "Choisissez l'apparence de l'application : clair, sombre, ou automatique selon votre appareil.\nCe choix est personnel : il ne change pas l'affichage des autres utilisateurs.",
+        'settings/Company':
+            "La fiche de votre entreprise : raison sociale, adresse, téléphone, NINEA, RCCM, logo, cachet et régime de TVA.\nCes informations s'impriment sur vos devis, factures et avoirs ; les champs vides ne s'impriment pas.",
+        'settings/Devices':
+            "Les appareils autorisés à vendre hors connexion (téléphone, tablette, ordinateur de caisse).\nSi un appareil est perdu ou n'est plus utilisé, révoquez-le : il ne pourra plus envoyer de ventes.",
+        'settings/Index':
+            'Tous vos réglages au même endroit : votre compte, votre entreprise, vos données.\nChaque carte explique en une phrase à quoi elle sert. Vous ne voyez que ce que votre rôle vous permet de régler.',
+        'settings/Notifications':
+            "Choisissez, pour chaque sujet, où vous voulez être prévenu : à l'écran ou par e-mail.\nCes choix sont les vôtres et valent pour cette entreprise. L'e-mail est limité à un par jour, seulement s'il y a quelque chose à traiter.",
+        'settings/Profile':
+            "Votre profil : votre nom et votre adresse e-mail de connexion.\nSi vous changez d'adresse e-mail, il faudra la confirmer. Vous pouvez aussi supprimer votre compte depuis cette page.",
+        'settings/Security':
+            "La sécurité de votre compte : mot de passe, double authentification et clés d'accès.\nActivez la double authentification : même si quelqu'un connaît votre mot de passe, il ne pourra pas se connecter sans votre téléphone.",
+        'settings/Subscription':
+            "Votre abonnement : la formule choisie, son état (essai, actif…), vos limites et ce que vous utilisez déjà.\nVous pouvez changer de formule, ajouter des options et consulter ou régler vos factures d'abonnement.",
+        'storefront/Index':
+            'Votre boutique en ligne : présentez votre entreprise (accroche, description, contacts, horaires) et recevez des commandes sans paiement en ligne.\nCochez « Boutique publiée » pour la rendre visible à vos clients, et choisissez si vous recevez des commandes et si vous proposez la livraison.',
+        'storefront/Orders':
+            "Les commandes reçues par votre boutique en ligne. Faites-les avancer : nouvelle, confirmée, en préparation, prête, terminée ; ou refusée ou annulée.\nUne commande confirmée devient une commande client (client retrouvé ou créé) que vous pouvez ouvrir pour la suivre comme n'importe quelle vente.",
+        'storefront/Products':
+            "Choisissez les articles qui apparaissent dans votre boutique (Publié) ou non (Brouillon), et complétez leur nom public, leur description publique et leur prix public.\nUn article en brouillon reste utilisable en caisse mais n'apparaît pas aux clients de la boutique.",
     },
     scanner: {
         title: 'Scanner avec la caméra',
@@ -243,6 +318,7 @@ export const fr = {
             backup: 'sauvegarde export donnees google drive copie',
             settings: 'parametres reglages configuration profil securite',
             guide: 'guide demarrage aide etapes visite',
+            help: 'aide centre glossaire questions faq mots avoir comment faire',
         },
     },
     settings_hub: {
@@ -273,6 +349,184 @@ export const fr = {
             backup: 'Une copie de vos données sur votre ordinateur ou Google Drive.',
             audit: 'Qui a fait quoi et quand : le journal des actions importantes.',
             devices: 'Les appareils autorisés à vendre hors connexion.',
+        },
+    },
+    help_center: {
+        nav: 'Centre d’aide',
+        page_title: 'Centre d’aide',
+        heading: 'Centre d’aide',
+        description:
+            'Des réponses simples : comment faire, questions fréquentes et sens des mots du métier.',
+        search_label: 'Rechercher dans l’aide',
+        search_placeholder: 'Ex. avoir, inventaire, sauvegarde…',
+        empty: 'Rien ne correspond à « {q} ». Essayez un mot plus court ou utilisez la recherche Ctrl+K.',
+        open: 'Y aller',
+        see_center: 'Ouvrir le centre d’aide',
+        sections: {
+            tasks: 'Comment faire ?',
+            faq: 'Questions fréquentes',
+            glossary: 'Le sens des mots',
+        },
+        tasks: {
+            sell: {
+                title: 'Faire une vente au comptoir',
+                steps: 'Ouvrez la caisse avec le fond de caisse du jour.\nDans « Vente comptoir », cherchez ou scannez l’article : il s’ajoute au panier.\nAjustez la quantité, choisissez le mode de paiement.\nCliquez sur « Encaisser », puis imprimez ou envoyez le ticket.',
+            },
+            quote: {
+                title: 'Préparer un devis',
+                steps: 'Ouvrez « Nouveau devis » et choisissez le client.\nAjoutez les articles et les quantités.\nEnregistrez le brouillon, relisez, puis validez : le devis reçoit son numéro.\nPartagez-le par WhatsApp ou e-mail, ou téléchargez le PDF.',
+            },
+            product: {
+                title: 'Ajouter un article',
+                steps: 'Dans « Articles », cliquez sur « Ajouter un article ».\nIndiquez le nom et le prix de vente, avec une photo si vous voulez.\nEnregistrez. Pour une longue liste, utilisez « Importer » avec un fichier CSV.',
+            },
+            stock: {
+                title: 'Saisir le stock de départ',
+                steps: 'Ouvrez « Stock » et cliquez sur « Stock initial ».\nPour chaque article, indiquez la quantité présente et son coût.\nEnregistrez le stock initial : chaque quantité devient un mouvement que vous pourrez toujours consulter.',
+            },
+            order: {
+                title: 'Commander et réceptionner chez un fournisseur',
+                steps: 'Dans « Achats », créez une commande : fournisseur, articles, quantités.\nConfirmez-la : elle reçoit un numéro et ne se modifie plus.\nÀ la livraison, cliquez sur « Réceptionner » et saisissez ce que vous avez vraiment reçu.\nLe stock augmente tout de suite.',
+            },
+            count: {
+                title: 'Faire un inventaire',
+                steps: 'Dans « Stock », ouvrez « Inventaires » puis démarrez un inventaire pour un dépôt.\nSaisissez la quantité réellement comptée pour chaque article.\nValidez : les écarts sont enregistrés comme des mouvements de stock.',
+            },
+            member: {
+                title: 'Donner accès à un collaborateur',
+                steps: 'Ouvrez « Paramètres » puis « Collaborateurs ».\nCliquez sur « Ajouter un collaborateur » : nom, e-mail, rôle et dépôts accessibles.\nIl reçoit un e-mail pour choisir son mot de passe. Chacun ne voit que ce que son rôle permet.',
+            },
+            backup: {
+                title: 'Sauvegarder vos données',
+                steps: 'Ouvrez « Paramètres » puis « Sauvegarde ».\nDemandez une copie : elle se télécharge sur votre ordinateur.\nOu connectez votre Google Drive pour y envoyer vos sauvegardes.',
+            },
+        },
+        faq: {
+            invoice_fix: {
+                question: 'Comment corriger une facture déjà validée ?',
+                answer: 'Une facture validée ne se modifie plus, pour garder une trace fiable. Pour la corriger, créez un avoir depuis la facture : il l’annule en tout ou en partie, et vous pouvez ensuite refaire une facture juste.',
+            },
+            offline: {
+                question: 'Puis-je vendre sans connexion Internet ?',
+                answer: 'Oui, sur un appareil autorisé. Les ventes restent sur l’appareil puis partent dès que la connexion revient. L’état s’affiche en haut de l’écran : En ligne, Hors connexion ou Synchronisation. Ne vous déconnectez pas avant l’envoi des ventes en attente.',
+            },
+            search: {
+                question:
+                    'Comment retrouver vite un article, un client ou une page ?',
+                answer: 'Appuyez sur Ctrl+K (⌘K sur Mac) ou cliquez sur « Rechercher » en haut de l’écran. Tapez quelques lettres : pages, articles, clients, fournisseurs et documents s’affichent.',
+            },
+            switch: {
+                question: 'Comment changer d’entreprise ou de dépôt ?',
+                answer: 'En haut de l’écran, cliquez sur le nom de l’entreprise ou du dépôt : la liste de ceux auxquels vous avez accès s’affiche.',
+            },
+            who_owes: {
+                question: 'Où voir ce que mes clients me doivent ?',
+                answer: 'Sur l’accueil, « Reste à encaisser » donne le total. Dans « Ventes », le filtre « Non soldées » liste les factures concernées.',
+            },
+            cash_close: {
+                question: 'Comment fermer la caisse ?',
+                answer: 'Dans « Caisse », ouvrez la session en cours et fermez-la en comptant l’argent. L’écart éventuel entre ce qui est attendu et ce que vous avez compté est enregistré.',
+            },
+            roles: {
+                question:
+                    'Pourquoi un collaborateur ne voit-il pas certaines pages ?',
+                answer: 'Chaque rôle (vendeur, gestionnaire de dépôt, achats, comptable, direction) ne donne accès qu’à ce qui le concerne. L’administrateur peut changer le rôle d’une personne dans Paramètres, Collaborateurs.',
+            },
+            trial: {
+                question: 'Que se passe-t-il à la fin de l’essai gratuit ?',
+                answer: 'Choisissez votre formule dans Paramètres, Abonnement avant la fin de l’essai. Sans formule, l’espace peut passer en lecture seule : vous consultez vos données mais ne pouvez plus en saisir.',
+            },
+            backup: {
+                question: 'Mes données sont-elles en sécurité ?',
+                answer: 'Elles sont protégées et propres à votre entreprise. Gardez en plus une copie : dans Paramètres, Sauvegarde, téléchargez-la ou envoyez-la sur votre Google Drive.',
+            },
+        },
+        glossary: {
+            credit_note: {
+                term: 'Avoir',
+                definition:
+                    'Document qui annule une facture, en tout ou en partie : vous ne modifiez jamais une facture validée, vous la corrigez par un avoir.',
+            },
+            quote: {
+                term: 'Devis',
+                definition:
+                    'Proposition de prix envoyée à un client avant la vente. Il ne change pas le stock ni la comptabilité tant qu’il n’est pas transformé en commande ou en facture.',
+            },
+            draft: {
+                term: 'Brouillon',
+                definition:
+                    'Document en préparation : il se modifie librement et n’a pas encore de numéro. Une fois validé, il est figé.',
+            },
+            receipt: {
+                term: 'Réception',
+                definition:
+                    'Enregistrement de la marchandise livrée par un fournisseur. Elle fait entrer les quantités en stock.',
+            },
+            transfer: {
+                term: 'Transfert',
+                definition:
+                    'Envoi de marchandise d’un dépôt à un autre : le stock sort à l’expédition et entre à la réception.',
+            },
+            stock_count: {
+                term: 'Inventaire',
+                definition:
+                    'Comptage de ce que vous avez réellement en dépôt, comparé au stock théorique. Les écarts sont enregistrés comme des mouvements.',
+            },
+            low_stock: {
+                term: 'Stock bas',
+                definition:
+                    'Article dont la quantité est passée sous le seuil d’alerte que vous avez fixé : c’est le moment de recommander.',
+            },
+            warehouse: {
+                term: 'Dépôt',
+                definition:
+                    'Un lieu où vous gardez ou vendez de la marchandise (magasin, entrepôt). Le stock se suit dépôt par dépôt.',
+            },
+            cash_float: {
+                term: 'Fond de caisse',
+                definition:
+                    'Argent présent dans la caisse à l’ouverture, pour rendre la monnaie. Il se compte à l’ouverture et à la fermeture.',
+            },
+            cash_gap: {
+                term: 'Écart de caisse',
+                definition:
+                    'Différence entre l’argent attendu et l’argent compté à la fermeture de la caisse. Il est enregistré pour être expliqué.',
+            },
+            receivable: {
+                term: 'Reste à encaisser',
+                definition:
+                    'Ce que vos clients vous doivent encore sur les factures validées (ventes à crédit, paiements partiels).',
+            },
+            purchase_request: {
+                term: 'Demande d’achat',
+                definition:
+                    'Un besoin exprimé par un collaborateur (quoi et combien), à faire approuver avant de devenir une commande fournisseur.',
+            },
+            entry: {
+                term: 'Écriture comptable',
+                definition:
+                    'Enregistrement d’une opération en comptabilité, avec un total au débit égal au total au crédit. Une écriture validée ne change plus.',
+            },
+            chart: {
+                term: 'Plan comptable',
+                definition:
+                    'La liste des comptes utilisés pour classer vos opérations (ici le référentiel SYSCOHADA). À valider avec votre expert-comptable.',
+            },
+            bank_rec: {
+                term: 'Rapprochement bancaire',
+                definition:
+                    'Comparaison de votre relevé de banque avec vos écritures, pour vérifier que tout correspond.',
+            },
+            vat_regime: {
+                term: 'Régime de TVA',
+                definition:
+                    'Votre situation fiscale : régime réel, contribution globale unique (CGU) ou exonéré. Il détermine les mentions imprimées sur vos documents.',
+            },
+            ninea: {
+                term: 'NINEA / RCCM',
+                definition:
+                    'Numéros d’identification de votre entreprise (fiscal et registre du commerce). Ils s’impriment sur vos devis et factures.',
+            },
         },
     },
     guide: {

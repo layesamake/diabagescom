@@ -9,6 +9,7 @@ import {
     FileText,
     Layers,
     LayoutGrid,
+    LifeBuoy,
     Package,
     Receipt,
     Settings,
@@ -43,6 +44,7 @@ import { index as accountingIndex } from '@/routes/accounting';
 import { index as cashIndex } from '@/routes/cash';
 import { index as customersIndex } from '@/routes/customers';
 import { index as guideIndex } from '@/routes/guide';
+import { index as helpIndex } from '@/routes/help';
 import { create as posCreate } from '@/routes/pos';
 import { index as productsIndex } from '@/routes/products';
 import { index as reportsIndex } from '@/routes/reports';
@@ -233,6 +235,12 @@ const navGroups = computed<NavGroup[]>(() => {
                     t('nav.settings'),
                     settingsIndex(),
                     Settings,
+                ),
+                ...item(
+                    Boolean(page.props.context),
+                    t('nav.help_center'),
+                    helpIndex(),
+                    LifeBuoy,
                 ),
             ],
         },
