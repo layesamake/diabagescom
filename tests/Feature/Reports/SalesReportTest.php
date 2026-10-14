@@ -5,8 +5,10 @@ namespace Tests\Feature\Reports;
 use App\Domain\Sales\CreditNoteService;
 use App\Domain\Sales\PaymentService;
 use App\Models\AuditEvent;
+use App\Models\Role;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Feature\Sales\SalesTestHelpers;
@@ -175,5 +177,76 @@ class SalesReportTest extends TestCase
             ->where('byMethod.0.total', 2000));
 
         CarbonImmutable::setTestNow();
+    }
+
+    public function test_credit_without_restock_keeps_missing_cost_warning(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $rice = $this->makeProduct($setup, 'RIZ', 'U', 1000);
+        $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '10', 1000]]);
+        $session = $this->openSession($setup);
+
+        CarbonImmutable::setTestNow('2026-10-13 10:00:00');
+        $sale = $this->sell($setup, $session, [[$rice->id, '1']], [['cash', 2000]]);
+        DB::statement('ALTER TABLE sales_document_lines DISABLE TRIGGER sales_document_lines_frozen');
+
+        try {
+            DB::table('sales_document_lines')->where('document_id', $sale->id)->update(['unit_cost' => null]);
+        } finally {
+            DB::statement('ALTER TABLE sales_document_lines ENABLE TRIGGER sales_document_lines_frozen');
+        }
+
+        CarbonImmutable::setTestNow('2026-10-14 10:00:00');
+        app(CreditNoteService::class)->create($sale->refresh(), [[
+            'line_id' => $sale->lines()->value('id'),
+            'quantity' => '1',
+            'restock' => false,
+        ]], 'Geste commercial', $setup['user'], (string) Str::uuid());
+
+        $this->actingAs($setup['user'])->get(route('reports.index', [
+            'from' => '2026-10-14',
+            'to' => '2026-10-14',
+        ]))->assertInertia(fn (Assert $page) => $page
+            ->where('summary.missing_cost_revenue', 1695)
+            ->where('summary.cost_coverage_basis_points', 0)
+            ->where('priorities.0.type', 'missing_cost')
+            ->where('priorities.0.count', 1));
+
+        CarbonImmutable::setTestNow();
+    }
+
+    public function test_payables_require_purchase_view_even_with_global_reports(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $management = $this->member($setup, 'management');
+        Role::system('tenant', 'management')->permissions()->detach('purchase.view');
+
+        $this->actingAs($management['user'])->get(route('reports.index'))->assertInertia(fn (Assert $page) => $page
+            ->where('summary.payables', null)
+            ->where('can.purchases', false));
+    }
+
+    public function test_negative_margin_priority_scans_beyond_displayed_products(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $movements = [];
+        $lines = [];
+
+        for ($i = 1; $i <= 25; $i++) {
+            $product = $this->makeProduct($setup, sprintf('P%02d', $i), 'U', 100);
+            $movements[] = [$setup['warehouse']->id, $product->id, '2', 100];
+            $lines[] = [$product->id, '1'];
+        }
+
+        $loss = $this->makeProduct($setup, 'LOSS', 'U', 2000);
+        $movements[] = [$setup['warehouse']->id, $loss->id, '2', 2000];
+        $lines[] = [$loss->id, '1', 1000];
+        $this->move($setup, 'initial', $movements);
+        $this->sell($setup, $this->openSession($setup), $lines, [['cash', 6000]]);
+
+        $this->actingAs($setup['user'])->get(route('reports.index'))->assertInertia(fn (Assert $page) => $page
+            ->has('products', 25)
+            ->where('priorities.0.type', 'negative_margin')
+            ->where('priorities.0.count', 1));
     }
 }
