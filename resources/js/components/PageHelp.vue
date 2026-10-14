@@ -35,6 +35,7 @@ const help = computed(() => {
                 variant="ghost"
                 size="icon"
                 class="size-11 shrink-0 text-muted-foreground hover:text-foreground md:size-9"
+                data-tour="help"
                 :aria-label="t('help.button')"
                 :title="t('help.button')"
             >

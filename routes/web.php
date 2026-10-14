@@ -18,6 +18,7 @@ use App\Http\Controllers\Catalog\ProductImportController;
 use App\Http\Controllers\Catalog\ReferenceDataController;
 use App\Http\Controllers\ContextController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GuideController;
 use App\Http\Controllers\Inventory\CountController;
 use App\Http\Controllers\Inventory\StockController;
 use App\Http\Controllers\Inventory\TransferController;
@@ -87,6 +88,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('reports', [SalesReportController::class, 'index'])->name('reports.index');
+
+    // Guide de démarrage : propre à chaque utilisateur, sans permission particulière.
+    Route::get('guide', [GuideController::class, 'index'])->name('guide.index');
+    Route::put('guide', [GuideController::class, 'update'])->name('guide.update');
+    Route::post('guide/steps/{step}', [GuideController::class, 'step'])->where('step', '[a-z_]+')->name('guide.steps.update');
 
     Route::post('context/tenant', [ContextController::class, 'switchTenant'])->name('context.tenant');
     Route::post('context/warehouse', [ContextController::class, 'switchWarehouse'])->name('context.warehouse');

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import AppContent from '@/components/AppContent.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import GuideBanner from '@/components/GuideBanner.vue';
+import GuideTour from '@/components/GuideTour.vue';
 import MobileBottomNav from '@/components/MobileBottomNav.vue';
 import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
@@ -28,10 +30,12 @@ withDefaults(defineProps<Props>(), {
         >
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
             <SubscriptionBanner />
+            <GuideBanner />
             <slot />
         </AppContent>
         <Toaster />
         <ConfirmDialog />
+        <GuideTour />
         <MobileBottomNav />
     </AppShell>
 </template>

@@ -34,6 +34,7 @@ export const fr = {
     },
     nav: {
         dashboard: 'Accueil',
+        guide: 'Guide de démarrage',
         audit: "Journal d'audit",
         devices: 'Appareils',
         subscription: 'Abonnement',
@@ -132,6 +133,8 @@ export const fr = {
     help: {
         button: 'Aide sur cette page',
         title: 'À quoi sert cette page ?',
+        'guide/Index':
+            'Votre guide de démarrage : les étapes à suivre, adaptées à votre rôle. Une étape se coche toute seule dès qu’elle est faite ; vous pouvez aussi la cocher vous-même ou la remettre à plus tard.\nLe bouton « Faire la visite » vous montre où se trouve chaque rubrique.',
         Dashboard:
             'Votre tableau de bord : les ventes du jour, les actions les plus fréquentes et ce qui demande votre attention (stock bas, factures en retard, caisse à fermer).\nCliquez sur une alerte pour aller directement à la liste concernée.',
         'sales/Pos':
@@ -201,37 +204,170 @@ export const fr = {
         sell: 'Vendre',
         menu: 'Menu',
     },
-    checklist: {
-        title: 'Bien démarrer avec DIABA GESCOM',
+    guide: {
+        nav: 'Guide de démarrage',
+        page_title: 'Guide de démarrage',
         progress: '{done} étape(s) sur {total} terminée(s)',
-        hide: 'Masquer cette liste',
-        done: 'terminé',
-        todo: 'à faire',
+        complete_title: 'Bravo, vous avez fait le tour !',
+        complete_text:
+            'Toutes les étapes sont terminées. Le guide reste ici si vous voulez revoir quelque chose.',
+        start_tour: 'Faire la visite',
+        replay_tour: 'Revoir la visite guidée',
+        continue: 'Continuer : {title}',
+        go: 'Y aller',
+        mark_done: "C'est fait",
+        skip: 'Plus tard',
+        reopen: 'Remettre à faire',
+        hide_card: 'Masquer ce guide',
+        see_all: 'Voir tout le guide',
+        auto_done: 'Fait automatiquement',
+        status_done: 'terminé',
+        status_skipped: 'reporté',
+        status_todo: 'à faire',
+        step_of: 'Étape {n} sur {total}',
+        banner_next: 'Étape suivante',
+        banner_hide: 'Masquer',
+        reminder_title: 'À faire avant de vendre',
+        reminder_text: '{title} : {hint}',
+        phases: {
+            before: 'Avant de vendre',
+            goal: 'Votre première vente',
+            after: 'Pour aller plus loin',
+        },
+        tracks: {
+            admin: {
+                title: 'Bienvenue ! Préparons votre entreprise',
+                intro: 'En quelques étapes, vous serez prêt à vendre. Chaque étape se coche toute seule dès qu’elle est faite.',
+            },
+            cashier: {
+                title: 'Bienvenue ! Prêt à encaisser ?',
+                intro: 'Ouvrez votre caisse puis faites une première vente : c’est tout ce qu’il faut pour commencer.',
+                phases: { before: 'Avant d’encaisser' },
+            },
+            warehouse: {
+                title: 'Bienvenue ! Votre stock sous contrôle',
+                intro: 'Mettez le stock à jour, recevez les livraisons et faites vos inventaires.',
+                phases: {
+                    before: 'Pour mettre le stock à jour',
+                    after: 'Au quotidien',
+                },
+            },
+            purchaser: {
+                title: 'Bienvenue ! Vos achats, pas à pas',
+                intro: 'Ajoutez vos fournisseurs, passez vos commandes et suivez les livraisons.',
+                phases: { after: 'Pour bien démarrer vos achats' },
+            },
+            accountant: {
+                title: 'Bienvenue ! Votre comptabilité',
+                intro: 'Vérifiez le paramétrage puis suivez les écritures et les états.',
+                phases: { after: 'Pour démarrer la comptabilité' },
+            },
+            management: {
+                title: 'Bienvenue ! Votre tableau de pilotage',
+                intro: 'Suivez l’activité de l’entreprise : ventes, stock, caisse et alertes.',
+                phases: { after: 'Pour suivre l’activité' },
+            },
+            member: {
+                title: 'Bienvenue ! Vos premiers pas',
+                intro: 'Voici les étapes utiles pour ce que vous pouvez faire dans l’entreprise.',
+            },
+        },
         steps: {
-            product: {
+            company: {
+                title: 'Compléter la fiche de votre entreprise',
+                hint: 'Adresse, téléphone, NINEA et logo : ils s’impriment sur vos factures et devis.',
+            },
+            products: {
                 title: 'Ajouter vos articles',
-                hint: 'Nom, prix de vente, et photo si vous voulez.',
+                hint: 'Nom, prix de vente, et photo si vous voulez. Vous pouvez aussi les importer depuis Excel.',
             },
             stock: {
-                title: 'Saisir votre stock',
-                hint: 'Indiquez les quantités que vous avez en magasin.',
+                title: 'Saisir votre stock de départ',
+                hint: 'Indiquez les quantités que vous avez déjà en magasin.',
             },
             cash: {
                 title: 'Ouvrir la caisse',
-                hint: 'Comptez le fond de caisse du jour.',
+                hint: 'Comptez le fond de caisse avant la première vente du jour.',
             },
             sale: {
-                title: 'Faire votre première vente',
-                hint: 'Au comptoir : cherchez l’article, encaissez, imprimez le ticket.',
+                title: 'Faire une première vente',
+                hint: 'Au comptoir : cherchez l’article, encaissez, imprimez le ticket. Un essai suffit.',
+            },
+            customer: {
+                title: 'Ajouter un client',
+                hint: 'Utile pour vendre à crédit et retrouver son historique d’achats.',
             },
             team: {
                 title: 'Inviter un collaborateur',
-                hint: 'Vendeur, gestionnaire de stock ou comptable.',
+                hint: 'Vendeur, gestionnaire de stock ou comptable : chacun ne voit que ce qui le concerne.',
             },
             backup: {
                 title: 'Sauvegarder vos données',
                 hint: 'Une copie sur votre ordinateur ou votre Google Drive.',
             },
+            supplier: {
+                title: 'Ajouter un fournisseur',
+                hint: 'Pour commander et suivre ce que vous leur devez.',
+            },
+            order: {
+                title: 'Créer une commande fournisseur',
+                hint: 'Choisissez le fournisseur et les articles à commander.',
+            },
+            receipt: {
+                title: 'Réceptionner une livraison',
+                hint: 'Ouvrez une commande confirmée et enregistrez ce que vous avez reçu : le stock se met à jour.',
+            },
+            count: {
+                title: 'Faire un inventaire',
+                hint: 'Comptez vos articles et corrigez les écarts.',
+            },
+            accounting: {
+                title: 'Vérifier le plan comptable',
+                hint: 'Contrôlez les comptes proposés avec votre comptable avant de comptabiliser.',
+            },
+            entry: {
+                title: 'Passer une écriture',
+                hint: 'Enregistrez une première écriture diverse : brouillon, puis validation.',
+            },
+            reports: {
+                title: 'Consulter vos rapports',
+                hint: 'Ventes du jour, par article, par vendeur.',
+            },
+        },
+        tour: {
+            label: 'Visite guidée',
+            previous: 'Précédent',
+            next: 'Suivant',
+            finish: 'Terminer',
+            skip: 'Passer la visite',
+            step_of: '{n} sur {total}',
+            welcome_title: 'Bienvenue sur DIABA GESCOM',
+            welcome_text:
+                'Faisons un tour rapide, d’une minute, pour savoir où trouver chaque chose. Vous pourrez le refaire quand vous voulez.',
+            context_title: 'Votre entreprise et votre dépôt',
+            context_text:
+                'Vous voyez toujours ici dans quelle entreprise et quel dépôt vous travaillez. Cliquez pour en changer.',
+            sell_title: 'Vendre',
+            sell_text:
+                'Vente au comptoir, factures et devis, caisse et clients : tout ce qui fait rentrer de l’argent.',
+            buy_title: 'Acheter',
+            buy_text:
+                'Vos fournisseurs, commandes, réceptions et factures d’achat.',
+            stock_title: 'Articles et stock',
+            stock_text:
+                'Votre catalogue d’articles, le stock par dépôt, les transferts et les inventaires.',
+            manage_title: 'Gestion',
+            manage_text:
+                'Rapports, comptabilité et paramètres : collaborateurs, sauvegarde, abonnement.',
+            help_title: 'Besoin d’aide ?',
+            help_text:
+                'Le bouton « ? » explique en quelques phrases simples la page où vous êtes.',
+            guide_title: 'Votre guide',
+            guide_text:
+                'Retrouvez ici les étapes à suivre et votre progression. Il se met à jour tout seul.',
+            done_title: 'C’est tout !',
+            done_text:
+                'Suivez les étapes du guide dans l’ordre : votre première vente sera vite là.',
         },
     },
     team: {

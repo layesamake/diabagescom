@@ -11,4 +11,8 @@ export type NavItem = {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon;
     isActive?: boolean;
+    /** Petit compteur affiché à droite (ex. progression du guide). */
+    badge?: string;
+    /** Repère de la visite guidée (attribut data-tour). */
+    tour?: string;
 };

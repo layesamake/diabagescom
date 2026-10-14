@@ -1,5 +1,6 @@
 import type { Directive } from 'vue';
 import type { AppContext, Auth, SubscriptionSummary } from '@/types/auth';
+import type { GuideSummary } from '@/types/guide';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -21,6 +22,7 @@ declare module '@inertiajs/core' {
             auth: Auth;
             context: AppContext | null;
             subscription: SubscriptionSummary | null;
+            guide: GuideSummary | null;
             platform: { can_access: boolean };
             sidebarOpen: boolean;
             [key: string]: unknown;

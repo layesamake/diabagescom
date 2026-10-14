@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Domain\Identity\Authorizer;
+use App\Domain\Onboarding\StartGuide;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Domain\Tenancy\WarehouseAccess;
@@ -60,6 +61,9 @@ class HandleInertiaRequests extends Middleware
             'context' => fn () => $this->context($request),
             'subscription' => fn () => app(TenantContext::class)->has()
                 ? app(FeatureAccess::class)->summary(app(TenantContext::class)->tenant())
+                : null,
+            'guide' => fn () => $request->user() instanceof User && app(TenantContext::class)->has()
+                ? app(StartGuide::class)->summary($request->user())
                 : null,
             'platform' => fn () => [
                 'can_access' => $request->user() instanceof User && Gate::forUser($request->user())->allows('platform.tenants.manage'),
