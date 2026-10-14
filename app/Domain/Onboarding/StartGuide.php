@@ -7,6 +7,7 @@ use App\Domain\Identity\PermissionCatalog;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -135,6 +136,12 @@ final class StartGuide
         'accountant' => 'accountant',
         'management' => 'management',
     ];
+
+    /** Étapes de mise en route mesurées pour toute une entreprise (console plateforme). */
+    public const array MILESTONES = ['company', 'products', 'stock', 'cash', 'sale', 'customer', 'team', 'backup'];
+
+    /** Entreprises comptées : actives, avec un abonnement non résilié. */
+    private const string LIVE_TENANT = "t.status = 'active' AND EXISTS (SELECT 1 FROM subscriptions s WHERE s.tenant_id = t.id AND s.status <> 'cancelled')";
 
     public function __construct(
         private readonly TenantContext $context,
@@ -296,21 +303,15 @@ final class StartGuide
     {
         $pdo = DB::connection()->getPdo();
         $tenant = $pdo->quote($tenantId);
-        $user = $pdo->quote($userId);
+        $user = $own ? $pdo->quote($userId) : null;
         $selects = [];
 
         foreach ($steps as $key => $step) {
-            if (isset($step['sql'])) {
-                $sql = str_replace('{T}', $tenant, $step['sql']);
-            } elseif (isset($step['table'])) {
-                $sql = "EXISTS (SELECT 1 FROM {$step['table']} WHERE tenant_id = {$tenant}"
-                    .(isset($step['where']) ? " AND {$step['where']}" : '')
-                    .($own && isset($step['owner']) ? " AND {$step['owner']} = {$user}" : '').')';
-            } else {
-                continue;
-            }
+            $sql = $this->existsSql($step, $tenant, $user);
 
-            $selects[] = "{$sql} AS \"{$key}\"";
+            if ($sql !== null) {
+                $selects[] = "{$sql} AS \"{$key}\"";
+            }
         }
 
         if ($selects === []) {
@@ -321,5 +322,88 @@ final class StartGuide
             fn (mixed $value): bool => in_array($value, [true, 1, '1', 't', 'true'], true),
             (array) DB::selectOne('SELECT '.implode(', ', $selects)),
         );
+    }
+
+    /**
+     * Condition SQL « cette étape est faite » : `$tenant` est une valeur déjà
+     * échappée ou une colonne (t.id), `$user` limite à ce que cet utilisateur a fait.
+     * Null pour une étape que l'utilisateur coche lui-même.
+     *
+     * @param  array<string, mixed>  $step
+     */
+    private function existsSql(array $step, string $tenant, ?string $user): ?string
+    {
+        if (isset($step['sql'])) {
+            return str_replace('{T}', $tenant, $step['sql']);
+        }
+
+        if (isset($step['table'])) {
+            return "EXISTS (SELECT 1 FROM {$step['table']} WHERE tenant_id = {$tenant}"
+                .(isset($step['where']) ? " AND {$step['where']}" : '')
+                .($user !== null && isset($step['owner']) ? " AND {$step['owner']} = {$user}" : '').')';
+        }
+
+        return null;
+    }
+
+    /**
+     * Jalons d'activation d'une entreprise (console plateforme) : pour chaque
+     * étape de mise en route, oui ou non. Rien d'autre n'est lu : ni noms, ni quantités, ni montants.
+     *
+     * @return array<string, bool>
+     */
+    public function milestones(string $tenantId): array
+    {
+        $steps = array_intersect_key(self::STEPS, array_flip(self::MILESTONES));
+        $done = $this->detect($steps, $tenantId, '', false);
+
+        return array_combine(self::MILESTONES, array_map(fn (string $key): bool => $done[$key] ?? false, self::MILESTONES));
+    }
+
+    /**
+     * Combien d'entreprises actives ont atteint chaque jalon.
+     *
+     * @return array{total: int, steps: array<string, int>}
+     */
+    public function funnel(): array
+    {
+        $selects = ['COUNT(*) AS total'];
+
+        foreach (self::MILESTONES as $key) {
+            $selects[] = 'COUNT(*) FILTER (WHERE '.$this->existsSql(self::STEPS[$key], 't.id', null).") AS \"{$key}\"";
+        }
+
+        $row = (array) DB::selectOne('SELECT '.implode(', ', $selects).' FROM tenants t WHERE '.self::LIVE_TENANT);
+
+        return [
+            'total' => (int) ($row['total'] ?? 0),
+            'steps' => array_combine(self::MILESTONES, array_map(fn (string $key): int => (int) ($row[$key] ?? 0), self::MILESTONES)),
+        ];
+    }
+
+    /**
+     * Entreprises actives inscrites depuis plus de `$days` jours sans première
+     * vente : à relancer, avec la prochaine étape qui leur manque.
+     *
+     * @return list<array{id: string, name: string, created_at: string, next: string|null}>
+     */
+    public function stalled(int $days = 3, int $limit = 10): array
+    {
+        $sale = $this->existsSql(self::STEPS['sale'], 't.id', null);
+        $rows = DB::select(
+            'SELECT t.id, t.display_name, t.created_at FROM tenants t WHERE '.self::LIVE_TENANT." AND t.created_at <= ? AND NOT {$sale} ORDER BY t.created_at LIMIT ?",
+            [now()->subDays($days), $limit],
+        );
+
+        return array_map(function (object $row): array {
+            $next = array_search(false, $this->milestones((string) $row->id), true);
+
+            return [
+                'id' => (string) $row->id,
+                'name' => (string) $row->display_name,
+                'created_at' => CarbonImmutable::parse((string) $row->created_at)->toIso8601String(),
+                'next' => $next === false ? null : (string) $next,
+            ];
+        }, $rows);
     }
 }

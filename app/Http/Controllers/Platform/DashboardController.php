@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Platform;
 
+use App\Domain\Onboarding\StartGuide;
 use App\Domain\Subscriptions\PlatformMetrics;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
@@ -14,12 +15,14 @@ use Inertia\Response;
  */
 class DashboardController extends Controller
 {
-    public function __invoke(PlatformMetrics $metrics): Response
+    public function __invoke(PlatformMetrics $metrics, StartGuide $guide): Response
     {
         Gate::authorize('platform.tenants.manage');
 
         return Inertia::render('platform/Dashboard', [
             'metrics' => $metrics->snapshot(),
+            'activation' => $guide->funnel(),
+            'stalled' => $guide->stalled(),
             'canManageBilling' => Gate::allows('platform.billing.manage'),
         ]);
     }
