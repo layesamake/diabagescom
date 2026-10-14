@@ -94,7 +94,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::put('guide', [GuideController::class, 'update'])->name('guide.update');
     Route::post('guide/steps/{step}', [GuideController::class, 'step'])->where('step', '[a-z_]+')->name('guide.steps.update');
 
-
     Route::post('context/tenant', [ContextController::class, 'switchTenant'])->name('context.tenant');
     Route::post('context/warehouse', [ContextController::class, 'switchWarehouse'])->name('context.warehouse');
 
