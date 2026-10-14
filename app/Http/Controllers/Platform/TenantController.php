@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Platform;
 
 use App\Domain\Audit\AuditLog;
 use App\Domain\Identity\PermissionCatalog;
+use App\Domain\Onboarding\StartGuide;
 use App\Domain\Organization\CompanyProfile;
 use App\Domain\Platform\ProvisionPlatformTenant;
 use App\Domain\Subscriptions\FeatureAccess;
@@ -133,7 +134,7 @@ class TenantController extends Controller
      * par rapport à la formule, factures, paiements et historique de l'abonnement.
      * Aucune donnée métier (ventes, stock, clients de l'entreprise).
      */
-    public function show(Tenant $tenant, FeatureAccess $access): Response
+    public function show(Tenant $tenant, FeatureAccess $access, StartGuide $guide): Response
     {
         Gate::authorize('platform.tenants.manage');
 
@@ -197,6 +198,8 @@ class TenantController extends Controller
                     'reason' => $e->metadata['reason'] ?? null,
                     'created_at' => $e->created_at->toIso8601String(),
                 ]),
+            // Oui/non par jalon : l'existence d'une donnée, jamais son contenu.
+            'milestones' => $guide->milestones($tenant->id),
             'profile' => $this->profileData($tenant),
             'plans' => Plan::query()->orderBy('sort_order')->get(['id', 'code', 'name', 'active']),
             'canManageBilling' => Gate::allows('platform.billing.manage'),

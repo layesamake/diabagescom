@@ -90,6 +90,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('reports', [SalesReportController::class, 'index'])->name('reports.index');
 
+    // Centre d'aide : tâches courantes, questions fréquentes, glossaire.
+    Route::inertia('aide', 'help/Index')->name('help.index');
+
     // Recherche globale (Ctrl+K) : articles, clients, fournisseurs, documents.
     Route::get('search', SearchController::class)->middleware('throttle:120,1')->name('search.index');
 

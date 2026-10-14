@@ -11,6 +11,7 @@ import {
     FilePlus2,
     FileText,
     LayoutGrid,
+    LifeBuoy,
     Package,
     PackagePlus,
     Receipt,
@@ -36,6 +37,7 @@ import { edit as companyEdit } from '@/routes/company';
 import { index as countsIndex } from '@/routes/counts';
 import { index as customersIndex } from '@/routes/customers';
 import { index as guideIndex } from '@/routes/guide';
+import { index as helpIndex } from '@/routes/help';
 import { index as membersIndex } from '@/routes/members';
 import { create as posCreate } from '@/routes/pos';
 import {
@@ -228,6 +230,13 @@ export function useQuickLinks() {
                 title: t('nav.settings'),
                 icon: Settings,
                 href: settingsIndex().url,
+                show: Boolean(context.value),
+            },
+            {
+                key: 'help',
+                title: t('nav.help_center'),
+                icon: LifeBuoy,
+                href: helpIndex().url,
                 show: Boolean(context.value),
             },
             {

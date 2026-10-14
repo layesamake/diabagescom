@@ -32,6 +32,16 @@ type Action =
     | 'cancel_at_period_end'
     | 'reactivate';
 
+type MilestoneKey =
+    | 'company'
+    | 'products'
+    | 'stock'
+    | 'cash'
+    | 'sale'
+    | 'customer'
+    | 'team'
+    | 'backup';
+
 const props = defineProps<{
     tenant: {
         id: string;
@@ -41,6 +51,7 @@ const props = defineProps<{
         status: string;
         created_at: string | null;
     };
+    milestones: Record<string, boolean>;
     subscription: SubscriptionSummary;
     subscription_id: string | null;
     period: {
@@ -572,6 +583,30 @@ function reactivate(contactId: string): void {
                     }}</span>
                 </li>
             </ol>
+        </section>
+
+        <section class="space-y-2 rounded-xl border p-4">
+            <h2 class="font-semibold">{{ t('platform.milestones_title') }}</h2>
+            <p class="text-xs text-muted-foreground">
+                {{ t('platform.milestones_note') }}
+            </p>
+            <ul class="grid gap-1 text-sm sm:grid-cols-2">
+                <li
+                    v-for="(done, key) in milestones"
+                    :key="key"
+                    class="flex items-center gap-2"
+                >
+                    <span
+                        :class="done ? 'text-success' : 'text-muted-foreground'"
+                        aria-hidden="true"
+                        >{{ done ? '✓' : '○' }}</span
+                    >
+                    <span>{{
+                        t(`platform.milestone.${key as MilestoneKey}`)
+                    }}</span>
+                    <span class="sr-only">{{ done ? 'oui' : 'non' }}</span>
+                </li>
+            </ul>
         </section>
 
         <TenantProfileCard :tenant-id="tenant.id" :profile="profile" />
