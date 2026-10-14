@@ -29,7 +29,7 @@ const { isCurrentUrl } = useCurrentUrl();
     >
         <SidebarGroupLabel
             v-if="group.label"
-            class="mb-1 h-7 text-[11px] font-semibold tracking-wider text-sidebar-foreground/90 uppercase"
+            class="mb-1 h-7 text-[11px] font-semibold tracking-wider text-sidebar-foreground/90 uppercase dark:text-[var(--color-brand-teal-light)]"
             >{{ group.label }}</SidebarGroupLabel
         >
         <SidebarMenu>
