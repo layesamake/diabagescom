@@ -209,8 +209,8 @@ class SalesReportTest extends TestCase
         ]))->assertInertia(fn (Assert $page) => $page
             ->where('summary.missing_cost_revenue', 1695)
             ->where('summary.cost_coverage_basis_points', 0)
-            ->where('priorities.0.type', 'missing_cost')
-            ->where('priorities.0.count', 1));
+            ->where('priorities.1.type', 'missing_cost')
+            ->where('priorities.1.count', 1));
 
         CarbonImmutable::setTestNow();
     }
