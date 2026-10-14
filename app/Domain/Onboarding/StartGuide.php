@@ -302,8 +302,8 @@ final class StartGuide
     private function detect(array $steps, string $tenantId, string $userId, bool $own): array
     {
         $pdo = DB::connection()->getPdo();
-        $tenant = $pdo->quote($tenantId);
-        $user = $own ? $pdo->quote($userId) : null;
+        $tenant = (string) $pdo->quote($tenantId);
+        $user = $own ? (string) $pdo->quote($userId) : null;
         $selects = [];
 
         foreach ($steps as $key => $step) {
@@ -390,12 +390,13 @@ final class StartGuide
     public function stalled(int $days = 3, int $limit = 10): array
     {
         $sale = $this->existsSql(self::STEPS['sale'], 't.id', null);
+        /** @var list<\stdClass> $rows */
         $rows = DB::select(
             'SELECT t.id, t.display_name, t.created_at FROM tenants t WHERE '.self::LIVE_TENANT." AND t.created_at <= ? AND NOT {$sale} ORDER BY t.created_at LIMIT ?",
             [now()->subDays($days), $limit],
         );
 
-        return array_map(function (object $row): array {
+        return array_map(function (\stdClass $row): array {
             $next = array_search(false, $this->milestones((string) $row->id), true);
 
             return [
