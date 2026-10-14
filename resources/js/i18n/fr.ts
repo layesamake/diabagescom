@@ -2203,8 +2203,7 @@ export const fr = {
         comparison_unavailable: 'Comparaison indisponible',
         stable: 'Stable',
         previous_zero: 'période précédente sans valeur',
-        partial_margin:
-            'Marge partielle : couverture des coûts historiques',
+        partial_margin: 'Marge partielle : couverture des coûts historiques',
         current_situation: 'Situation actuelle',
         current_situation_hint:
             'Ces montants sont calculés à la date de mise à jour, indépendamment de la période de ventes.',
