@@ -46,6 +46,7 @@ final class PilotageReport
             'summary' => $current,
             'comparison' => $this->comparison($current, $previous),
             'byDay' => $this->byDay($user, $all, $selectedWarehouses, $from, $to, $timezone),
+            'byDayMargin' => $canSeeMargin ? $this->byDayMargin($user, $all, $selectedWarehouses, $from, $to, $timezone) : collect(),
             'byWarehouse' => $this->byWarehouse($user, $all, $selectedWarehouses, $from, $to),
             'bySeller' => $all ? $this->bySeller($selectedWarehouses, $from, $to) : collect(),
             'byMethod' => $this->byMethod($user, $all, $selectedWarehouses, $from, $to),
@@ -337,6 +338,29 @@ final class PilotageReport
             ->groupBy('day')
             ->orderBy('day')->get()
             ->map(fn ($row): array => ['day' => (string) $row->day, 'total' => (int) $row->total, 'sales' => (int) $row->sales]);
+    }
+
+    /**
+     * @param  list<string>  $warehouseIds
+     * @return Collection<int, array{day: string, margin: int}>
+     */
+    private function byDayMargin(User $user, bool $all, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to, string $timezone): Collection
+    {
+        $signed = "CASE WHEN d.type = 'credit_note' THEN -1 ELSE 1 END";
+
+        return $this->documents($user, $all, $warehouseIds, $from, $to)()
+            ->join('sales_document_lines as l', function ($join): void {
+                $join->on('l.document_id', '=', 'd.id')->on('l.tenant_id', '=', 'd.tenant_id');
+            })
+            ->selectRaw("DATE(d.validated_at AT TIME ZONE ?) AS day,
+                SUM({$signed} * l.line_excl_tax) - COALESCE(SUM(CASE
+                    WHEN l.product_type = 'service' THEN 0
+                    WHEN l.unit_cost IS NULL THEN 0
+                    WHEN d.type = 'invoice' THEN ROUND(l.quantity * l.unit_cost)
+                    WHEN d.type = 'credit_note' AND l.restock THEN -ROUND(l.quantity * l.unit_cost)
+                    ELSE 0 END), 0) AS margin", [$timezone])
+            ->groupBy('day')->orderBy('day')->get()
+            ->map(fn ($row): array => ['day' => (string) $row->day, 'margin' => (int) $row->margin]);
     }
 
     /**
