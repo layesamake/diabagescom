@@ -1,29 +1,46 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import {
+    ArrowLeftRight,
+    BookOpen,
+    Boxes,
+    ChartColumn,
     ChevronRight,
     CircleCheck,
+    ClipboardCheck,
+    ClipboardList,
     FilePlus2,
     FileWarning,
+    PackageCheck,
+    PackagePlus,
     ShoppingBasket,
     ShoppingCart,
     TrendingDown,
     TrendingUp,
     TriangleAlert,
     Truck,
+    Users,
     Wallet,
 } from '@lucide/vue';
+import type { Component } from 'vue';
 import { computed } from 'vue';
 import GuideCard from '@/components/GuideCard.vue';
 import { useAppContext } from '@/composables/useAppContext';
 import { t } from '@/i18n';
 import { formatXof } from '@/lib/money';
 import { dashboard } from '@/routes';
+import { index as accountingIndex } from '@/routes/accounting';
 import { index as cashIndex } from '@/routes/cash';
+import { index as countsIndex } from '@/routes/counts';
+import { index as customersIndex } from '@/routes/customers';
 import { create as posCreate } from '@/routes/pos';
+import { create as productCreate } from '@/routes/products';
 import { index as purchaseOrdersIndex } from '@/routes/purchases/orders';
+import { index as purchaseRequestsIndex } from '@/routes/purchases/requests';
+import { index as reportsIndex } from '@/routes/reports';
 import { create as salesCreate, index as salesIndex } from '@/routes/sales';
 import { index as stockIndex } from '@/routes/stock';
+import { index as suppliersIndex } from '@/routes/suppliers';
 import { show as subscriptionShow } from '@/routes/subscription';
 import { index as syncIndex } from '@/routes/sync';
 import { index as transfersIndex } from '@/routes/transfers';
@@ -57,12 +74,8 @@ const props = defineProps<{
         saas_invoice?: string | null;
         sync_issues?: number;
     };
-    shortcuts: {
-        sell: boolean;
-        quote: boolean;
-        cash: boolean;
-        purchase: boolean;
-    };
+    /** Actions rapides du rôle, dans l'ordre de son métier (clés choisies par le serveur). */
+    actions: string[];
 }>();
 
 const page = usePage();
@@ -120,38 +133,102 @@ const weekMax = computed(() =>
     Math.max(1, ...(props.figures?.week.map((d) => d.total) ?? [0])),
 );
 
-// Actions fréquentes : un titre court et une phrase qui dit à quoi elles servent.
-const actions = computed(() =>
-    [
-        props.shortcuts.sell && {
-            href: posCreate(),
-            icon: ShoppingCart,
-            title: t('sales.pos'),
-            hint: t('dashboard.action_sell'),
-            main: true,
-        },
-        props.shortcuts.quote && {
-            href: salesCreate('quote'),
-            icon: FilePlus2,
-            title: t('sales.new_quote'),
-            hint: t('dashboard.action_quote'),
-            main: false,
-        },
-        props.shortcuts.cash && {
-            href: cashIndex(),
-            icon: Wallet,
-            title: t('cash.nav'),
-            hint: t('dashboard.action_cash'),
-            main: false,
-        },
-        props.shortcuts.purchase && {
-            href: purchaseOrdersIndex(),
-            icon: ShoppingBasket,
-            title: t('purchases.nav'),
-            hint: t('dashboard.action_purchase'),
-            main: false,
-        },
-    ].filter((item) => item !== false),
+// Actions fréquentes : le serveur choisit et ordonne celles du rôle ; ici, leur
+// titre, une phrase qui dit à quoi elles servent, et où elles mènent.
+const catalog: Record<
+    string,
+    { href: string; icon: Component; title: string; hint: string }
+> = {
+    sell: {
+        href: posCreate().url,
+        icon: ShoppingCart,
+        title: t('sales.pos'),
+        hint: t('dashboard.action_sell'),
+    },
+    quote: {
+        href: salesCreate('quote').url,
+        icon: FilePlus2,
+        title: t('sales.new_quote'),
+        hint: t('dashboard.action_quote'),
+    },
+    cash: {
+        href: cashIndex().url,
+        icon: Wallet,
+        title: t('cash.nav'),
+        hint: t('dashboard.action_cash'),
+    },
+    purchase: {
+        href: purchaseOrdersIndex().url,
+        icon: ShoppingBasket,
+        title: t('purchases.nav'),
+        hint: t('dashboard.action_purchase'),
+    },
+    product: {
+        href: productCreate().url,
+        icon: PackagePlus,
+        title: t('search.new_product'),
+        hint: t('dashboard.action_product'),
+    },
+    stock: {
+        href: stockIndex().url,
+        icon: Boxes,
+        title: t('stock.nav'),
+        hint: t('dashboard.action_stock'),
+    },
+    reports: {
+        href: reportsIndex().url,
+        icon: ChartColumn,
+        title: t('reports.nav'),
+        hint: t('dashboard.action_reports'),
+    },
+    accounting: {
+        href: accountingIndex().url,
+        icon: BookOpen,
+        title: t('accounting.nav'),
+        hint: t('dashboard.action_accounting'),
+    },
+    customer: {
+        href: customersIndex().url,
+        icon: Users,
+        title: t('parties.customers'),
+        hint: t('dashboard.action_customer'),
+    },
+    supplier: {
+        href: suppliersIndex().url,
+        icon: Truck,
+        title: t('parties.suppliers'),
+        hint: t('dashboard.action_supplier'),
+    },
+    receive: {
+        href: purchaseOrdersIndex().url,
+        icon: PackageCheck,
+        title: t('guide.steps.receipt.title'),
+        hint: t('dashboard.action_receive'),
+    },
+    transfer: {
+        href: transfersIndex().url,
+        icon: ArrowLeftRight,
+        title: t('stock.transfers'),
+        hint: t('dashboard.action_transfer'),
+    },
+    count: {
+        href: countsIndex().url,
+        icon: ClipboardCheck,
+        title: t('stock.counts'),
+        hint: t('dashboard.action_count'),
+    },
+    request: {
+        href: purchaseRequestsIndex().url,
+        icon: ClipboardList,
+        title: t('purchases.requests.nav'),
+        hint: t('dashboard.action_request'),
+    },
+};
+
+const actionItems = computed(() =>
+    props.actions
+        .filter((key) => key in catalog)
+        .map((key, index) => ({ key, main: index === 0, ...catalog[key] })),
 );
 
 // À traiter : chaque alerte mène directement à la liste concernée.
@@ -333,7 +410,7 @@ const card = 'rounded-xl border bg-card p-5 text-card-foreground shadow-xs';
 
         <div class="grid gap-8 lg:grid-cols-5">
             <!-- Actions fréquentes : une seule interaction depuis l'accueil -->
-            <section v-if="actions.length" class="space-y-3 lg:col-span-3">
+            <section v-if="actionItems.length" class="space-y-3 lg:col-span-3">
                 <h2 class="text-lg font-semibold">
                     {{ t('dashboard.actions_title') }}
                 </h2>
@@ -342,8 +419,8 @@ const card = 'rounded-xl border bg-card p-5 text-card-foreground shadow-xs';
                     :aria-label="t('dashboard.shortcuts')"
                 >
                     <Link
-                        v-for="item in actions"
-                        :key="item.title"
+                        v-for="item in actionItems"
+                        :key="item.key"
                         :href="item.href"
                         class="group flex min-h-20 items-center gap-4 rounded-xl border p-4 text-left shadow-xs transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
                         :class="

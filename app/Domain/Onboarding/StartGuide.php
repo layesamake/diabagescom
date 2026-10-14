@@ -252,7 +252,7 @@ final class StartGuide
     /**
      * Parcours de l'utilisateur dans l'entreprise courante (selon son rôle).
      */
-    private function track(): string
+    public function track(): string
     {
         $code = $this->context->membership()?->role->code;
 

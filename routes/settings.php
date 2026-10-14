@@ -6,8 +6,8 @@ use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'tenant:optional'])->group(function () {
-    // GET uniquement : Route::redirect() accepte aussi le verbe QUERY, que Wayfinder ne sait pas typer.
-    Route::get('settings', fn () => redirect()->route('profile.edit'));
+    // Vue d'ensemble : tous les réglages accessibles, regroupés et expliqués.
+    Route::inertia('settings', 'settings/Index')->name('settings.index');
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');

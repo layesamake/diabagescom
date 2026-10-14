@@ -61,6 +61,13 @@ const badge: Record<Transfer['status'], string> = {
 
         <EmptyState v-if="transfers.data.length === 0">
             {{ t('transfers.empty') }}
+            <template v-if="canCreate" #action>
+                <Button as-child class="h-11"
+                    ><Link :href="transferCreate()"
+                        ><Plus class="size-4" />{{ t('transfers.new') }}</Link
+                    ></Button
+                >
+            </template>
         </EmptyState>
 
         <ul v-else class="divide-y rounded-lg border">

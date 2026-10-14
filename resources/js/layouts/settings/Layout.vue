@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { index as settingsIndex } from '@/routes/settings';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
@@ -23,6 +24,10 @@ import { index as warehousesIndex } from '@/routes/warehouses';
 const { context, can } = useAppContext();
 
 const sidebarNavItems: NavItem[] = [
+    {
+        title: t('settings_hub.overview'),
+        href: settingsIndex(),
+    },
     {
         title: t('nav.profile'),
         href: editProfile(),
@@ -62,7 +67,13 @@ const sidebarNavItems: NavItem[] = [
         : []),
 ];
 
-const { isCurrentOrParentUrl } = useCurrentUrl();
+const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
+
+// « Vue d'ensemble » est le parent de toutes les pages de réglages : seule sa propre page la met en évidence.
+const isActive = (item: NavItem): boolean =>
+    toUrl(item.href) === toUrl(settingsIndex())
+        ? isCurrentUrl(item.href)
+        : isCurrentOrParentUrl(item.href);
 </script>
 
 <template>
@@ -84,7 +95,7 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
                         variant="ghost"
                         :class="[
                             'w-full justify-start',
-                            { 'bg-muted': isCurrentOrParentUrl(item.href) },
+                            { 'bg-muted': isActive(item) },
                         ]"
                         as-child
                     >

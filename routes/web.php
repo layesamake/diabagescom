@@ -39,6 +39,7 @@ use App\Http\Controllers\Sales\DocumentShareController;
 use App\Http\Controllers\Sales\PosController;
 use App\Http\Controllers\Sales\SalesDocumentController;
 use App\Http\Controllers\SalesReportController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Settings\BackupController;
 use App\Http\Controllers\Settings\CompanyController;
 use App\Http\Controllers\Settings\GoogleDriveController;
@@ -88,6 +89,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('reports', [SalesReportController::class, 'index'])->name('reports.index');
+
+    // Recherche globale (Ctrl+K) : articles, clients, fournisseurs, documents.
+    Route::get('search', SearchController::class)->middleware('throttle:120,1')->name('search.index');
 
     // Guide de démarrage : propre à chaque utilisateur, sans permission particulière.
     Route::get('guide', [GuideController::class, 'index'])->name('guide.index');

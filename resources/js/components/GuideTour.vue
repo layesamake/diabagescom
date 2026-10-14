@@ -28,6 +28,7 @@ type TourStep = { id: string; target?: string };
 const SEQUENCE: TourStep[] = [
     { id: 'welcome' },
     { id: 'context', target: 'context' },
+    { id: 'search', target: 'search' },
     { id: 'sell', target: 'nav-sell' },
     { id: 'buy', target: 'nav-buy' },
     { id: 'stock', target: 'nav-stock' },

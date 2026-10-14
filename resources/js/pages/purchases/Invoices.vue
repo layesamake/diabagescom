@@ -122,6 +122,15 @@ function filter(status: string): void {
 
         <EmptyState v-if="invoices.data.length === 0">
             {{ t('purchases.empty') }}
+            <template v-if="can.create" #action>
+                <Button as-child class="h-11"
+                    ><Link :href="invoiceCreate()"
+                        ><Plus class="size-4" />{{
+                            t('purchases.new_invoice')
+                        }}</Link
+                    ></Button
+                >
+            </template>
         </EmptyState>
         <ul v-else class="divide-y rounded-lg border">
             <li v-for="inv in invoices.data" :key="inv.id">
