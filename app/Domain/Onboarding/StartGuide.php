@@ -38,6 +38,8 @@ final class StartGuide
      * Étapes dans l'ordre d'affichage.
      *
      * - permissions : l'étape est proposée à qui en a au moins une ;
+     * - except : parcours à qui l'étape n'est pas proposée (l'administrateur a toutes
+     *   les permissions : sans cela il recevrait aussi les étapes des autres métiers) ;
      * - feature : formule requise (comptabilité, boutique) ;
      * - route / pages : où mener l'étape, et pages où le bandeau s'affiche ;
      * - remind_on : pages où un rappel doux s'affiche tant que l'étape n'est pas faite ;
@@ -95,17 +97,17 @@ final class StartGuide
             'table' => 'suppliers',
         ],
         'order' => [
-            'phase' => self::PHASE_AFTER, 'permissions' => ['purchase.create'],
+            'phase' => self::PHASE_AFTER, 'except' => ['admin'], 'permissions' => ['purchase.create'],
             'route' => 'purchases.orders.create', 'pages' => ['purchases/OrderForm'],
             'table' => 'purchase_orders', 'owner' => 'created_by',
         ],
         'receipt' => [
-            'phase' => self::PHASE_AFTER, 'permissions' => ['purchase.receive'],
+            'phase' => self::PHASE_AFTER, 'except' => ['admin'], 'permissions' => ['purchase.receive'],
             'route' => 'purchases.orders.index', 'pages' => ['purchases/Orders'],
             'table' => 'goods_receipts', 'owner' => 'created_by',
         ],
         'count' => [
-            'phase' => self::PHASE_AFTER, 'permissions' => ['inventory.count_create'],
+            'phase' => self::PHASE_AFTER, 'except' => ['admin'], 'permissions' => ['inventory.count_create'],
             'route' => 'counts.index', 'pages' => ['inventory/Counts'],
             'table' => 'inventory_counts', 'owner' => 'created_by',
         ],
@@ -114,12 +116,12 @@ final class StartGuide
             'route' => 'accounting.index', 'pages' => ['accounting/Overview'],
         ],
         'entry' => [
-            'phase' => self::PHASE_AFTER, 'permissions' => ['accounting.manual_entry'], 'feature' => FeatureAccess::FEATURE_ACCOUNTING,
+            'phase' => self::PHASE_AFTER, 'except' => ['admin'], 'permissions' => ['accounting.manual_entry'], 'feature' => FeatureAccess::FEATURE_ACCOUNTING,
             'route' => 'accounting.index', 'pages' => [],
             'table' => 'journal_entries', 'owner' => 'created_by',
         ],
         'reports' => [
-            'phase' => self::PHASE_AFTER, 'permissions' => ['report.view_own', 'report.view_all'],
+            'phase' => self::PHASE_AFTER, 'except' => ['admin'], 'permissions' => ['report.view_own', 'report.view_all'],
             'route' => 'reports.index', 'pages' => ['reports/Sales'],
         ],
     ];
@@ -189,7 +191,7 @@ final class StartGuide
         }
 
         return [
-            'track' => self::TRACKS[$membership->role->code] ?? 'member',
+            'track' => $this->track(),
             'steps' => $list,
             'next' => $next,
             'dismissed' => $state?->dismissed_at !== null,
@@ -248,13 +250,28 @@ final class StartGuide
     }
 
     /**
+     * Parcours de l'utilisateur dans l'entreprise courante (selon son rôle).
+     */
+    private function track(): string
+    {
+        $code = $this->context->membership()?->role->code;
+
+        return $code !== null ? (self::TRACKS[$code] ?? 'member') : 'member';
+    }
+
+    /**
      * @return array<string, array<string, mixed>>
      */
     private function visibleSteps(User $user): array
     {
         $tenant = $this->context->tenant();
+        $track = $this->track();
 
-        return array_filter(self::STEPS, function (array $step) use ($user, $tenant): bool {
+        return array_filter(self::STEPS, function (array $step) use ($user, $tenant, $track): bool {
+            if (in_array($track, $step['except'] ?? [], true)) {
+                return false;
+            }
+
             if (isset($step['feature']) && ! $this->features->hasFeature($tenant, $step['feature'])) {
                 return false;
             }

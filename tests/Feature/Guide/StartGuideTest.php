@@ -44,6 +44,14 @@ class StartGuideTest extends TestCase
                 && collect($steps)->firstWhere('key', 'company')['status'] === 'done'));
     }
 
+    public function test_the_admin_guide_stays_short_despite_having_every_permission(): void
+    {
+        $setup = $this->createTenantWithMember();
+
+        $this->actingAs($setup['user'])->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page
+            ->where('guide.steps', $this->stepsAre(['company', 'products', 'stock', 'cash', 'sale', 'customer', 'team', 'backup', 'supplier', 'accounting'])));
+    }
+
     public function test_each_role_only_gets_the_steps_its_permissions_allow(): void
     {
         $setup = $this->createTenantWithMember();
