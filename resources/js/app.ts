@@ -5,6 +5,7 @@ import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 import { initializeRequestErrors } from '@/lib/requestErrors';
+import { watchIdentity } from '@/offline/identity';
 import { registerServiceWorker } from '@/offline/serviceWorker';
 import { vAmount } from '@/lib/amountDirective';
 
@@ -57,3 +58,7 @@ initializeRequestErrors();
 
 // PWA : cache de l'application pour la vente hors connexion.
 registerServiceWorker();
+
+// Déclare l'identité courante au service worker : partitionne et purge
+// strictement le cache des pages privées par compte et entreprise.
+watchIdentity();
