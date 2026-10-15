@@ -23,6 +23,7 @@ class TransferSuggestionsTest extends TestCase
     use SalesTestHelpers;
 
     private const TODAY = '2026-10-14 10:00:00';
+
     private const DATES = ['2026-09-01 10:00:00', '2026-09-15 10:00:00', '2026-10-01 10:00:00'];
 
     protected function tearDown(): void
