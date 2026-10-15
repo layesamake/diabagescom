@@ -16,6 +16,9 @@ import {
     commands as commandsRoute,
 } from '@/routes/sync';
 import { register as registerRoute } from '@/routes/sync/devices';
+import { clearIdentity } from '@/offline/identity';
+import { SyncContextRegistry, isSameBase } from '@/offline/syncContext';
+import type { SyncContext } from '@/offline/syncContext';
 import type { PickedProduct } from '@/types/catalog';
 
 /**
@@ -107,6 +110,19 @@ let timer: ReturnType<typeof setInterval> | undefined;
 let listening = false;
 const stock = new Map<string, string>();
 
+/**
+ * Contexte de synchronisation (audit 2026-10-15, « Contamination IndexedDB
+ * lors d'un changement de tenant ») : `syncNow`/`pushQueue`/`pullCatalog`
+ * capturent toujours leur contexte au démarrage et n'écrivent que sur
+ * `context.db`, jamais sur les variables `db`/`scope`/`deviceKey` ci-dessus
+ * qui peuvent déjà pointer vers une autre entreprise à la fin de l'appel.
+ */
+const contextRegistry = new SyncContextRegistry<IDBDatabase>();
+
+function isCurrentContext(context: SyncContext<IDBDatabase>): boolean {
+    return contextRegistry.isCurrent(context);
+}
+
 export function normalize(text: string): string {
     return text
         .normalize('NFD')
@@ -125,7 +141,10 @@ async function api(
     init: Omit<RequestInit, 'headers'> & {
         headers?: Record<string, string>;
     } = {},
+    deviceKeyOverride?: string | null,
 ): Promise<Response> {
+    const key = deviceKeyOverride !== undefined ? deviceKeyOverride : deviceKey;
+
     return fetch(url, {
         credentials: 'same-origin',
         ...init,
@@ -134,7 +153,7 @@ async function api(
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
             'X-XSRF-TOKEN': xsrf(),
-            ...(deviceKey ? { 'X-Device-Key': deviceKey } : {}),
+            ...(key ? { 'X-Device-Key': key } : {}),
             ...init.headers,
         },
     });
@@ -163,31 +182,43 @@ export async function initOffline(next: Scope): Promise<void> {
         return;
     }
 
-    const sameBase =
-        scope &&
-        scope.userId === next.userId &&
-        scope.tenantId === next.tenantId;
+    const sameBase = isSameBase(scope, next);
     scope = next;
 
     if (!sameBase) {
-        db?.close();
-        db = await openDatabase(databaseName(next.userId, next.tenantId));
-        deviceKey = (await getMeta<string>(db, 'device_key')) ?? null;
+        const nextDb = await openDatabase(
+            databaseName(next.userId, next.tenantId),
+        );
+        let nextDeviceKey =
+            (await getMeta<string>(nextDb, 'device_key')) ?? null;
 
-        if (!deviceKey) {
-            deviceKey = crypto.randomUUID();
-            await setMeta(db, 'device_key', deviceKey);
+        if (!nextDeviceKey) {
+            nextDeviceKey = crypto.randomUUID();
+            await setMeta(nextDb, 'device_key', nextDeviceKey);
         }
 
         // Une vente « en cours d'envoi » lors d'une fermeture brutale repart en file.
-        const interrupted = (await getAll<LocalCommand>(db, 'commands')).filter(
-            (c) => c.status === 'sending',
-        );
+        const interrupted = (
+            await getAll<LocalCommand>(nextDb, 'commands')
+        ).filter((c) => c.status === 'sending');
         await put(
-            db,
+            nextDb,
             'commands',
             interrupted.map((c) => ({ ...c, status: 'queued' })),
         );
+
+        // Capture un contexte immuable pour cette base et abandonne l'ancien :
+        // une opération de push/pull encore en cours pour l'ancienne entreprise
+        // se requeue toute seule sur SA base (jamais sur `nextDb`) avant qu'on
+        // ne ferme sa connexion ci-dessous.
+        const { previous } = contextRegistry.start(nextDb, next, nextDeviceKey);
+        db = nextDb;
+        deviceKey = nextDeviceKey;
+
+        if (previous) {
+            await previous.inFlight.catch(() => undefined);
+            previous.db.close();
+        }
     }
 
     syncState.lastSync = next.warehouseId
@@ -224,27 +255,39 @@ async function loadStock(): Promise<void> {
     }
 }
 
-async function ensureDevice(): Promise<boolean> {
-    if (!db || !deviceKey) {
+async function ensureDevice(
+    context: SyncContext<IDBDatabase>,
+): Promise<boolean> {
+    if (!context.deviceKey) {
         return false;
     }
 
-    if (await getMeta<boolean>(db, 'device_registered')) {
+    if (await getMeta<boolean>(context.db, 'device_registered')) {
         return true;
     }
 
-    const response = await api(registerRoute().url, {
-        method: 'POST',
-        body: JSON.stringify({ device_key: deviceKey, label: deviceLabel() }),
-    });
+    const response = await api(
+        registerRoute().url,
+        {
+            method: 'POST',
+            body: JSON.stringify({
+                device_key: context.deviceKey,
+                label: deviceLabel(),
+            }),
+            signal: context.controller.signal,
+        },
+        context.deviceKey,
+    );
 
     if (!response.ok) {
-        syncState.problem = response.status === 403 ? 'device' : 'session';
+        if (isCurrentContext(context)) {
+            syncState.problem = response.status === 403 ? 'device' : 'session';
+        }
 
         return false;
     }
 
-    await setMeta(db, 'device_registered', true);
+    await setMeta(context.db, 'device_registered', true);
 
     return true;
 }
@@ -266,9 +309,18 @@ function deviceLabel(): string {
 
 /**
  * Envoie la file puis met à jour le catalogue. Sans effet hors ligne.
+ *
+ * Capture le contexte (base, entreprise, jeton d'appareil) une fois au
+ * démarrage : `pushQueue`/`pullCatalog` n'écrivent plus jamais que sur
+ * `context.db`, jamais sur les variables mutables `db`/`scope` qui peuvent
+ * avoir déjà basculé vers une autre entreprise à la fin de l'appel réseau
+ * (audit 2026-10-15, « Contamination IndexedDB lors d'un changement de
+ * tenant »).
  */
 export async function syncNow(): Promise<void> {
-    if (!db || !scope || syncState.syncing || !navigator.onLine) {
+    const context = contextRegistry.current();
+
+    if (!context || syncState.syncing || !navigator.onLine) {
         syncState.online = navigator.onLine;
 
         return;
@@ -276,29 +328,39 @@ export async function syncNow(): Promise<void> {
 
     syncState.syncing = true;
 
-    try {
-        if (!(await ensureDevice())) {
-            return;
-        }
+    const operation = (async () => {
+        try {
+            if (!(await ensureDevice(context))) {
+                return;
+            }
 
-        await pushQueue();
-        await pullCatalog();
-        syncState.problem = null;
-    } catch {
-        // Réseau coupé pendant l'échange : la file est conservée, nouvel essai plus tard.
-        syncState.online = navigator.onLine;
-    } finally {
-        syncState.syncing = false;
-        await refreshCounts();
-    }
+            await pushQueue(context);
+            await pullCatalog(context);
+
+            if (isCurrentContext(context)) {
+                syncState.problem = null;
+            }
+        } catch {
+            // Réseau coupé, ou contexte abandonné par un changement de
+            // tenant : la file reste en l'état sur SA base, nouvel essai
+            // plus tard par le contexte qui la possède.
+            if (isCurrentContext(context)) {
+                syncState.online = navigator.onLine;
+            }
+        } finally {
+            if (isCurrentContext(context)) {
+                syncState.syncing = false;
+                await refreshCounts();
+            }
+        }
+    })();
+
+    context.inFlight = operation;
+    await operation;
 }
 
-async function pushQueue(): Promise<void> {
-    if (!db) {
-        return;
-    }
-
-    const queued = (await getAll<LocalCommand>(db, 'commands'))
+async function pushQueue(context: SyncContext<IDBDatabase>): Promise<void> {
+    const queued = (await getAll<LocalCommand>(context.db, 'commands'))
         .filter((c) => c.status === 'queued')
         .sort((a, b) => a.created_at.localeCompare(b.created_at));
 
@@ -308,21 +370,29 @@ async function pushQueue(): Promise<void> {
             status: 'sending' as const,
             attempts: c.attempts + 1,
         }));
-        await put(db, 'commands', batch);
+        await put(context.db, 'commands', batch);
 
-        const response = await api(commandsRoute().url, {
-            method: 'POST',
-            body: JSON.stringify({
-                commands: batch.map((c) => ({
-                    command_id: c.command_id,
-                    type: c.type,
-                    created_at: c.created_at,
-                    payload: c.payload,
-                })),
-            }),
-        }).catch((error) => {
+        const response = await api(
+            commandsRoute().url,
+            {
+                method: 'POST',
+                body: JSON.stringify({
+                    commands: batch.map((c) => ({
+                        command_id: c.command_id,
+                        type: c.type,
+                        created_at: c.created_at,
+                        payload: c.payload,
+                    })),
+                }),
+                signal: context.controller.signal,
+            },
+            context.deviceKey,
+        ).catch((error) => {
+            // Coupure réseau ou tenant changé en cours de route (le fetch est
+            // abandonné via `context.controller`) : la commande repart en
+            // file sur SA propre base, jamais « sending » indéfiniment.
             void put(
-                db!,
+                context.db,
                 'commands',
                 batch.map((c) => ({ ...c, status: 'queued' })),
             );
@@ -331,16 +401,19 @@ async function pushQueue(): Promise<void> {
 
         if (!response.ok) {
             await put(
-                db,
+                context.db,
                 'commands',
                 batch.map((c) => ({ ...c, status: 'queued' })),
             );
-            syncState.problem =
-                response.status === 403
-                    ? 'device'
-                    : response.status === 401 || response.status === 419
-                      ? 'session'
-                      : 'subscription';
+
+            if (isCurrentContext(context)) {
+                syncState.problem =
+                    response.status === 403
+                        ? 'device'
+                        : response.status === 401 || response.status === 419
+                          ? 'session'
+                          : 'subscription';
+            }
 
             return;
         }
@@ -356,7 +429,7 @@ async function pushQueue(): Promise<void> {
         const byId = new Map(results.map((r) => [r.command_id, r]));
 
         await put(
-            db,
+            context.db,
             'commands',
             batch.map((c) => {
                 const r = byId.get(c.command_id);
@@ -376,19 +449,23 @@ async function pushQueue(): Promise<void> {
     }
 }
 
-async function pullCatalog(): Promise<void> {
-    if (!db || !scope?.warehouseId) {
+async function pullCatalog(context: SyncContext<IDBDatabase>): Promise<void> {
+    if (!context.scope.warehouseId) {
         return;
     }
 
-    const warehouse = scope.warehouseId;
-    const since = await getMeta<string>(db, `cursor:${warehouse}`);
+    const warehouse = context.scope.warehouseId;
+    const since = await getMeta<string>(context.db, `cursor:${warehouse}`);
     const response = await api(
         catalogRoute({ query: { warehouse, ...(since ? { since } : {}) } }).url,
+        { signal: context.controller.signal },
+        context.deviceKey,
     );
 
     if (!response.ok) {
-        syncState.problem = response.status === 403 ? 'device' : 'session';
+        if (isCurrentContext(context)) {
+            syncState.problem = response.status === 403 ? 'device' : 'session';
+        }
 
         return;
     }
@@ -406,17 +483,17 @@ async function pullCatalog(): Promise<void> {
     };
 
     if (data.full) {
-        await clearStore(db, 'products');
-        await clearStore(db, 'customers');
+        await clearStore(context.db, 'products');
+        await clearStore(context.db, 'customers');
     }
 
     await remove(
-        db,
+        context.db,
         'products',
         data.products.filter((p) => p.removed).map((p) => p.id),
     );
     await put(
-        db,
+        context.db,
         'products',
         data.products
             .filter((p) => !p.removed)
@@ -427,12 +504,12 @@ async function pullCatalog(): Promise<void> {
             })),
     );
     await remove(
-        db,
+        context.db,
         'customers',
         data.customers.filter((c) => c.removed).map((c) => c.id),
     );
     await put(
-        db,
+        context.db,
         'customers',
         data.customers
             .filter((c) => !c.removed)
@@ -441,11 +518,21 @@ async function pullCatalog(): Promise<void> {
                 search: normalize(`${c.name} ${c.code} ${c.phone ?? ''}`),
             })),
     );
-    await setMeta(db, `stock:${warehouse}`, data.stock);
-    await setMeta(db, `cursor:${warehouse}`, data.cursor);
-    await setMeta(db, `synced_at:${warehouse}`, new Date().toISOString());
-    syncState.lastSync = new Date().toISOString();
-    await loadStock();
+    await setMeta(context.db, `stock:${warehouse}`, data.stock);
+    await setMeta(context.db, `cursor:${warehouse}`, data.cursor);
+    await setMeta(
+        context.db,
+        `synced_at:${warehouse}`,
+        new Date().toISOString(),
+    );
+
+    // Le cache mémoire `stock` et `syncState.lastSync` ne représentent que
+    // l'entreprise active : jamais mis à jour avec la réponse d'un contexte
+    // devenu obsolète (changement de tenant pendant l'appel).
+    if (isCurrentContext(context)) {
+        syncState.lastSync = new Date().toISOString();
+        await loadStock();
+    }
 }
 
 function toPicked(product: OfflineProduct): PickedProduct {
@@ -608,6 +695,12 @@ export async function clearOfflineData(): Promise<void> {
     clearInterval(timer);
     listening = false;
 
+    const previous = contextRegistry.clear();
+
+    if (previous) {
+        await previous.inFlight.catch(() => undefined);
+    }
+
     if (scope) {
         db?.close();
         await deleteDatabase(databaseName(scope.userId, scope.tenantId));
@@ -615,9 +708,14 @@ export async function clearOfflineData(): Promise<void> {
 
     db = null;
     scope = null;
+    deviceKey = null;
     syncState.ready = false;
     syncState.pending = 0;
     syncState.attention = 0;
+
+    // Déclare au service worker qu'il n'y a plus de compte actif : purge
+    // stricte de toute page privée mise en cache (audit 2026-10-15).
+    clearIdentity();
 
     if ('caches' in window) {
         await Promise.all(

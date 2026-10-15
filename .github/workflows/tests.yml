@@ -95,6 +95,9 @@ jobs:
       - name: TypeScript
         run: npm run types:check
 
+      - name: JS unit tests (offline/PWA isolation)
+        run: npm run test:js
+
       - name: Frontend build
         run: npm run build
 
