@@ -151,6 +151,11 @@ final class OfflineSync
             return $this->store($device, $user, $command, $hash, SyncCommand::REJECTED, null, 'forbidden', __('sync.errors.forbidden'));
         }
 
+        // Même règle que le POS en ligne : encaisser exige cash.receive.
+        if (array_filter($data['tenders'], fn (array $t) => $t['amount'] > 0) !== [] && ! $gate->allows('cash.receive')) {
+            return $this->store($device, $user, $command, $hash, SyncCommand::REJECTED, null, 'forbidden', __('sync.errors.forbidden'));
+        }
+
         // Prix modifié ou article archivé depuis la synchronisation : revue humaine, rien n'est perdu.
         $review = $this->priceOrArchiveIssues(array_values($data['lines']), $gate->allows('catalog.price_override'));
 
