@@ -163,6 +163,8 @@ final class TransferService
 
         return DB::transaction(function () use ($transfer, $actor): StockTransfer {
             $locked = $this->lock($transfer);
+            // Seul un utilisateur affecté au dépôt source peut annuler un brouillon.
+            $this->stockAccess->warehouse($locked->source_warehouse_id);
             // Après expédition, la marchandise a quitté le dépôt : il faut la recevoir.
             $this->expectStatus($locked, StockTransfer::DRAFT);
 

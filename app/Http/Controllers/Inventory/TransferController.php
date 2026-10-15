@@ -107,7 +107,7 @@ class TransferController extends Controller
             'can' => [
                 'ship' => $transfer->status === StockTransfer::DRAFT && Gate::allows('inventory.transfer_ship') && in_array($transfer->source_warehouse_id, $ids, true),
                 'receive' => $transfer->status === StockTransfer::IN_TRANSIT && Gate::allows('inventory.transfer_receive') && in_array($transfer->destination_warehouse_id, $ids, true),
-                'cancel' => $transfer->status === StockTransfer::DRAFT && Gate::allows('inventory.transfer_create'),
+                'cancel' => $transfer->status === StockTransfer::DRAFT && Gate::allows('inventory.transfer_create') && in_array($transfer->source_warehouse_id, $ids, true),
             ],
         ]);
     }

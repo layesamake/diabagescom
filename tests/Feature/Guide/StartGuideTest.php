@@ -60,7 +60,7 @@ class StartGuideTest extends TestCase
 
         $this->actingAs($cashier['user'])->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page
             ->where('guide.track', 'cashier')
-            ->where('guide.steps', $this->stepsAre(['cash', 'sale', 'customer', 'reports'])));
+            ->where('guide.steps', $this->stepsAre(['cash', 'sale', 'customer'])));
 
         $this->actingAs($warehouse['user'])->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page
             ->where('guide.track', 'warehouse')

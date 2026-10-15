@@ -35,7 +35,7 @@ Une permission est une action atomique exprimée en `domaine.action`. Les rôles
 | Gérer stock / inventaire | Oui | Non | Oui | Consultation | Consultation | Consultation |
 | Encaisser / caisse | Oui | Caisse affectée | Non | Non | Consultation | Consultation |
 | Comptabilité | Oui | Non | Non | Consultation | Oui | Consultation |
-| Rapports globaux / marges | Oui | Ses opérations | Dépôt affecté | Achats | Oui | Oui |
+| Rapports globaux / marges | Oui | Non | Dépôt affecté | Achats | Oui | Oui |
 | Exporter | Oui | Non par défaut | Dépôt autorisé | Autorisé | Oui | Autorisé |
 
 ## Contraintes supplémentaires

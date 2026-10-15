@@ -26,7 +26,8 @@ class SalesReportTest extends TestCase
         $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '20', 1000]]);
         $session = $this->openSession($setup);
         $this->sell($setup, $session, [[$rice->id, '3']], [['cash', 6000]]);
-        $cashier = $this->member($setup, 'cashier');
+        // Gestionnaire de dépôt : report.view_own sans droit sur les coûts (le Vendeur n'a aucun accès au Pilotage).
+        $cashier = $this->member($setup, 'warehouse_manager');
         $this->sell($cashier, $session, [[$rice->id, '1']], [['wave', 2000]]);
 
         $this->actingAs($setup['user'])->get(route('reports.index'))->assertInertia(fn (Assert $page) => $page
@@ -40,18 +41,28 @@ class SalesReportTest extends TestCase
             ->has('bySeller', 2)
             ->has('byMethod', 2));
 
-        // Caissier : ses ventes seulement, sans coûts ni marge.
+        // Périmètre « propre » : ses ventes seulement, sans coûts ni marge.
         $this->actingAs($cashier['user'])->get(route('reports.index'))->assertInertia(fn (Assert $page) => $page
             ->where('summary.total', 2000)
             ->where('summary.margin', null)
-            ->where('summary.stock_value', null)
             ->where('can.all', false));
-        $this->actingAs($cashier['user'])->get(route('reports.index', ['format' => 'csv']))->assertForbidden();
 
         $csv = $this->actingAs($setup['user'])->get(route('reports.index', ['format' => 'csv']));
         $csv->assertOk();
         $this->assertStringContainsString(';2;8000', $csv->streamedContent());
         $this->assertTrue(AuditEvent::query()->where('action', 'report.exported')->exists());
+    }
+
+    public function test_a_seller_cannot_query_pilotage_in_any_format(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $seller = $this->member($setup, 'cashier');
+
+        $this->actingAs($seller['user'])->get(route('reports.index'))->assertForbidden();
+        $this->actingAs($seller['user'])->get(route('reports.index'), ['X-Inertia' => 'true'])->assertForbidden();
+        $this->actingAs($seller['user'])->get(route('reports.index', ['format' => 'csv']))->assertForbidden();
+        $this->actingAs($seller['user'])->get(route('reports.index', ['format' => 'xlsx']))->assertForbidden();
+        $this->actingAs($seller['user'])->get(route('reports.index', ['format' => 'pdf']))->assertForbidden();
     }
 
     public function test_own_scope_shows_nothing_to_a_user_without_sales(): void
@@ -111,19 +122,17 @@ class SalesReportTest extends TestCase
         CarbonImmutable::setTestNow();
     }
 
-    public function test_own_scope_hides_stock_and_cost_metadata_without_permissions(): void
+    public function test_own_scope_hides_cost_metadata_without_margin_permission(): void
     {
         $setup = $this->createTenantWithMember();
         $rice = $this->makeProduct($setup, 'RIZ', 'U', 1000);
         $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '10', 1000]]);
-        $cashier = $this->member($setup, 'cashier');
+        $cashier = $this->member($setup, 'warehouse_manager');
         $this->sell($cashier, $this->openSession($setup), [[$rice->id, '1']], [['cash', 2000]]);
 
         $this->actingAs($cashier['user'])->get(route('reports.index'))->assertInertia(fn (Assert $page) => $page
-            ->where('products.0.stock', null)
             ->where('products.0.cost', null)
             ->where('products.0.cost_complete', null)
-            ->where('can.inventory', false)
             ->where('can.catalog', true)
             ->where('can.sales', true));
     }
@@ -133,7 +142,7 @@ class SalesReportTest extends TestCase
         $setup = $this->createTenantWithMember();
         $rice = $this->makeProduct($setup, 'RIZ', 'U', 1000);
         $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '10', 1000]]);
-        $cashier = $this->member($setup, 'cashier');
+        $cashier = $this->member($setup, 'warehouse_manager');
         $session = $this->openSession($setup);
 
         CarbonImmutable::setTestNow('2026-10-13 10:00:00');

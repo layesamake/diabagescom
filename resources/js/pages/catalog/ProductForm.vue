@@ -43,6 +43,7 @@ const props = defineProps<{
         update: boolean;
         archive: boolean;
         price_override: boolean;
+        cost: boolean;
     };
 }>();
 
@@ -287,7 +288,7 @@ function toggleArchive(): void {
                     />
                     <InputError :message="errors.sale_price" />
                 </div>
-                <div class="grid gap-2">
+                <div v-if="can.cost" class="grid gap-2">
                     <Label for="standard_cost">{{
                         t('catalog.standard_cost')
                     }}</Label>

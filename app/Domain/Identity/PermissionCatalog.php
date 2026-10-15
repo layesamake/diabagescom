@@ -61,7 +61,7 @@ final class PermissionCatalog
             'permissions' => [
                 'organization.view', 'warehouse.view', 'catalog.view', 'customer.view', 'customer.manage',
                 'sale.view', 'sale.create', 'sale.update_draft', 'sale.validate', 'sale.discount_standard',
-                'cash.view_own', 'cash.open_close', 'cash.receive', 'report.view_own',
+                'cash.view_own', 'cash.open_close', 'cash.receive',
                 'purchase_request.view', 'purchase_request.create',
             ],
         ],
