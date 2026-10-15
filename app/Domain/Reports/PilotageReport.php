@@ -575,7 +575,7 @@ final class PilotageReport
         }
 
         usort($items, fn (array $a, array $b): int => [$a['destination_coverage_days'], $a['sku']] <=> [$b['destination_coverage_days'], $b['sku']]);
-        $result['items'] = array_values(array_slice($items, 0, 20));
+        $result['items'] = array_slice($items, 0, 20);
 
         return $result;
     }
