@@ -23,7 +23,10 @@ import { edit as productEdit } from '@/routes/products';
 import { index as supplierInvoicesIndex } from '@/routes/purchases/invoices';
 import { index as reportsIndex } from '@/routes/reports';
 import { index as salesIndex } from '@/routes/sales';
-import { index as stockIndex } from '@/routes/stock';
+import {
+    index as stockIndex,
+    movements as stockMovements,
+} from '@/routes/stock';
 
 type MetricKey = 'total' | 'excl_tax' | 'sales' | 'average' | 'margin';
 type Comparison = {
@@ -52,6 +55,7 @@ type Priority = {
         | 'receivables'
         | 'payables_overdue'
         | 'dormant_stock'
+        | 'stock_risk'
         | 'negative_margin'
         | 'missing_cost';
     level: 'urgent' | 'important' | 'watch';
@@ -69,7 +73,34 @@ type DormantItem = {
     last_sale: string | null;
     value: number | null;
 };
+type CoverageItem = {
+    id: string;
+    sku: string;
+    label: string;
+    unit: string;
+    available: string;
+    sold: string;
+    daily_demand: string | null;
+    sales_count: number;
+    coverage_days: number | null;
+    coverage_state: 'ok' | 'insufficient_history' | 'no_sales';
+    status: 'out' | 'low' | 'reorder';
+    below_reorder: boolean;
+};
 type StockInsights = {
+    coverage: {
+        window_days: number;
+        min_history_days: number;
+        min_sales: number;
+        risk_days: number;
+        counts: {
+            at_risk: number;
+            out_of_stock: number;
+            insufficient_history: number;
+            no_sales: number;
+        };
+        items: CoverageItem[];
+    };
     dormant: {
         days: number;
         count: number;
@@ -315,7 +346,7 @@ function priorityHref(priority: Priority): string {
         return salesIndex({ query: { type: 'invoice', status: 'unpaid' } }).url;
     }
 
-    if (priority.type === 'dormant_stock') {
+    if (priority.type === 'dormant_stock' || priority.type === 'stock_risk') {
         return stockIndex().url;
     }
 
@@ -635,7 +666,9 @@ function priorityHref(priority: Priority): string {
                     </div>
                     <p class="mt-3 font-medium">{{ priority.message }}</p>
                     <p class="mt-1 text-sm text-muted-foreground">
-                        {{ formatXof(priority.amount) }} · {{ priority.count }}
+                        <template v-if="priority.type !== 'stock_risk'"
+                            >{{ formatXof(priority.amount) }} · </template
+                        >{{ priority.count }}
                         {{ t('reports.elements') }}
                     </p>
                     <Button
@@ -643,7 +676,9 @@ function priorityHref(priority: Priority): string {
                             (priority.type !== 'receivables' || can.sales) &&
                             (priority.type !== 'payables_overdue' ||
                                 can.purchases) &&
-                            (priority.type !== 'dormant_stock' || can.inventory)
+                            ((priority.type !== 'dormant_stock' &&
+                                priority.type !== 'stock_risk') ||
+                                can.inventory)
                         "
                         as-child
                         variant="link"
@@ -1191,6 +1226,159 @@ function priorityHref(priority: Priority): string {
                     }}</Link
                 ></Button
             >
+        </section>
+
+        <section
+            v-if="stockInsights"
+            class="space-y-3"
+            aria-labelledby="coverage-title"
+        >
+            <div>
+                <h2 id="coverage-title" class="text-lg font-semibold">
+                    {{ t('reports.stock_risk') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{
+                        t('reports.stock_risk_hint', {
+                            window: stockInsights.coverage.window_days,
+                            history: stockInsights.coverage.min_history_days,
+                            sales: stockInsights.coverage.min_sales,
+                            risk: stockInsights.coverage.risk_days,
+                        })
+                    }}
+                </p>
+            </div>
+            <EmptyState
+                v-if="stockInsights.coverage.items.length === 0"
+                :hint="t('reports.stock_risk_none_hint')"
+            >
+                {{ t('reports.stock_risk_none') }}
+            </EmptyState>
+            <div v-else class="overflow-x-auto rounded-xl border bg-card">
+                <table class="w-full text-sm">
+                    <caption class="sr-only">
+                        {{
+                            t('reports.stock_risk')
+                        }}
+                    </caption>
+                    <thead class="text-left text-muted-foreground">
+                        <tr>
+                            <th scope="col" class="p-3">
+                                {{ t('reports.product') }}
+                            </th>
+                            <th scope="col" class="p-3">
+                                {{ t('reports.risk_status') }}
+                            </th>
+                            <th scope="col" class="p-3 text-right">
+                                {{ t('reports.available') }}
+                            </th>
+                            <th scope="col" class="p-3 text-right">
+                                {{ t('reports.daily_demand') }}
+                            </th>
+                            <th scope="col" class="p-3 text-right">
+                                {{ t('reports.coverage') }}
+                            </th>
+                            <th scope="col" class="p-3">
+                                <span class="sr-only">{{
+                                    t('reports.actions')
+                                }}</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="item in stockInsights.coverage.items"
+                            :key="item.id"
+                            class="border-t"
+                        >
+                            <td class="p-3">
+                                <span class="font-medium">{{
+                                    item.label
+                                }}</span>
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >{{ item.sku }}</span
+                                >
+                            </td>
+                            <td class="p-3">
+                                <span
+                                    class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                    :class="
+                                        item.status === 'out'
+                                            ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200'
+                                            : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
+                                    "
+                                >
+                                    {{
+                                        item.status === 'out'
+                                            ? t('reports.status_out')
+                                            : item.status === 'low'
+                                              ? t('reports.status_low', {
+                                                    risk: stockInsights.coverage
+                                                        .risk_days,
+                                                })
+                                              : t('reports.status_reorder')
+                                    }}
+                                </span>
+                            </td>
+                            <td class="p-3 text-right tabular-nums">
+                                {{ item.available }} {{ item.unit }}
+                            </td>
+                            <td class="p-3 text-right tabular-nums">
+                                <template v-if="item.daily_demand !== null"
+                                    >{{ item.daily_demand }}
+                                    {{ item.unit }}</template
+                                >
+                                <template v-else>—</template>
+                            </td>
+                            <td class="p-3 text-right">
+                                <template v-if="item.coverage_state === 'ok'"
+                                    >{{ item.coverage_days }}
+                                    {{ t('reports.days') }}</template
+                                >
+                                <template v-else-if="item.status === 'out'"
+                                    >0 {{ t('reports.days') }}</template
+                                >
+                                <template
+                                    v-else-if="
+                                        item.coverage_state === 'no_sales'
+                                    "
+                                    >{{ t('reports.no_sales_state') }}</template
+                                >
+                                <template v-else>{{
+                                    t('reports.insufficient_history')
+                                }}</template>
+                            </td>
+                            <td class="p-3 text-right">
+                                <Button
+                                    v-if="can.inventory"
+                                    as-child
+                                    variant="ghost"
+                                    size="sm"
+                                    ><Link
+                                        :href="
+                                            stockMovements({
+                                                query: { product: item.id },
+                                            })
+                                        "
+                                        >{{ t('reports.view_movements') }}</Link
+                                    ></Button
+                                >
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                {{
+                    t('reports.coverage_counts', {
+                        atRisk: stockInsights.coverage.counts.at_risk,
+                        insufficient:
+                            stockInsights.coverage.counts.insufficient_history,
+                        noSales: stockInsights.coverage.counts.no_sales,
+                    })
+                }}
+            </p>
         </section>
 
         <section

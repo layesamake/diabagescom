@@ -171,7 +171,7 @@ class StockCoverageTest extends TestCase
         // Articles qui seraient « à risque » (seuil atteint) mais hors périmètre : autre entreprise, autre dépôt.
         $foreignProduct = $this->stockedOn($foreign, '2026-06-01 10:00:00', 'ETRANGER', '1');
         $this->actingAs($foreign['user'])->post(route('stock.reorder_point', $foreignProduct), ['warehouse_id' => $foreign['warehouse']->id, 'reorder_point' => '10'])->assertRedirect();
-        $other = $this->stockedOn($setup, '2026-06-01 10:00:00', 'AUTRE', '0.5', $second->id);
+        $other = $this->stockedOn($setup, '2026-06-01 10:00:00', 'AUTRE', '1', $second->id);
         $this->actingAs($setup['user'])->post(route('stock.reorder_point', $other), ['warehouse_id' => $second->id, 'reorder_point' => '10'])->assertRedirect();
 
         // Direction affectée au seul dépôt principal.
