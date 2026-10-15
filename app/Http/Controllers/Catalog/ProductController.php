@@ -151,7 +151,7 @@ class ProductController extends Controller
 
         /** @var User $user */
         $user = $request->user();
-        /** @var array{sku: string, name: string, type: string, unit_id: string, sale_price: int} $data */
+        /** @var array{sku: string, name: string, type: string, unit_id: string, sale_price: int, standard_cost?: int|null} $data */
         $data = $request->validated();
         // Sans droit sur les coûts, le coût saisi est ignoré (valeur par défaut du service).
         if (! Gate::allows('report.margin_view')) {
