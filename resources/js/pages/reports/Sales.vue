@@ -1150,7 +1150,9 @@ function priorityHref(priority: Priority): string {
             </p>
             <Button v-if="can.purchases" as-child variant="outline"
                 ><Link
-                    :href="supplierInvoicesIndex({ query: { status: 'unpaid' } })"
+                    :href="
+                        supplierInvoicesIndex({ query: { status: 'unpaid' } })
+                    "
                     ><ReceiptText class="size-4" />{{
                         t('reports.view_supplier_invoices')
                     }}</Link
