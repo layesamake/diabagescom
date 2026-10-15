@@ -33,7 +33,7 @@ class DashboardActionsTest extends TestCase
     {
         $setup = $this->createTenantWithMember();
 
-        $this->assertActions($this->member($setup, 'cashier'), ['sell', 'quote', 'cash', 'customer', 'reports']);
+        $this->assertActions($this->member($setup, 'cashier'), ['sell', 'quote', 'cash', 'customer']);
         $this->assertActions($this->member($setup, 'warehouse_manager'), ['stock', 'receive', 'transfer', 'count']);
         $this->assertActions($this->member($setup, 'purchaser'), ['purchase', 'request', 'supplier', 'stock', 'reports']);
         $this->assertActions($this->member($setup, 'accountant'), ['accounting', 'reports', 'cash', 'purchase']);

@@ -59,7 +59,7 @@ final class SupplierPaymentService
                 }
 
                 $session = $method === 'cash'
-                    ? $this->cash->lockOpenSession($sessionId ?? throw new InvalidPurchaseOperation(__('purchases.errors.cash_needs_session')), $invoice->warehouse_id)
+                    ? $this->cash->lockOpenSession($sessionId ?? throw new InvalidPurchaseOperation(__('purchases.errors.cash_needs_session')), $invoice->warehouse_id, $actor)
                     : null;
 
                 $payment = new Payment;

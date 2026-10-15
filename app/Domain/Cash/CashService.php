@@ -12,8 +12,10 @@ use App\Models\CashRegister;
 use App\Models\CashSession;
 use App\Models\Payment;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Sessions de caisse (docs/02 §8) :
@@ -83,9 +85,10 @@ final class CashService
 
     /**
      * Verrouille une session ouverte (dans la transaction appelante) et vérifie
-     * qu'elle appartient au dépôt de l'opération.
+     * qu'elle appartient au dépôt de l'opération et que l'acteur peut l'utiliser
+     * (sa propre session, ou cash.view_all pour un superviseur).
      */
-    public function lockOpenSession(string $sessionId, ?string $warehouseId = null): CashSession
+    public function lockOpenSession(string $sessionId, ?string $warehouseId, User $actor): CashSession
     {
         /** @var CashSession|null $session */
         $session = CashSession::query()->with('register')->lockForUpdate()->find($sessionId);
@@ -95,12 +98,24 @@ final class CashService
         }
 
         $this->stockAccess->warehouse($session->register->warehouse_id);
+        $this->assertCanOperate($session, $actor);
 
         if ($warehouseId !== null && $session->register->warehouse_id !== $warehouseId) {
             throw new InvalidCashOperation(__('cash.errors.other_warehouse'));
         }
 
         return $session;
+    }
+
+    /**
+     * Un caissier n'opère que sur la session qu'il a ouverte ; cash.view_all
+     * (superviseur, administrateur) permet d'agir sur celle d'un collègue.
+     */
+    private function assertCanOperate(CashSession $session, User $actor): void
+    {
+        if ($session->opened_by !== $actor->id && ! Gate::forUser($actor)->allows('cash.view_all')) {
+            throw new AuthorizationException(__('cash.errors.not_your_session'));
+        }
     }
 
     /**
@@ -163,10 +178,10 @@ final class CashService
                 $existing = CashMovement::query()->where('idempotency_key', $idempotencyKey)->first();
 
                 if ($existing !== null) {
-                    return $existing;
+                    return $this->sameMovement($existing, $sessionId, $type, $amount, $label);
                 }
 
-                $session = $this->lockOpenSession($sessionId);
+                $session = $this->lockOpenSession($sessionId, null, $actor);
                 $number = $this->sequences->document("cash:{$type}", $type === 'expense' ? 'DP' : 'RD');
                 $movement = $this->recordMovement($session, $type, $type === 'expense' ? -$amount : $amount, $actor, $idempotencyKey,
                     label: trim($label), reason: trim($reason), number: $number);
@@ -176,8 +191,25 @@ final class CashService
                 return $movement;
             });
         } catch (UniqueConstraintViolationException $e) {
-            return CashMovement::query()->where('idempotency_key', $idempotencyKey)->first() ?? throw $e;
+            $existing = CashMovement::query()->where('idempotency_key', $idempotencyKey)->first() ?? throw $e;
+
+            return $this->sameMovement($existing, $sessionId, $type, $amount, $label);
         }
+    }
+
+    /**
+     * Un rejeu renvoie le mouvement enregistré seulement s'il s'agit de la même
+     * opération (session, type, montant, libellé).
+     */
+    private function sameMovement(CashMovement $existing, string $sessionId, string $type, int $amount, string $label): CashMovement
+    {
+        $signed = $type === 'expense' ? -$amount : $amount;
+
+        if ($existing->session_id !== $sessionId || $existing->type !== $type || $existing->amount !== $signed || $existing->label !== trim($label)) {
+            throw new InvalidCashOperation(__('cash.errors.idempotency_conflict'));
+        }
+
+        return $existing;
     }
 
     public function close(CashSession $session, int $countedAmount, ?string $note, User $actor): CashSession
@@ -192,6 +224,7 @@ final class CashService
             /** @var CashSession $locked */
             $locked = CashSession::query()->with('register')->lockForUpdate()->findOrFail($session->id);
             $this->stockAccess->warehouse($locked->register->warehouse_id);
+            $this->assertCanOperate($locked, $actor);
 
             if ($locked->status !== CashSession::OPEN) {
                 throw new InvalidCashOperation(__('cash.errors.session_closed'));
