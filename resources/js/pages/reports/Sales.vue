@@ -20,8 +20,10 @@ import type { TranslationKey } from '@/i18n';
 import { formatDate } from '@/lib/dates';
 import { formatXof } from '@/lib/money';
 import { edit as productEdit } from '@/routes/products';
+import { index as supplierInvoicesIndex } from '@/routes/purchases/invoices';
 import { index as reportsIndex } from '@/routes/reports';
 import { index as salesIndex } from '@/routes/sales';
+import { index as stockIndex } from '@/routes/stock';
 
 type MetricKey = 'total' | 'excl_tax' | 'sales' | 'average' | 'margin';
 type Comparison = {
@@ -46,12 +48,43 @@ type ProductRow = {
     last_sale: string | null;
 };
 type Priority = {
-    type: 'receivables' | 'negative_margin' | 'missing_cost';
+    type:
+        | 'receivables'
+        | 'payables_overdue'
+        | 'dormant_stock'
+        | 'negative_margin'
+        | 'missing_cost';
     level: 'urgent' | 'important' | 'watch';
     amount: number;
     count: number;
     message: string;
     action: string;
+};
+type DormantItem = {
+    id: string;
+    sku: string;
+    label: string;
+    unit: string;
+    quantity: string;
+    last_sale: string | null;
+    value: number | null;
+};
+type StockInsights = {
+    dormant: {
+        days: number;
+        count: number;
+        value: number | null;
+        items: DormantItem[];
+    };
+};
+type ScheduleBucket = { amount: number; count: number };
+type PayablesSchedule = {
+    total: number;
+    overdue: ScheduleBucket;
+    due_7: ScheduleBucket;
+    due_8_30: ScheduleBucket;
+    later: ScheduleBucket;
+    missing_due: ScheduleBucket;
 };
 type Receivables = {
     total: number;
@@ -64,7 +97,12 @@ type Receivables = {
 };
 
 const props = defineProps<{
-    filters: { from: string; to: string; warehouse: string | null };
+    filters: {
+        from: string;
+        to: string;
+        warehouse: string | null;
+        dormant_days: number;
+    };
     period: {
         from: string;
         to: string;
@@ -102,6 +140,8 @@ const props = defineProps<{
     }[];
     products: ProductRow[];
     receivables: Receivables | null;
+    payablesSchedule: PayablesSchedule | null;
+    stockInsights: StockInsights | null;
     priorities: Priority[];
     freshness: string;
     can: {
@@ -126,6 +166,7 @@ const form = reactive({
     from: props.filters.from,
     to: props.filters.to,
     warehouse: props.filters.warehouse ?? '',
+    dormant_days: props.filters.dormant_days,
 });
 const exportFormats = ['csv', 'xlsx', 'pdf'] as const;
 const maxRevenue = computed(() =>
@@ -270,9 +311,19 @@ function variation(metric: MetricKey): {
 }
 
 function priorityHref(priority: Priority): string {
-    return priority.type === 'receivables'
-        ? salesIndex({ query: { type: 'invoice', status: 'unpaid' } }).url
-        : `${reportsIndex({ query: props.filters }).url}#products`;
+    if (priority.type === 'receivables') {
+        return salesIndex({ query: { type: 'invoice', status: 'unpaid' } }).url;
+    }
+
+    if (priority.type === 'dormant_stock') {
+        return stockIndex().url;
+    }
+
+    if (priority.type === 'payables_overdue') {
+        return supplierInvoicesIndex({ query: { status: 'unpaid' } }).url;
+    }
+
+    return `${reportsIndex({ query: props.filters }).url}#products`;
 }
 </script>
 
@@ -573,7 +624,9 @@ function priorityHref(priority: Priority): string {
                             {{
                                 priority.level === 'urgent'
                                     ? t('reports.urgent')
-                                    : t('reports.important')
+                                    : priority.level === 'watch'
+                                      ? t('reports.watch')
+                                      : t('reports.important')
                             }}
                         </span>
                         <span class="text-xs text-muted-foreground">{{
@@ -586,7 +639,12 @@ function priorityHref(priority: Priority): string {
                         {{ t('reports.elements') }}
                     </p>
                     <Button
-                        v-if="priority.type !== 'receivables' || can.sales"
+                        v-if="
+                            (priority.type !== 'receivables' || can.sales) &&
+                            (priority.type !== 'payables_overdue' ||
+                                can.purchases) &&
+                            (priority.type !== 'dormant_stock' || can.inventory)
+                        "
                         as-child
                         variant="link"
                         class="mt-2 h-auto p-0"
@@ -1074,6 +1132,204 @@ function priorityHref(priority: Priority): string {
                     "
                     ><ReceiptText class="size-4" />{{
                         t('reports.view_invoices')
+                    }}</Link
+                ></Button
+            >
+        </section>
+
+        <section
+            v-if="payablesSchedule"
+            class="space-y-3"
+            aria-labelledby="payables-title"
+        >
+            <div>
+                <h2 id="payables-title" class="text-lg font-semibold">
+                    {{ t('reports.money_to_pay') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('reports.money_to_pay_hint') }}
+                </p>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <article
+                    v-for="bucket in [
+                        ['overdue', t('reports.due_overdue')],
+                        ['due_7', t('reports.due_7')],
+                        ['due_8_30', t('reports.due_8_30')],
+                        ['later', t('reports.due_later')],
+                    ] as const"
+                    :key="bucket[0]"
+                    class="rounded-xl border bg-card p-4"
+                >
+                    <p class="text-sm text-muted-foreground">{{ bucket[1] }}</p>
+                    <p class="text-xl font-bold tabular-nums">
+                        {{ formatXof(payablesSchedule[bucket[0]].amount) }}
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        {{ payablesSchedule[bucket[0]].count }}
+                        {{ t('reports.invoices') }}
+                    </p>
+                </article>
+            </div>
+            <p
+                v-if="payablesSchedule.missing_due.amount > 0"
+                class="flex gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+            >
+                <AlertTriangle class="mt-0.5 size-4 shrink-0" />
+                <span
+                    >{{ formatXof(payablesSchedule.missing_due.amount) }}
+                    {{ t('reports.missing_payable_due_dates') }}</span
+                >
+            </p>
+            <Button v-if="can.purchases" as-child variant="outline"
+                ><Link
+                    :href="
+                        supplierInvoicesIndex({ query: { status: 'unpaid' } })
+                    "
+                    ><ReceiptText class="size-4" />{{
+                        t('reports.view_supplier_invoices')
+                    }}</Link
+                ></Button
+            >
+        </section>
+
+        <section
+            v-if="stockInsights"
+            class="space-y-3"
+            aria-labelledby="dormant-title"
+        >
+            <div class="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                    <h2 id="dormant-title" class="text-lg font-semibold">
+                        {{ t('reports.dormant_stock') }}
+                    </h2>
+                    <p class="text-sm text-muted-foreground">
+                        {{
+                            t('reports.dormant_stock_hint', {
+                                days: stockInsights.dormant.days,
+                            })
+                        }}
+                    </p>
+                </div>
+                <label class="grid gap-1 text-sm">
+                    <span>{{ t('reports.dormant_days') }}</span>
+                    <select
+                        v-model.number="form.dormant_days"
+                        class="h-11 rounded-md border border-input bg-background px-3 text-sm"
+                        @change="apply"
+                    >
+                        <option
+                            v-for="days in [30, 60, 90, 180, 365]"
+                            :key="days"
+                            :value="days"
+                        >
+                            {{ days }} {{ t('reports.days') }}
+                        </option>
+                    </select>
+                </label>
+            </div>
+            <EmptyState
+                v-if="stockInsights.dormant.count === 0"
+                :hint="t('reports.dormant_none_hint')"
+            >
+                {{ t('reports.dormant_none') }}
+            </EmptyState>
+            <template v-else>
+                <p class="text-sm">
+                    <strong>{{ stockInsights.dormant.count }}</strong>
+                    {{ t('reports.dormant_articles') }}
+                    <template v-if="stockInsights.dormant.value !== null">
+                        ·
+                        {{ t('reports.dormant_value') }}
+                        <strong class="tabular-nums">{{
+                            formatXof(stockInsights.dormant.value)
+                        }}</strong>
+                    </template>
+                </p>
+                <div class="overflow-x-auto rounded-xl border bg-card">
+                    <table class="w-full text-sm">
+                        <caption class="sr-only">
+                            {{
+                                t('reports.dormant_stock')
+                            }}
+                        </caption>
+                        <thead class="text-left text-muted-foreground">
+                            <tr>
+                                <th scope="col" class="p-3">
+                                    {{ t('reports.product') }}
+                                </th>
+                                <th scope="col" class="p-3 text-right">
+                                    {{ t('reports.quantity') }}
+                                </th>
+                                <th scope="col" class="p-3">
+                                    {{ t('reports.last_sale') }}
+                                </th>
+                                <th
+                                    v-if="can.margin"
+                                    scope="col"
+                                    class="p-3 text-right"
+                                >
+                                    {{ t('reports.dormant_item_value') }}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="item in stockInsights.dormant.items"
+                                :key="item.id"
+                                class="border-t"
+                            >
+                                <td class="p-3">
+                                    <span class="font-medium">{{
+                                        item.label
+                                    }}</span>
+                                    <span
+                                        class="block text-xs text-muted-foreground"
+                                        >{{ item.sku }}</span
+                                    >
+                                </td>
+                                <td class="p-3 text-right tabular-nums">
+                                    {{ item.quantity }} {{ item.unit }}
+                                </td>
+                                <td class="p-3">
+                                    {{
+                                        item.last_sale
+                                            ? formatDate(item.last_sale)
+                                            : t('reports.never_sold')
+                                    }}
+                                </td>
+                                <td
+                                    v-if="can.margin"
+                                    class="p-3 text-right tabular-nums"
+                                >
+                                    {{
+                                        item.value !== null
+                                            ? formatXof(item.value)
+                                            : '—'
+                                    }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p
+                    v-if="
+                        stockInsights.dormant.count >
+                        stockInsights.dormant.items.length
+                    "
+                    class="text-sm text-muted-foreground"
+                >
+                    {{
+                        t('reports.dormant_truncated', {
+                            shown: stockInsights.dormant.items.length,
+                        })
+                    }}
+                </p>
+            </template>
+            <Button v-if="can.inventory" as-child variant="outline"
+                ><Link :href="stockIndex()"
+                    ><PackageSearch class="size-4" />{{
+                        t('reports.view_stock')
                     }}</Link
                 ></Button
             >

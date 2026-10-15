@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 /**
  * Read model centralisé de l'espace Pilotage.
@@ -37,13 +38,20 @@ final class PilotageReport
         CarbonImmutable $previousFrom,
         CarbonImmutable $previousTo,
         string $timezone,
+        int $dormantDays = 90,
     ): array {
         $selectedWarehouses = $warehouseId !== null ? [$warehouseId] : $warehouseIds;
         $current = $this->metrics($user, $all, $canSeeMargin, $canSeeInventory, $canSeePurchases, $selectedWarehouses, $from, $to);
         $previous = $this->metrics($user, $all, $canSeeMargin, $canSeeInventory, $canSeePurchases, $selectedWarehouses, $previousFrom, $previousTo);
         $products = $this->products($user, $all, $canSeeMargin, $canSeeInventory, $selectedWarehouses, $from, $to);
         $priorityMetrics = $canSeeMargin ? $this->productPriorityMetrics($user, $all, $selectedWarehouses, $from, $to) : null;
-        $receivables = $all ? $this->receivables($selectedWarehouses, CarbonImmutable::now($timezone)->startOfDay()) : null;
+        $today = CarbonImmutable::now($timezone)->startOfDay();
+        $receivables = $all ? $this->receivables($selectedWarehouses, $today) : null;
+        $payablesSchedule = $all && $canSeePurchases ? $this->payablesSchedule($selectedWarehouses, $today) : null;
+        // Une demande calculée sur ses seules ventes serait faussée : vue d'ensemble réservée à report.view_all.
+        $stockInsights = $all && $canSeeInventory
+            ? ['dormant' => $this->dormantStock($selectedWarehouses, $today, $dormantDays, $canSeeMargin, $timezone)]
+            : null;
 
         return [
             'summary' => $current,
@@ -61,7 +69,9 @@ final class PilotageReport
                 'total' => $row['revenue'],
             ]),
             'receivables' => $receivables,
-            'priorities' => $this->priorities($current, $priorityMetrics, $receivables, $canSeeMargin),
+            'payablesSchedule' => $payablesSchedule,
+            'stockInsights' => $stockInsights,
+            'priorities' => $this->priorities($current, $priorityMetrics, $receivables, $payablesSchedule, $stockInsights, $canSeeMargin),
         ];
     }
 
@@ -270,6 +280,110 @@ final class PilotageReport
     }
 
     /**
+     * Stock dormant : article en stock (quantité positive, hors services et archivés),
+     * sans vente depuis $days jours et en stock depuis au moins $days jours, pour ne pas
+     * qualifier de dormant un article récemment réceptionné. La valeur immobilisée
+     * (quantité × coût moyen) n'est calculée qu'avec report.margin_view ; la dernière
+     * vente est cherchée sans borne de date, sur les dépôts du périmètre.
+     *
+     * @param  list<string>  $warehouseIds
+     * @return array{days: int, count: int, value: int|null, items: list<array<string, mixed>>}
+     */
+    private function dormantStock(array $warehouseIds, CarbonImmutable $today, int $days, bool $canSeeMargin, string $timezone): array
+    {
+        $empty = ['days' => $days, 'count' => 0, 'value' => $canSeeMargin ? 0 : null, 'items' => []];
+
+        if ($warehouseIds === []) {
+            return $empty;
+        }
+
+        $tenant = $this->context->tenantId();
+        $in = implode(',', array_fill(0, count($warehouseIds), '?'));
+        $cutoff = $today->subDays($days)->toIso8601String();
+        $order = $canSeeMargin ? 'x.value DESC, x.sku' : 'x.quantity DESC, x.sku';
+
+        $rows = DB::select("SELECT * FROM (
+                SELECT p.id, p.sku, p.name, u.code AS unit,
+                    SUM(b.quantity_on_hand) AS quantity,
+                    SUM(ROUND(b.quantity_on_hand * b.average_cost)) AS value,
+                    (SELECT MAX(d.validated_at) FROM sales_documents d
+                        JOIN sales_document_lines l ON l.document_id = d.id AND l.tenant_id = d.tenant_id
+                        WHERE d.tenant_id = ? AND d.type = 'invoice' AND d.status = 'validated'
+                            AND d.warehouse_id IN ({$in}) AND l.product_id = p.id) AS last_sale,
+                    (SELECT MIN(m.occurred_at) FROM inventory_movements m
+                        WHERE m.tenant_id = ? AND m.product_id = p.id
+                            AND m.warehouse_id IN ({$in}) AND m.quantity_delta > 0) AS first_in
+                FROM inventory_balances b
+                JOIN products p ON p.id = b.product_id AND p.tenant_id = b.tenant_id
+                JOIN units u ON u.id = p.unit_id
+                WHERE b.tenant_id = ? AND b.warehouse_id IN ({$in}) AND b.quantity_on_hand > 0
+                    AND p.type IN ('stockable', 'consumable') AND p.archived_at IS NULL
+                GROUP BY p.id, p.sku, p.name, u.code
+            ) x
+            WHERE x.first_in IS NOT NULL AND x.first_in <= ?::timestamptz
+                AND (x.last_sale IS NULL OR x.last_sale < ?::timestamptz)
+            ORDER BY {$order}",
+            [$tenant, ...$warehouseIds, $tenant, ...$warehouseIds, $tenant, ...$warehouseIds, $cutoff, $cutoff]);
+
+        $items = array_map(fn (stdClass $row): array => [
+            'id' => (string) $row->id,
+            'sku' => (string) $row->sku,
+            'label' => (string) $row->name,
+            'unit' => (string) $row->unit,
+            'quantity' => (string) $row->quantity,
+            'last_sale' => $row->last_sale !== null ? CarbonImmutable::parse((string) $row->last_sale)->setTimezone($timezone)->toDateString() : null,
+            'value' => $canSeeMargin ? (int) $row->value : null,
+        ], $rows);
+
+        return [
+            'days' => $days,
+            'count' => count($items),
+            'value' => $canSeeMargin ? array_sum(array_column($items, 'value')) : null,
+            'items' => array_values(array_slice($items, 0, 20)),
+        ];
+    }
+
+    /**
+     * Échéancier des dettes fournisseurs : solde restant (total − réglé − avoirs) des
+     * factures validées, par date d'échéance. Les factures sans échéance sont isolées,
+     * jamais rangées dans une tranche inventée. Les tranches s'additionnent au total.
+     *
+     * @param  list<string>  $warehouseIds
+     * @return array{total: int, overdue: array{amount: int, count: int}, due_7: array{amount: int, count: int}, due_8_30: array{amount: int, count: int}, later: array{amount: int, count: int}, missing_due: array{amount: int, count: int}}
+     */
+    private function payablesSchedule(array $warehouseIds, CarbonImmutable $today): array
+    {
+        $balance = 'GREATEST(i.total - i.amount_paid - i.amount_credited, 0)';
+        $date = $today->toDateString();
+        $rows = DB::table('supplier_invoices as i')
+            ->where('i.tenant_id', $this->context->tenantId())
+            ->where('i.status', 'validated')
+            ->whereIn('i.warehouse_id', $warehouseIds)
+            ->whereRaw("{$balance} > 0")
+            ->selectRaw("CASE
+                    WHEN i.due_date IS NULL THEN 'missing_due'
+                    WHEN i.due_date < ?::date THEN 'overdue'
+                    WHEN i.due_date <= ?::date + 7 THEN 'due_7'
+                    WHEN i.due_date <= ?::date + 30 THEN 'due_8_30'
+                    ELSE 'later' END AS bucket,
+                SUM({$balance}) AS amount, COUNT(*) AS count", [$date, $date, $date])
+            ->groupBy('bucket')
+            ->get()->keyBy('bucket');
+
+        $schedule = ['total' => 0];
+
+        foreach (['overdue', 'due_7', 'due_8_30', 'later', 'missing_due'] as $bucket) {
+            $schedule[$bucket] = [
+                'amount' => (int) ($rows[$bucket]->amount ?? 0),
+                'count' => (int) ($rows[$bucket]->count ?? 0),
+            ];
+            $schedule['total'] += $schedule[$bucket]['amount'];
+        }
+
+        return $schedule;
+    }
+
+    /**
      * @param  list<string>  $warehouseIds
      * @return array{negative_amount: int, negative_count: int, missing_count: int}
      */
@@ -306,9 +420,11 @@ final class PilotageReport
      * @param  array<string, int|null>  $summary
      * @param  array{negative_amount: int, negative_count: int, missing_count: int}|null  $productMetrics
      * @param  array<string, mixed>|null  $receivables
+     * @param  array<string, mixed>|null  $payablesSchedule
+     * @param  array<string, mixed>|null  $stockInsights
      * @return list<array<string, int|string>>
      */
-    private function priorities(array $summary, ?array $productMetrics, ?array $receivables, bool $canSeeMargin): array
+    private function priorities(array $summary, ?array $productMetrics, ?array $receivables, ?array $payablesSchedule, ?array $stockInsights, bool $canSeeMargin): array
     {
         $priorities = [];
 
@@ -320,6 +436,17 @@ final class PilotageReport
                 'count' => array_sum(array_column($receivables['aging'], 'count')),
                 'message' => 'Des factures clients sont arrivées à échéance.',
                 'action' => 'Voir les factures',
+            ];
+        }
+
+        if (($payablesSchedule['overdue']['amount'] ?? 0) > 0) {
+            $priorities[] = [
+                'type' => 'payables_overdue',
+                'level' => 'important',
+                'amount' => (int) $payablesSchedule['overdue']['amount'],
+                'count' => (int) $payablesSchedule['overdue']['count'],
+                'message' => 'Des factures fournisseurs sont arrivées à échéance.',
+                'action' => 'Voir les factures fournisseurs',
             ];
         }
 
@@ -345,6 +472,18 @@ final class PilotageReport
                     'action' => 'Voir les articles concernés',
                 ];
             }
+        }
+
+        // Une priorité sans montant connu n'a pas d'impact chiffrable : seulement avec la valeur du stock.
+        if ($canSeeMargin && ($stockInsights['dormant']['count'] ?? 0) > 0) {
+            $priorities[] = [
+                'type' => 'dormant_stock',
+                'level' => 'watch',
+                'amount' => (int) $stockInsights['dormant']['value'],
+                'count' => (int) $stockInsights['dormant']['count'],
+                'message' => "Du stock n'a pas été vendu depuis {$stockInsights['dormant']['days']} jours.",
+                'action' => 'Voir le stock',
+            ];
         }
 
         return array_slice($priorities, 0, 5);
