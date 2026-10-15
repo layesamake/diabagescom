@@ -110,11 +110,7 @@ final class OfflineSync
         $existing = SyncCommand::query()->where('command_id', $commandId)->first();
 
         if ($existing !== null) {
-            // Même identifiant, contenu différent : jamais traité comme la même commande.
-            return $existing->payload_hash === $hash
-                ? $existing->response()
-                : ['command_id' => $commandId, 'status' => SyncCommand::REJECTED, 'result' => null,
-                    'error' => ['code' => 'hash_mismatch', 'message' => __('sync.errors.hash_mismatch')]];
+            return $this->replay($existing, $user, (string) ($command['type'] ?? ''), $hash);
         }
 
         $type = (string) ($command['type'] ?? '');
@@ -225,6 +221,27 @@ final class OfflineSync
     }
 
     /**
+     * Rejeu d'une commande déjà journalisée : même contenu, même type et même
+     * utilisateur → même réponse ; sinon refus, jamais le résultat d'une autre commande.
+     *
+     * @return array<string, mixed>
+     */
+    private function replay(SyncCommand $existing, User $user, string $type, string $hash): array
+    {
+        if ($existing->created_by !== $user->id) {
+            return ['command_id' => $existing->command_id, 'status' => SyncCommand::REJECTED, 'result' => null,
+                'error' => ['code' => 'command_owner_mismatch', 'message' => __('sync.errors.owner_mismatch')]];
+        }
+
+        if ($existing->payload_hash !== $hash || $existing->type !== mb_substr($type, 0, 32)) {
+            return ['command_id' => $existing->command_id, 'status' => SyncCommand::REJECTED, 'result' => null,
+                'error' => ['code' => 'hash_mismatch', 'message' => __('sync.errors.hash_mismatch')]];
+        }
+
+        return $existing->response();
+    }
+
+    /**
      * @param  array<string, mixed>  $command
      * @param  array<string, mixed>|null  $result
      * @return array<string, mixed>
@@ -252,9 +269,12 @@ final class OfflineSync
             // Relu depuis la base : la première réponse est identique octet pour octet aux rejeux.
             $record->refresh();
         } catch (UniqueConstraintViolationException) {
-            // Envoi concurrent de la même commande : renvoyer le résultat enregistré.
-            /** @var SyncCommand $record */
-            $record = SyncCommand::query()->where('command_id', $record->command_id)->firstOrFail();
+            // Envoi concurrent de la même commande : le résultat enregistré n'est renvoyé que
+            // si la commande est identique (contenu, type, utilisateur) ; sinon refus explicite.
+            /** @var SyncCommand $winner */
+            $winner = SyncCommand::query()->where('command_id', $record->command_id)->firstOrFail();
+
+            return $this->replay($winner, $user, (string) ($command['type'] ?? ''), $hash);
         }
 
         if ($status !== SyncCommand::ACCEPTED) {

@@ -64,6 +64,8 @@ final class PaymentService
                 $existing = $this->existing($idempotencyKey, $invoice, 'customer_payment');
 
                 if ($existing !== []) {
+                    $this->assertSameTenders($existing, $tenders, $sessionId);
+
                     return $existing;
                 }
 
@@ -101,7 +103,10 @@ final class PaymentService
                 return $payments;
             });
         } catch (UniqueConstraintViolationException $e) {
-            return $this->existing($idempotencyKey, $invoice, 'customer_payment') ?: throw $e;
+            $existing = $this->existing($idempotencyKey, $invoice, 'customer_payment') ?: throw $e;
+            $this->assertSameTenders($existing, $tenders, $sessionId);
+
+            return $existing;
         }
     }
 
@@ -122,6 +127,8 @@ final class PaymentService
                 $existing = $this->existing($idempotencyKey, $invoice, 'customer_refund');
 
                 if ($existing !== []) {
+                    $this->assertSameTenders($existing, [['method' => $method, 'amount' => $amount]], $sessionId);
+
                     return $existing[0];
                 }
 
@@ -201,6 +208,38 @@ final class PaymentService
         }
 
         return $payments;
+    }
+
+    /**
+     * Un rejeu doit décrire les mêmes règlements (modes, montants, session) que ceux
+     * enregistrés ; sinon la clé est réutilisée pour une autre opération.
+     *
+     * @param  list<Payment>  $payments
+     * @param  list<array{method: string, amount: int|string}>  $tenders
+     */
+    private function assertSameTenders(array $payments, array $tenders, ?string $sessionId): void
+    {
+        $recorded = [];
+        $requested = [];
+
+        foreach ($payments as $payment) {
+            $recorded[$payment->method] = ($recorded[$payment->method] ?? 0) + $payment->amount;
+
+            if ($sessionId !== null && $payment->cash_session_id !== $sessionId) {
+                throw new InvalidSalesOperation(__('sales.errors.idempotency_conflict'));
+            }
+        }
+
+        foreach ($tenders as $tender) {
+            $requested[$tender['method']] = ($requested[$tender['method']] ?? 0) + (int) $tender['amount'];
+        }
+
+        ksort($recorded);
+        ksort($requested);
+
+        if ($recorded !== $requested) {
+            throw new InvalidSalesOperation(__('sales.errors.idempotency_conflict'));
+        }
     }
 
     private function expectInvoice(SalesDocument $invoice): void

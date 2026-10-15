@@ -178,7 +178,7 @@ final class CashService
                 $existing = CashMovement::query()->where('idempotency_key', $idempotencyKey)->first();
 
                 if ($existing !== null) {
-                    return $existing;
+                    return $this->sameMovement($existing, $sessionId, $type, $amount, $label);
                 }
 
                 $session = $this->lockOpenSession($sessionId, null, $actor);
@@ -191,8 +191,25 @@ final class CashService
                 return $movement;
             });
         } catch (UniqueConstraintViolationException $e) {
-            return CashMovement::query()->where('idempotency_key', $idempotencyKey)->first() ?? throw $e;
+            $existing = CashMovement::query()->where('idempotency_key', $idempotencyKey)->first() ?? throw $e;
+
+            return $this->sameMovement($existing, $sessionId, $type, $amount, $label);
         }
+    }
+
+    /**
+     * Un rejeu renvoie le mouvement enregistré seulement s'il s'agit de la même
+     * opération (session, type, montant, libellé).
+     */
+    private function sameMovement(CashMovement $existing, string $sessionId, string $type, int $amount, string $label): CashMovement
+    {
+        $signed = $type === 'expense' ? -$amount : $amount;
+
+        if ($existing->session_id !== $sessionId || $existing->type !== $type || $existing->amount !== $signed || $existing->label !== trim($label)) {
+            throw new InvalidCashOperation(__('cash.errors.idempotency_conflict'));
+        }
+
+        return $existing;
     }
 
     public function close(CashSession $session, int $countedAmount, ?string $note, User $actor): CashSession

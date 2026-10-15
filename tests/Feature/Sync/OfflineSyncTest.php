@@ -106,6 +106,27 @@ class OfflineSyncTest extends TestCase
         $this->assertSame('5.000', $this->balance($setup['warehouse']->id, $rice->id)['quantity']);
     }
 
+    public function test_a_command_replayed_by_another_user_is_refused_and_leaks_nothing(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $rice = $this->makeProduct($setup);
+        $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '5', 1000]]);
+        $session = $this->openSession($setup);
+        $device = $this->registerDevice($setup);
+        $command = $this->saleCommand($setup, $session->id, $rice->id);
+        [$first] = $this->push($setup, $device, $command);
+        $this->assertSame('accepted', $first['status']);
+
+        $other = $this->member($setup, 'cashier');
+        $otherDevice = $this->registerDevice($other);
+        [$result] = $this->push($other, $otherDevice, $command);
+
+        $this->assertSame('rejected', $result['status']);
+        $this->assertSame('command_owner_mismatch', $result['error']['code']);
+        $this->assertNull($result['result']);
+        $this->assertSame(1, SalesDocument::query()->withoutGlobalScopes()->count());
+    }
+
     public function test_a_sale_interrupted_online_is_completed_by_the_queued_command_without_duplicate(): void
     {
         $setup = $this->createTenantWithMember();
