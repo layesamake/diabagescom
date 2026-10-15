@@ -2254,6 +2254,21 @@ export const fr = {
         invoices: 'facture(s)',
         missing_due_dates: 'de créances n’ont pas de date d’échéance.',
         view_invoices: 'Voir les factures à encaisser',
+        watch: 'À surveiller',
+        dormant_stock: 'Stock dormant',
+        dormant_stock_hint:
+            'Articles en stock, non vendus depuis {days} jours et en stock depuis au moins {days} jours. Situation actuelle : elle ne dépend pas de la période choisie.',
+        dormant_days: 'Sans vente depuis',
+        days: 'jours',
+        dormant_none: 'Aucun article dormant.',
+        dormant_none_hint:
+            'Tous les articles en stock ont été vendus récemment ou viennent d’être reçus.',
+        dormant_articles: 'article(s) sans vente récente',
+        dormant_value: 'valeur du stock concerné :',
+        dormant_item_value: 'Valeur du stock',
+        dormant_truncated: 'Les {shown} premiers articles sont affichés.',
+        never_sold: 'Jamais vendu',
+        view_stock: 'Voir le stock',
         money_to_pay: 'Argent à payer',
         money_to_pay_hint:
             'Dettes fournisseurs ouvertes selon leur échéance. Ce sont des soldes connus, pas de la trésorerie disponible.',
