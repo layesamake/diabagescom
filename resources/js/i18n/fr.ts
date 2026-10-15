@@ -2255,6 +2255,24 @@ export const fr = {
         missing_due_dates: 'de créances n’ont pas de date d’échéance.',
         view_invoices: 'Voir les factures à encaisser',
         watch: 'À surveiller',
+        stock_risk: 'Risque de rupture',
+        stock_risk_hint:
+            'Estimation : stock disponible divisé par les ventes par jour observées sur les {window} derniers jours (ou depuis la première entrée en stock). Elle n’est calculée qu’avec au moins {history} jours d’historique et {sales} ventes. Les commandes d’achat attendues ne sont pas comptées, et si le stock a été à zéro la demande peut être sous-estimée. Un article est signalé sous {risk} jours de couverture, en rupture ou au seuil de réapprovisionnement.',
+        stock_risk_none: 'Aucun article à risque de rupture.',
+        stock_risk_none_hint:
+            'Les articles sans historique suffisant ne sont pas évalués.',
+        risk_status: 'Situation',
+        status_out: 'Rupture',
+        status_low: 'Moins de {risk} jours',
+        status_reorder: 'Seuil de réapprovisionnement atteint',
+        available: 'Disponible',
+        daily_demand: 'Ventes par jour',
+        coverage: 'Couverture',
+        insufficient_history: 'Historique insuffisant',
+        no_sales_state: 'Aucune vente',
+        view_movements: 'Voir les mouvements',
+        coverage_counts:
+            '{atRisk} article(s) à surveiller · {insufficient} avec un historique insuffisant · {noSales} sans vente récente.',
         dormant_stock: 'Stock dormant',
         dormant_stock_hint:
             'Articles en stock, non vendus depuis {days} jours et en stock depuis au moins {days} jours. Situation actuelle : elle ne dépend pas de la période choisie.',

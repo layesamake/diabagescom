@@ -19,6 +19,18 @@ use stdClass;
  */
 final class PilotageReport
 {
+    /** Fenêtre d'observation de la demande, en jours. */
+    private const int COVERAGE_WINDOW_DAYS = 90;
+
+    /** Jours d'historique minimum (depuis la première entrée en stock) pour calculer une couverture. */
+    private const int COVERAGE_MIN_HISTORY_DAYS = 14;
+
+    /** Nombre minimum de ventes (factures) sur la fenêtre pour calculer une couverture. */
+    private const int COVERAGE_MIN_SALES = 3;
+
+    /** Un article est « à risque » sous ce nombre de jours de couverture. */
+    private const int COVERAGE_RISK_DAYS = 7;
+
     public function __construct(private readonly TenantContext $context) {}
 
     /**
@@ -50,7 +62,10 @@ final class PilotageReport
         $payablesSchedule = $all && $canSeePurchases ? $this->payablesSchedule($selectedWarehouses, $today) : null;
         // Une demande calculée sur ses seules ventes serait faussée : vue d'ensemble réservée à report.view_all.
         $stockInsights = $all && $canSeeInventory
-            ? ['dormant' => $this->dormantStock($selectedWarehouses, $today, $dormantDays, $canSeeMargin, $timezone)]
+            ? [
+                'dormant' => $this->dormantStock($selectedWarehouses, $today, $dormantDays, $canSeeMargin, $timezone),
+                'coverage' => $this->stockCoverage($selectedWarehouses, $today),
+            ]
             : null;
 
         return [
@@ -280,6 +295,152 @@ final class PilotageReport
     }
 
     /**
+     * Couverture de stock et risque de rupture, par article sur le périmètre.
+     *
+     * Demande/jour = (ventes − quantités remises en stock par avoir) sur la fenêtre, divisées
+     * par les jours effectifs (min(fenêtre, ancienneté de la première entrée en stock)).
+     * Couverture = stock disponible ÷ demande/jour, arrondie à l'entier inférieur.
+     * Elle n'est calculée qu'avec assez d'historique (jours et ventes) ; sinon l'article est
+     * « Historique insuffisant », et sans aucune vente « Aucune vente » : jamais de
+     * couverture rassurante inventée. Rupture et seuil de réapprovisionnement sont des
+     * faits : ils s'affichent même sans historique. Les commandes d'achat attendues ne sont
+     * pas déduites, et une demande observée pendant une rupture peut être sous-estimée.
+     *
+     * @param  list<string>  $warehouseIds
+     * @return array<string, mixed>
+     */
+    private function stockCoverage(array $warehouseIds, CarbonImmutable $today): array
+    {
+        $parameters = [
+            'window_days' => self::COVERAGE_WINDOW_DAYS,
+            'min_history_days' => self::COVERAGE_MIN_HISTORY_DAYS,
+            'min_sales' => self::COVERAGE_MIN_SALES,
+            'risk_days' => self::COVERAGE_RISK_DAYS,
+        ];
+        $counts = ['at_risk' => 0, 'out_of_stock' => 0, 'insufficient_history' => 0, 'no_sales' => 0];
+
+        if ($warehouseIds === []) {
+            return [...$parameters, 'counts' => $counts, 'items' => []];
+        }
+
+        $tenant = $this->context->tenantId();
+        $in = implode(',', array_fill(0, count($warehouseIds), '?'));
+        $windowStart = $today->subDays(self::COVERAGE_WINDOW_DAYS)->toIso8601String();
+
+        $rows = DB::select("WITH sb AS (
+                SELECT b.product_id, SUM(b.quantity_on_hand - b.quantity_reserved) AS available
+                FROM inventory_balances b
+                WHERE b.tenant_id = ? AND b.warehouse_id IN ({$in})
+                GROUP BY b.product_id
+            ), ro AS (
+                SELECT s.product_id,
+                    BOOL_OR(s.reorder_point IS NOT NULL AND COALESCE(b.quantity_on_hand, 0) <= s.reorder_point) AS below
+                FROM product_warehouse_settings s
+                LEFT JOIN inventory_balances b ON b.tenant_id = s.tenant_id AND b.product_id = s.product_id AND b.warehouse_id = s.warehouse_id
+                WHERE s.tenant_id = ? AND s.warehouse_id IN ({$in})
+                GROUP BY s.product_id
+            ), sa AS (
+                SELECT l.product_id,
+                    SUM(CASE WHEN d.type = 'invoice' THEN l.quantity WHEN l.restock THEN -l.quantity ELSE 0 END) AS sold,
+                    COUNT(DISTINCT d.id) FILTER (WHERE d.type = 'invoice') AS sales_count,
+                    COUNT(DISTINCT l.unit_code) AS units
+                FROM sales_documents d
+                JOIN sales_document_lines l ON l.document_id = d.id AND l.tenant_id = d.tenant_id
+                WHERE d.tenant_id = ? AND d.status = 'validated' AND d.type IN ('invoice', 'credit_note')
+                    AND d.warehouse_id IN ({$in}) AND d.validated_at >= ?::timestamptz
+                GROUP BY l.product_id
+            ), fi AS (
+                SELECT m.product_id, MIN(m.occurred_at) AS first_in
+                FROM inventory_movements m
+                WHERE m.tenant_id = ? AND m.warehouse_id IN ({$in}) AND m.quantity_delta > 0
+                GROUP BY m.product_id
+            )
+            SELECT p.id, p.sku, p.name, u.code AS unit, sb.available,
+                COALESCE(ro.below, false) AS below_reorder,
+                COALESCE(sa.sold, 0) AS sold, COALESCE(sa.sales_count, 0) AS sales_count, COALESCE(sa.units, 0) AS units,
+                FLOOR(EXTRACT(EPOCH FROM (?::timestamptz - fi.first_in)) / 86400) AS age_days
+            FROM sb
+            JOIN products p ON p.id = sb.product_id AND p.tenant_id = ?
+            JOIN units u ON u.id = p.unit_id
+            LEFT JOIN ro ON ro.product_id = sb.product_id
+            LEFT JOIN sa ON sa.product_id = sb.product_id
+            LEFT JOIN fi ON fi.product_id = sb.product_id
+            WHERE p.type IN ('stockable', 'consumable') AND p.archived_at IS NULL",
+            [$tenant, ...$warehouseIds, $tenant, ...$warehouseIds, $tenant, ...$warehouseIds, $windowStart,
+                $tenant, ...$warehouseIds, $today->toIso8601String(), $tenant]);
+
+        $milli = fn (mixed $value): int => (int) round(((float) $value) * 1000);
+        $format = fn (int $milli): string => number_format($milli / 1000, 3, '.', '');
+        $items = [];
+
+        foreach ($rows as $row) {
+            $available = $milli($row->available);
+            $sold = $milli($row->sold);
+            $salesCount = (int) $row->sales_count;
+            $effectiveDays = min(self::COVERAGE_WINDOW_DAYS, max(0, (int) $row->age_days));
+
+            if ((int) $row->units > 1 || $effectiveDays < self::COVERAGE_MIN_HISTORY_DAYS) {
+                $state = 'insufficient_history';
+            } elseif ($salesCount === 0 || $sold <= 0) {
+                $state = 'no_sales';
+            } elseif ($salesCount < self::COVERAGE_MIN_SALES) {
+                $state = 'insufficient_history';
+            } else {
+                $state = 'ok';
+            }
+
+            $coverageDays = $state === 'ok' && $available > 0 ? intdiv($available * $effectiveDays, $sold) : null;
+            $below = (bool) $row->below_reorder;
+            $status = null;
+
+            if ($available <= 0 && $salesCount > 0) {
+                $status = 'out';
+                $coverageDays = 0;
+            } elseif ($state === 'ok' && $coverageDays !== null && $coverageDays < self::COVERAGE_RISK_DAYS) {
+                $status = 'low';
+            } elseif ($below) {
+                $status = 'reorder';
+            }
+
+            if ($available > 0 && $state === 'insufficient_history') {
+                $counts['insufficient_history']++;
+            }
+
+            if ($available > 0 && $state === 'no_sales') {
+                $counts['no_sales']++;
+            }
+
+            if ($status === null) {
+                continue;
+            }
+
+            $items[] = [
+                'id' => (string) $row->id,
+                'sku' => (string) $row->sku,
+                'label' => (string) $row->name,
+                'unit' => (string) $row->unit,
+                'available' => $format($available),
+                'sold' => $format($sold),
+                'daily_demand' => $state === 'ok' ? $format((int) round($sold / $effectiveDays)) : null,
+                'sales_count' => $salesCount,
+                'coverage_days' => $coverageDays,
+                'coverage_state' => $state,
+                'status' => $status,
+                'below_reorder' => $below,
+            ];
+        }
+
+        $rank = ['out' => 0, 'low' => 1, 'reorder' => 2];
+        usort($items, fn (array $a, array $b): int => [$rank[$a['status']], $a['coverage_days'] ?? PHP_INT_MAX, $a['sku']]
+            <=> [$rank[$b['status']], $b['coverage_days'] ?? PHP_INT_MAX, $b['sku']]);
+
+        $counts['at_risk'] = count($items);
+        $counts['out_of_stock'] = count(array_filter($items, fn (array $i): bool => $i['status'] === 'out'));
+
+        return [...$parameters, 'counts' => $counts, 'items' => array_slice($items, 0, 20)];
+    }
+
+    /**
      * Stock dormant : article en stock (quantité positive, hors services et archivés),
      * sans vente depuis $days jours et en stock depuis au moins $days jours, pour ne pas
      * qualifier de dormant un article récemment réceptionné. La valeur immobilisée
@@ -436,6 +597,17 @@ final class PilotageReport
                 'count' => array_sum(array_column($receivables['aging'], 'count')),
                 'message' => 'Des factures clients sont arrivées à échéance.',
                 'action' => 'Voir les factures',
+            ];
+        }
+
+        if (($stockInsights['coverage']['counts']['at_risk'] ?? 0) > 0) {
+            $priorities[] = [
+                'type' => 'stock_risk',
+                'level' => $stockInsights['coverage']['counts']['out_of_stock'] > 0 ? 'urgent' : 'important',
+                'amount' => 0,
+                'count' => (int) $stockInsights['coverage']['counts']['at_risk'],
+                'message' => 'Des articles risquent la rupture de stock.',
+                'action' => 'Voir le stock',
             ];
         }
 
