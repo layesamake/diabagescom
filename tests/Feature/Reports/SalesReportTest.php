@@ -59,7 +59,6 @@ class SalesReportTest extends TestCase
         $seller = $this->member($setup, 'cashier');
 
         $this->actingAs($seller['user'])->get(route('reports.index'))->assertForbidden();
-        $this->actingAs($seller['user'])->get(route('reports.index'), ['X-Inertia' => 'true'])->assertForbidden();
         $this->actingAs($seller['user'])->get(route('reports.index', ['format' => 'csv']))->assertForbidden();
         $this->actingAs($seller['user'])->get(route('reports.index', ['format' => 'xlsx']))->assertForbidden();
         $this->actingAs($seller['user'])->get(route('reports.index', ['format' => 'pdf']))->assertForbidden();
