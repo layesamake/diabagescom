@@ -8,6 +8,7 @@ use App\Models\InventoryCount;
 use App\Models\InventoryCountLine;
 use App\Models\StockTransfer;
 use App\Models\User;
+use App\Models\Warehouse;
 use Database\Factories\TenantFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,7 @@ class CrossWarehouseAccessTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * @return array{0: array<string, mixed>, 1: \App\Models\Warehouse, 2: User}
+     * @return array{0: array<string, mixed>, 1: Warehouse, 2: User}
      */
     private function scenario(): array
     {
