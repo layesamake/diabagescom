@@ -20,6 +20,7 @@ import type { TranslationKey } from '@/i18n';
 import { formatDate } from '@/lib/dates';
 import { formatXof } from '@/lib/money';
 import { edit as productEdit } from '@/routes/products';
+import { index as supplierInvoicesIndex } from '@/routes/purchases/invoices';
 import { index as reportsIndex } from '@/routes/reports';
 import { index as salesIndex } from '@/routes/sales';
 
@@ -46,12 +47,25 @@ type ProductRow = {
     last_sale: string | null;
 };
 type Priority = {
-    type: 'receivables' | 'negative_margin' | 'missing_cost';
+    type:
+        | 'receivables'
+        | 'payables_overdue'
+        | 'negative_margin'
+        | 'missing_cost';
     level: 'urgent' | 'important' | 'watch';
     amount: number;
     count: number;
     message: string;
     action: string;
+};
+type ScheduleBucket = { amount: number; count: number };
+type PayablesSchedule = {
+    total: number;
+    overdue: ScheduleBucket;
+    due_7: ScheduleBucket;
+    due_8_30: ScheduleBucket;
+    later: ScheduleBucket;
+    missing_due: ScheduleBucket;
 };
 type Receivables = {
     total: number;
@@ -102,6 +116,7 @@ const props = defineProps<{
     }[];
     products: ProductRow[];
     receivables: Receivables | null;
+    payablesSchedule: PayablesSchedule | null;
     priorities: Priority[];
     freshness: string;
     can: {
@@ -270,9 +285,15 @@ function variation(metric: MetricKey): {
 }
 
 function priorityHref(priority: Priority): string {
-    return priority.type === 'receivables'
-        ? salesIndex({ query: { type: 'invoice', status: 'unpaid' } }).url
-        : `${reportsIndex({ query: props.filters }).url}#products`;
+    if (priority.type === 'receivables') {
+        return salesIndex({ query: { type: 'invoice', status: 'unpaid' } }).url;
+    }
+
+    if (priority.type === 'payables_overdue') {
+        return supplierInvoicesIndex({ query: { status: 'unpaid' } }).url;
+    }
+
+    return `${reportsIndex({ query: props.filters }).url}#products`;
 }
 </script>
 
@@ -586,7 +607,11 @@ function priorityHref(priority: Priority): string {
                         {{ t('reports.elements') }}
                     </p>
                     <Button
-                        v-if="priority.type !== 'receivables' || can.sales"
+                        v-if="
+                            (priority.type !== 'receivables' || can.sales) &&
+                            (priority.type !== 'payables_overdue' ||
+                                can.purchases)
+                        "
                         as-child
                         variant="link"
                         class="mt-2 h-auto p-0"
@@ -1074,6 +1099,60 @@ function priorityHref(priority: Priority): string {
                     "
                     ><ReceiptText class="size-4" />{{
                         t('reports.view_invoices')
+                    }}</Link
+                ></Button
+            >
+        </section>
+
+        <section
+            v-if="payablesSchedule"
+            class="space-y-3"
+            aria-labelledby="payables-title"
+        >
+            <div>
+                <h2 id="payables-title" class="text-lg font-semibold">
+                    {{ t('reports.money_to_pay') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('reports.money_to_pay_hint') }}
+                </p>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <article
+                    v-for="bucket in [
+                        ['overdue', t('reports.due_overdue')],
+                        ['due_7', t('reports.due_7')],
+                        ['due_8_30', t('reports.due_8_30')],
+                        ['later', t('reports.due_later')],
+                    ] as const"
+                    :key="bucket[0]"
+                    class="rounded-xl border bg-card p-4"
+                >
+                    <p class="text-sm text-muted-foreground">{{ bucket[1] }}</p>
+                    <p class="text-xl font-bold tabular-nums">
+                        {{ formatXof(payablesSchedule[bucket[0]].amount) }}
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        {{ payablesSchedule[bucket[0]].count }}
+                        {{ t('reports.invoices') }}
+                    </p>
+                </article>
+            </div>
+            <p
+                v-if="payablesSchedule.missing_due.amount > 0"
+                class="flex gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+            >
+                <AlertTriangle class="mt-0.5 size-4 shrink-0" />
+                <span
+                    >{{ formatXof(payablesSchedule.missing_due.amount) }}
+                    {{ t('reports.missing_payable_due_dates') }}</span
+                >
+            </p>
+            <Button v-if="can.purchases" as-child variant="outline"
+                ><Link
+                    :href="supplierInvoicesIndex({ query: { status: 'unpaid' } })"
+                    ><ReceiptText class="size-4" />{{
+                        t('reports.view_supplier_invoices')
                     }}</Link
                 ></Button
             >

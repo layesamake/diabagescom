@@ -2254,6 +2254,16 @@ export const fr = {
         invoices: 'facture(s)',
         missing_due_dates: 'de créances n’ont pas de date d’échéance.',
         view_invoices: 'Voir les factures à encaisser',
+        money_to_pay: 'Argent à payer',
+        money_to_pay_hint:
+            'Dettes fournisseurs ouvertes selon leur échéance. Ce sont des soldes connus, pas de la trésorerie disponible.',
+        due_overdue: 'Échues',
+        due_7: 'À échéance dans 7 jours',
+        due_8_30: 'À échéance dans 8 à 30 jours',
+        due_later: 'À échéance dans plus de 30 jours',
+        missing_payable_due_dates:
+            'de dettes fournisseurs n’ont pas de date d’échéance.',
+        view_supplier_invoices: 'Voir les factures fournisseurs à payer',
         by_day: 'Chiffre d’affaires par jour',
         by_method: 'Par moyen de paiement',
         by_warehouse: 'Par dépôt',

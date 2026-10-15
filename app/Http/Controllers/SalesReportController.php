@@ -158,6 +158,7 @@ class SalesReportController extends Controller
             'topProducts' => $topProducts,
             'products' => $data['products'],
             'receivables' => $data['receivables'],
+            'payablesSchedule' => $data['payablesSchedule'],
             'priorities' => $data['priorities'],
             'freshness' => now()->setTimezone($timezone)->toIso8601String(),
             'can' => [

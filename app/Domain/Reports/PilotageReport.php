@@ -43,7 +43,9 @@ final class PilotageReport
         $previous = $this->metrics($user, $all, $canSeeMargin, $canSeeInventory, $canSeePurchases, $selectedWarehouses, $previousFrom, $previousTo);
         $products = $this->products($user, $all, $canSeeMargin, $canSeeInventory, $selectedWarehouses, $from, $to);
         $priorityMetrics = $canSeeMargin ? $this->productPriorityMetrics($user, $all, $selectedWarehouses, $from, $to) : null;
-        $receivables = $all ? $this->receivables($selectedWarehouses, CarbonImmutable::now($timezone)->startOfDay()) : null;
+        $today = CarbonImmutable::now($timezone)->startOfDay();
+        $receivables = $all ? $this->receivables($selectedWarehouses, $today) : null;
+        $payablesSchedule = $all && $canSeePurchases ? $this->payablesSchedule($selectedWarehouses, $today) : null;
 
         return [
             'summary' => $current,
@@ -61,7 +63,8 @@ final class PilotageReport
                 'total' => $row['revenue'],
             ]),
             'receivables' => $receivables,
-            'priorities' => $this->priorities($current, $priorityMetrics, $receivables, $canSeeMargin),
+            'payablesSchedule' => $payablesSchedule,
+            'priorities' => $this->priorities($current, $priorityMetrics, $receivables, $payablesSchedule, $canSeeMargin),
         ];
     }
 
@@ -270,6 +273,46 @@ final class PilotageReport
     }
 
     /**
+     * Échéancier des dettes fournisseurs : solde restant (total − réglé − avoirs) des
+     * factures validées, par date d'échéance. Les factures sans échéance sont isolées,
+     * jamais rangées dans une tranche inventée. Les tranches s'additionnent au total.
+     *
+     * @param  list<string>  $warehouseIds
+     * @return array{total: int, overdue: array{amount: int, count: int}, due_7: array{amount: int, count: int}, due_8_30: array{amount: int, count: int}, later: array{amount: int, count: int}, missing_due: array{amount: int, count: int}}
+     */
+    private function payablesSchedule(array $warehouseIds, CarbonImmutable $today): array
+    {
+        $balance = 'GREATEST(i.total - i.amount_paid - i.amount_credited, 0)';
+        $date = $today->toDateString();
+        $rows = DB::table('supplier_invoices as i')
+            ->where('i.tenant_id', $this->context->tenantId())
+            ->where('i.status', 'validated')
+            ->whereIn('i.warehouse_id', $warehouseIds)
+            ->whereRaw("{$balance} > 0")
+            ->selectRaw("CASE
+                    WHEN i.due_date IS NULL THEN 'missing_due'
+                    WHEN i.due_date < ?::date THEN 'overdue'
+                    WHEN i.due_date <= ?::date + 7 THEN 'due_7'
+                    WHEN i.due_date <= ?::date + 30 THEN 'due_8_30'
+                    ELSE 'later' END AS bucket,
+                SUM({$balance}) AS amount, COUNT(*) AS count", [$date, $date, $date])
+            ->groupBy('bucket')
+            ->get()->keyBy('bucket');
+
+        $schedule = ['total' => 0];
+
+        foreach (['overdue', 'due_7', 'due_8_30', 'later', 'missing_due'] as $bucket) {
+            $schedule[$bucket] = [
+                'amount' => (int) ($rows[$bucket]->amount ?? 0),
+                'count' => (int) ($rows[$bucket]->count ?? 0),
+            ];
+            $schedule['total'] += $schedule[$bucket]['amount'];
+        }
+
+        return $schedule;
+    }
+
+    /**
      * @param  list<string>  $warehouseIds
      * @return array{negative_amount: int, negative_count: int, missing_count: int}
      */
@@ -306,9 +349,10 @@ final class PilotageReport
      * @param  array<string, int|null>  $summary
      * @param  array{negative_amount: int, negative_count: int, missing_count: int}|null  $productMetrics
      * @param  array<string, mixed>|null  $receivables
+     * @param  array<string, mixed>|null  $payablesSchedule
      * @return list<array<string, int|string>>
      */
-    private function priorities(array $summary, ?array $productMetrics, ?array $receivables, bool $canSeeMargin): array
+    private function priorities(array $summary, ?array $productMetrics, ?array $receivables, ?array $payablesSchedule, bool $canSeeMargin): array
     {
         $priorities = [];
 
@@ -320,6 +364,17 @@ final class PilotageReport
                 'count' => array_sum(array_column($receivables['aging'], 'count')),
                 'message' => 'Des factures clients sont arrivées à échéance.',
                 'action' => 'Voir les factures',
+            ];
+        }
+
+        if (($payablesSchedule['overdue']['amount'] ?? 0) > 0) {
+            $priorities[] = [
+                'type' => 'payables_overdue',
+                'level' => 'important',
+                'amount' => (int) $payablesSchedule['overdue']['amount'],
+                'count' => (int) $payablesSchedule['overdue']['count'],
+                'message' => 'Des factures fournisseurs sont arrivées à échéance.',
+                'action' => 'Voir les factures fournisseurs',
             ];
         }
 
