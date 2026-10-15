@@ -106,7 +106,7 @@ final class PointOfSale
         ksort($paid);
         ksort($recorded);
 
-        $sameSession = $payments->isEmpty() || $payments->every(fn (Payment $p) => $p->cash_session_id === ($data['cash_session_id'] ?? null));
+        $sameSession = $payments->isEmpty() || $payments->every(fn (Payment $p) => $p->cash_session_id === $data['cash_session_id']);
 
         if ($existing->warehouse_id !== $data['warehouse_id']
             || ($existing->customer_id ?? null) !== ($data['customer_id'] ?? null)
