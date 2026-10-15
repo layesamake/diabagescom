@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 /**
  * Read model centralisé de l'espace Pilotage.
@@ -324,7 +325,7 @@ final class PilotageReport
             ORDER BY {$order}",
             [$tenant, ...$warehouseIds, $tenant, ...$warehouseIds, $tenant, ...$warehouseIds, $cutoff, $cutoff]);
 
-        $items = array_map(fn (object $row): array => [
+        $items = array_map(fn (stdClass $row): array => [
             'id' => (string) $row->id,
             'sku' => (string) $row->sku,
             'label' => (string) $row->name,
@@ -338,7 +339,7 @@ final class PilotageReport
             'days' => $days,
             'count' => count($items),
             'value' => $canSeeMargin ? array_sum(array_column($items, 'value')) : null,
-            'items' => array_slice($items, 0, 20),
+            'items' => array_values(array_slice($items, 0, 20)),
         ];
     }
 
