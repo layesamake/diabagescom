@@ -173,6 +173,7 @@ class SalesReportController extends Controller
                 'catalog' => $catalog,
                 'sales' => $sales,
                 'export' => Gate::allows('report.export'),
+                'transfer' => Gate::allows('inventory.transfer_create'),
             ],
         ]);
     }
