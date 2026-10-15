@@ -48,6 +48,8 @@ class SalesReportController extends Controller
         $fromLocal = CarbonImmutable::parse((string) $request->query('from', $today->startOfMonth()->toDateString()), $timezone)->startOfDay();
         $toLocal = CarbonImmutable::parse((string) $request->query('to', $today->toDateString()), $timezone)->endOfDay();
         abort_if($fromLocal->greaterThan($toLocal), 422, __('reports.invalid_period'));
+        $dormantDays = (int) $request->query('dormant_days', 90);
+        $dormantDays = in_array($dormantDays, [30, 60, 90, 180, 365], true) ? $dormantDays : 90;
         $warehouse = in_array($request->query('warehouse'), $warehouses, true) ? (string) $request->query('warehouse') : null;
         $days = $fromLocal->startOfDay()->diffInDays($toLocal->startOfDay()) + 1;
         $previousToLocal = $fromLocal->subDay()->endOfDay();
@@ -65,6 +67,7 @@ class SalesReportController extends Controller
             $previousFromLocal->utc(),
             $previousToLocal->utc(),
             $timezone,
+            $dormantDays,
         );
         $summary = $data['summary'];
         $summary['receivables'] = $data['receivables']['total'] ?? null;
@@ -138,7 +141,7 @@ class SalesReportController extends Controller
         }
 
         return Inertia::render('reports/Sales', [
-            'filters' => ['from' => $from->toDateString(), 'to' => $to->toDateString(), 'warehouse' => $warehouse],
+            'filters' => ['from' => $from->toDateString(), 'to' => $to->toDateString(), 'warehouse' => $warehouse, 'dormant_days' => $dormantDays],
             'period' => [
                 'from' => $fromLocal->toDateString(),
                 'to' => $toLocal->toDateString(),
@@ -159,6 +162,7 @@ class SalesReportController extends Controller
             'products' => $data['products'],
             'receivables' => $data['receivables'],
             'payablesSchedule' => $data['payablesSchedule'],
+            'stockInsights' => $data['stockInsights'],
             'priorities' => $data['priorities'],
             'freshness' => now()->setTimezone($timezone)->toIso8601String(),
             'can' => [
