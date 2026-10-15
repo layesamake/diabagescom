@@ -24,10 +24,11 @@ class SalesReportTest extends TestCase
         $setup = $this->createTenantWithMember();
         $rice = $this->makeProduct($setup, 'RIZ', 'U', 1000); // prix 2 000 TTC
         $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '20', 1000]]);
-        $session = $this->openSession($setup);
-        $this->sell($setup, $session, [[$rice->id, '3']], [['cash', 6000]]);
         // Gestionnaire de dépôt : report.view_own sans droit sur les coûts (le Vendeur n'a aucun accès au Pilotage).
         $cashier = $this->member($setup, 'warehouse_manager');
+        // Session ouverte par ce vendeur ; l'administrateur (cash.view_all) peut aussi y encaisser.
+        $session = $this->openSession($cashier);
+        $this->sell($setup, $session, [[$rice->id, '3']], [['cash', 6000]]);
         $this->sell($cashier, $session, [[$rice->id, '1']], [['wave', 2000]]);
 
         $this->actingAs($setup['user'])->get(route('reports.index'))->assertInertia(fn (Assert $page) => $page
@@ -127,7 +128,7 @@ class SalesReportTest extends TestCase
         $rice = $this->makeProduct($setup, 'RIZ', 'U', 1000);
         $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '10', 1000]]);
         $cashier = $this->member($setup, 'warehouse_manager');
-        $this->sell($cashier, $this->openSession($setup), [[$rice->id, '1']], [['cash', 2000]]);
+        $this->sell($cashier, $this->openSession($cashier), [[$rice->id, '1']], [['cash', 2000]]);
 
         $this->actingAs($cashier['user'])->get(route('reports.index'))->assertInertia(fn (Assert $page) => $page
             ->where('products.0.cost', null)
@@ -142,7 +143,7 @@ class SalesReportTest extends TestCase
         $rice = $this->makeProduct($setup, 'RIZ', 'U', 1000);
         $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '10', 1000]]);
         $cashier = $this->member($setup, 'warehouse_manager');
-        $session = $this->openSession($setup);
+        $session = $this->openSession($cashier);
 
         CarbonImmutable::setTestNow('2026-10-13 10:00:00');
         $sale = $this->sell($cashier, $session, [[$rice->id, '1']], [['cash', 2000]]);

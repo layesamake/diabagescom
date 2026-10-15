@@ -79,7 +79,7 @@ final class PaymentService
 
                 $needsSession = $sessionId !== null || in_array('cash', array_column($tenders, 'method'), true);
                 $session = $needsSession
-                    ? $this->cash->lockOpenSession($sessionId ?? throw new InvalidSalesOperation(__('sales.errors.cash_needs_session')), $invoice->warehouse_id)
+                    ? $this->cash->lockOpenSession($sessionId ?? throw new InvalidSalesOperation(__('sales.errors.cash_needs_session')), $invoice->warehouse_id, $actor)
                     : null;
 
                 $payments = [];
@@ -134,7 +134,7 @@ final class PaymentService
                 }
 
                 $session = $method === 'cash' || $sessionId !== null
-                    ? $this->cash->lockOpenSession($sessionId ?? throw new InvalidSalesOperation(__('sales.errors.cash_needs_session')), $invoice->warehouse_id)
+                    ? $this->cash->lockOpenSession($sessionId ?? throw new InvalidSalesOperation(__('sales.errors.cash_needs_session')), $invoice->warehouse_id, $actor)
                     : null;
 
                 $payment = $this->write($invoice, 'out', 'customer_refund', $method, $amount, $session, $actor, "{$idempotencyKey}:0", null, trim($reason));

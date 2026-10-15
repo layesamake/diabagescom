@@ -379,6 +379,8 @@ class SalesDocumentController extends Controller
         return array_values(CashSession::query()->with(['register:id,name,warehouse_id', 'opener:id,name'])
             ->where('status', CashSession::OPEN)
             ->whereHas('register', fn ($q) => $q->where('warehouse_id', $warehouseId))
+            // Sans cash.view_all, un caissier ne voit que la session qu'il a ouverte.
+            ->when(! Gate::allows('cash.view_all'), fn ($q) => $q->where('opened_by', auth()->id()))
             ->get()
             ->map(fn (CashSession $s) => ['id' => $s->id, 'register' => $s->register->name, 'opened_by' => $s->opener->name])
             ->all());

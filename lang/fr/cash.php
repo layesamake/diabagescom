@@ -9,6 +9,7 @@ return [
         'positive_amount' => 'Le montant doit être positif.',
         'already_open' => 'La caisse « :register » est déjà ouverte.',
         'session_closed' => 'Cette caisse est fermée : ouvrez-la avant d’encaisser.',
+        'not_your_session' => 'Cette session de caisse a été ouverte par un autre utilisateur.',
         'session_required' => 'Ouvrez une caisse avant de vendre.',
         'other_warehouse' => 'Cette caisse appartient à un autre dépôt.',
         'insufficient_cash' => 'Espèces insuffisantes dans la caisse (:available XOF disponibles).',

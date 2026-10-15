@@ -56,7 +56,7 @@ final class PointOfSale
                     $this->payments->receive($invoice, $tenders, $data['cash_session_id'], $actor, "pos:{$idempotencyKey}");
                 } else {
                     // Vente entièrement à crédit : la caisse doit tout de même être ouverte.
-                    $this->cash->lockOpenSession($data['cash_session_id'], $invoice->warehouse_id);
+                    $this->cash->lockOpenSession($data['cash_session_id'], $invoice->warehouse_id, $actor);
                 }
 
                 return $invoice->refresh();
