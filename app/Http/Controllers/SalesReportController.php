@@ -134,10 +134,10 @@ class SalesReportController extends Controller
             }
 
             $sections[] = TabularReport::section(__('reports.warehouse_comparison'), [__('reports.warehouse'), __('reports.revenue'), __('reports.sales_count'), __('reports.margin'), __('reports.stock_value'), __('reports.payables')],
-                $data['warehouseComparison']->map(fn (array $r) => [$r['name'], $r['total'], $r['sales'], $r['margin'], $r['stock_value'], $r['payables']])->all());
+                array_map(fn (array $r) => [$r['name'], $r['total'], $r['sales'], $r['margin'], $r['stock_value'], $r['payables']], $data['warehouseComparison']));
 
             $sections[] = TabularReport::section(__('reports.product_profitability'), [__('reports.product'), __('reports.quantity'), __('reports.revenue_excl_tax'), __('reports.margin'), __('reports.stock'), __('reports.last_sale')],
-                $data['products']->map(fn (array $r) => [$r['label'], $r['quantity'], $r['revenue_excl_tax'], $r['margin'], $r['stock'], $r['last_sale']])->all());
+                array_map(fn (array $r) => [$r['label'], $r['quantity'], $r['revenue_excl_tax'], $r['margin'], $r['stock'], $r['last_sale']], $data['products']));
 
             if ($data['stockInsights'] !== null) {
                 $sections[] = TabularReport::section(__('reports.stock_risk'), [__('reports.product'), __('reports.risk_status'), __('reports.available'), __('reports.coverage'), __('reports.supplier_lead_time'), __('reports.reorder_date')],
