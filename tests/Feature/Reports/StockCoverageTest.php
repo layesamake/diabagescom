@@ -82,6 +82,18 @@ class StockCoverageTest extends TestCase
             ->where('stockInsights.coverage.items.0.unit', 'U'));
     }
 
+    public function test_supplier_lead_time_defaults_to_seven_days_and_is_exposed_for_reorder(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $rice = $this->stockedOn($setup, '2026-06-01 10:00:00', 'RIZ', '19');
+        $this->soldOn($setup, ['2026-09-01 10:00:00', '2026-09-15 10:00:00', '2026-10-01 10:00:00'], $rice, '6');
+
+        $this->coverage($setup)->assertInertia(fn (Assert $page) => $page
+            ->where('stockInsights.coverage.items.0.sku', 'RIZ')
+            ->where('stockInsights.coverage.items.0.lead_time_days', 7)
+            ->where('stockInsights.coverage.items.0.reorder_date', '2026-10-21'));
+    }
+
     public function test_a_comfortable_coverage_is_not_listed(): void
     {
         $setup = $this->createTenantWithMember();
