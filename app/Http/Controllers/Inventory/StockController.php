@@ -39,7 +39,7 @@ class StockController extends Controller
 
         $rows = Product::query()
             ->select('products.id', 'products.sku', 'products.name', 'products.type', 'products.unit_id')
-            ->selectRaw('COALESCE(b.quantity_on_hand, 0) AS quantity_on_hand, COALESCE(b.average_cost, 0) AS average_cost, s.reorder_point')
+            ->selectRaw('COALESCE(b.quantity_on_hand, 0) AS quantity_on_hand, COALESCE(b.average_cost, 0) AS average_cost, s.reorder_point, COALESCE(s.lead_time_days, 7) AS lead_time_days')
             ->leftJoin('inventory_balances as b', fn ($j) => $j->on('b.product_id', '=', 'products.id')->where('b.warehouse_id', '=', $warehouseId))
             ->leftJoin('product_warehouse_settings as s', fn ($j) => $j->on('s.product_id', '=', 'products.id')->where('s.warehouse_id', '=', $warehouseId))
             ->with('unit:id,code,decimals_allowed')
@@ -63,6 +63,7 @@ class StockController extends Controller
                     'quantity' => $quantity->value,
                     'quantity_display' => $quantity->format(),
                     'reorder_point' => $reorder !== null ? Quantity::of((string) $reorder)->value : null,
+                    'lead_time_days' => (int) $p->getAttribute('lead_time_days'),
                     'low' => $reorder !== null && $quantity->compare(Quantity::of((string) $reorder)) <= 0,
                     'negative' => $quantity->isNegative(),
                     'average_cost' => $canSeeCosts ? (int) $p->getAttribute('average_cost') : null,
@@ -179,6 +180,7 @@ class StockController extends Controller
         $data = $request->validate([
             'warehouse_id' => ['required', 'uuid'],
             'reorder_point' => ['nullable', 'string', 'max:20'],
+            'lead_time_days' => ['sometimes', 'integer', 'min:1', 'max:365'],
         ]);
 
         $warehouse = $access->warehouse((string) $data['warehouse_id']);
@@ -193,17 +195,23 @@ class StockController extends Controller
             return back(303)->withErrors(['reorder_point' => __('inventory.errors.positive_quantity')]);
         }
 
-        DB::transaction(function () use ($product, $warehouse, $value, $audit, $context): void {
+        $leadTime = (int) ($data['lead_time_days'] ?? DB::table('product_warehouse_settings')
+            ->where('product_id', $product->id)
+            ->where('warehouse_id', $warehouse->id)
+            ->value('lead_time_days') ?? 7);
+
+        DB::transaction(function () use ($product, $warehouse, $value, $leadTime, $audit, $context): void {
             DB::table('product_warehouse_settings')->upsert([
                 'tenant_id' => $context->tenantId(),
                 'product_id' => $product->id,
                 'warehouse_id' => $warehouse->id,
                 'reorder_point' => $value?->value,
+                'lead_time_days' => $leadTime,
                 'created_at' => now(),
                 'updated_at' => now(),
-            ], ['product_id', 'warehouse_id'], ['reorder_point', 'updated_at']);
+            ], ['product_id', 'warehouse_id'], ['reorder_point', 'lead_time_days', 'updated_at']);
 
-            $audit->record('stock.reorder_point_set', $product, after: ['warehouse' => $warehouse->code, 'reorder_point' => $value?->value]);
+            $audit->record('stock.reorder_point_set', $product, after: ['warehouse' => $warehouse->code, 'reorder_point' => $value?->value, 'lead_time_days' => $leadTime]);
         });
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('inventory.saved.reorder_point')]);
