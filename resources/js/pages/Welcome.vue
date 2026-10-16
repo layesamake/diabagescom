@@ -11,6 +11,7 @@ import {
     FileText,
     Lock,
     Mail,
+    Menu,
     MessageCircle,
     Bell,
     NotebookPen,
@@ -61,6 +62,7 @@ const props = defineProps<{
 const page = usePage();
 const signedIn = computed(() => Boolean(page.props.auth?.user));
 const yearly = ref(false);
+const mobileMenuOpen = ref(false);
 const activeDemo = ref<'sell' | 'stock' | 'pilotage'>('sell');
 const paymentMethod = ref<'Espèces' | 'Wave' | 'Orange Money' | null>(null);
 const shopCart = ref<Record<string, number>>({});
@@ -350,47 +352,116 @@ const yearlyKnown = computed(() =>
     <Head title="Ventes, stock et caisse pour votre commerce" />
 
     <div class="min-h-screen bg-background text-foreground">
-        <!-- En-tête -->
+        <div
+            class="bg-[var(--color-brand-navy)] px-4 py-2 text-center text-xs font-medium tracking-wide text-white sm:text-sm"
+        >
+            🇸🇳 Le commerce bouge au Sénégal et dans l’UEMOA
+            <span class="mx-2 text-white/50">·</span> Votre gestion aussi.
+        </div>
         <header
-            class="sticky top-0 z-30 border-b bg-background/90 backdrop-blur"
+            class="sticky top-0 z-30 border-b bg-background/95 shadow-sm backdrop-blur"
         >
             <div
-                class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3"
+                class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4"
             >
                 <Link
                     :href="'/'"
                     class="flex items-center"
                     aria-label="DIABA GESCOM, accueil"
+                    @click="mobileMenuOpen = false"
                     ><AppLogo
                 /></Link>
                 <nav
-                    class="hidden items-center gap-6 text-sm text-muted-foreground md:flex"
+                    class="hidden items-center gap-6 text-sm font-medium text-foreground md:flex"
                     aria-label="Sections"
                 >
-                    <a href="#fonctions" class="hover:text-foreground"
-                        >Fonctions</a
+                    <a
+                        href="#fonctions"
+                        class="transition-colors hover:text-[var(--color-brand-teal)]"
+                        >Fonctionnalités</a
                     >
-                    <a href="#boutique" class="hover:text-foreground"
+                    <a
+                        href="#boutique"
+                        class="transition-colors hover:text-[var(--color-brand-teal)]"
                         >Boutique en ligne</a
                     >
-                    <a href="#tarifs" class="hover:text-foreground">Tarifs</a>
-                    <a href="#faq" class="hover:text-foreground">Questions</a>
-                    <a href="#contact" class="hover:text-foreground">Contact</a>
+                    <a
+                        href="#tarifs"
+                        class="transition-colors hover:text-[var(--color-brand-teal)]"
+                        >Nos formules</a
+                    >
+                    <a
+                        href="#faq"
+                        class="transition-colors hover:text-[var(--color-brand-teal)]"
+                        >FAQ</a
+                    >
                 </nav>
-                <div class="flex items-center gap-2">
-                    <Button v-if="signedIn" as-child class="h-11">
+                <div class="hidden items-center gap-2 md:flex">
+                    <Button
+                        v-if="signedIn"
+                        as-child
+                        variant="ghost"
+                        class="h-11"
+                    >
                         <Link :href="dashboard()">Mon espace</Link>
                     </Button>
                     <template v-else>
                         <Button as-child variant="ghost" class="h-11">
                             <Link :href="login()">Se connecter</Link>
                         </Button>
-                        <Button as-child class="hidden h-11 sm:inline-flex">
-                            <Link :href="register()">Essai gratuit</Link>
+                        <Button as-child class="h-11 px-5">
+                            <Link :href="register()"
+                                >Essayer gratuitement
+                                <ArrowRight class="size-4" aria-hidden="true"
+                            /></Link>
                         </Button>
                     </template>
                 </div>
+                <button
+                    type="button"
+                    class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border md:hidden"
+                    :aria-expanded="mobileMenuOpen"
+                    aria-label="Ouvrir le menu"
+                    @click="mobileMenuOpen = !mobileMenuOpen"
+                >
+                    <X
+                        v-if="mobileMenuOpen"
+                        class="size-5"
+                        aria-hidden="true"
+                    />
+                    <Menu v-else class="size-5" aria-hidden="true" />
+                </button>
             </div>
+            <nav
+                v-if="mobileMenuOpen"
+                class="border-t px-4 py-3 md:hidden"
+                aria-label="Menu mobile"
+            >
+                <div
+                    class="mx-auto flex max-w-6xl flex-col gap-1 text-base font-medium"
+                >
+                    <a
+                        v-for="link in [
+                            { href: '#fonctions', label: 'Fonctionnalités' },
+                            { href: '#boutique', label: 'Boutique en ligne' },
+                            { href: '#tarifs', label: 'Nos formules' },
+                            { href: '#faq', label: 'FAQ' },
+                        ]"
+                        :key="link.href"
+                        :href="link.href"
+                        class="rounded-lg px-3 py-3 hover:bg-muted"
+                        @click="mobileMenuOpen = false"
+                        >{{ link.label }}</a
+                    >
+                    <Link
+                        v-if="!signedIn"
+                        :href="login()"
+                        class="rounded-lg px-3 py-3 hover:bg-muted"
+                        @click="mobileMenuOpen = false"
+                        >Se connecter</Link
+                    >
+                </div>
+            </nav>
         </header>
 
         <main>
@@ -400,59 +471,80 @@ const yearlyKnown = computed(() =>
                     class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:py-20 lg:grid-cols-2"
                 >
                     <div class="space-y-6">
-                        <a
-                            href="#boutique"
-                            class="mr-2 inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1 text-sm font-medium text-primary-foreground"
-                            ><Store class="size-4" aria-hidden="true" />Nouveau
-                            : votre boutique en ligne</a
-                        >
                         <p
-                            class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm text-muted-foreground"
+                            class="flex items-center gap-2 text-xs font-bold tracking-[0.14em] text-[var(--color-brand-teal)] uppercase"
                         >
                             <span
                                 class="size-2 rounded-full bg-[var(--color-brand-teal-light)]"
                                 aria-hidden="true"
                             />
-                            Conçu pour les commerces du Sénégal
+                            Pour les entrepreneurs du Sénégal &amp; de l’UEMOA
                         </p>
                         <h1
-                            class="text-4xl font-bold tracking-tight text-balance md:text-5xl"
+                            class="max-w-xl text-5xl leading-[0.98] font-bold tracking-tight text-balance md:text-6xl lg:text-7xl"
                         >
-                            Gérez votre commerce sans perdre le fil.
+                            Votre commerce avance.<br />
                             <span
-                                class="text-[var(--color-brand-teal)] dark:text-[var(--color-brand-teal-light)]"
-                                >Votre commerce avance. Gardez la main.</span
+                                class="relative text-[var(--color-brand-teal)] dark:text-[var(--color-brand-teal-light)]"
                             >
+                                Gardez la main.
+                                <span
+                                    class="absolute -bottom-2 left-0 h-1 w-28 -rotate-3 rounded-full bg-[var(--color-brand-gold)]"
+                                    aria-hidden="true"
+                                />
+                            </span>
                         </h1>
-                        <p class="max-w-xl text-lg text-muted-foreground">
-                            Ventes, stock, caisse, facturation et boutique en
-                            ligne dans une seule application, sur téléphone ou
-                            ordinateur. La vente comptoir continue même sans
-                            connexion.
+                        <p
+                            class="max-w-xl text-lg leading-8 text-muted-foreground md:text-xl"
+                        >
+                            Vendez, suivez votre stock et gardez le contrôle de
+                            votre caisse. Gérez votre commerce dans une seule
+                            application,
+                            <strong class="text-foreground"
+                                >même sans connexion.</strong
+                            >
+                            Et ouvrez une nouvelle porte avec votre boutique en
+                            ligne.
                         </p>
-                        <div class="flex flex-col gap-3 sm:flex-row">
-                            <Button as-child size="lg" class="h-12 text-base">
+                        <div
+                            class="flex flex-col gap-3 sm:flex-row sm:items-center"
+                        >
+                            <Button
+                                as-child
+                                size="lg"
+                                class="h-14 px-6 text-base"
+                            >
                                 <Link
                                     :href="signedIn ? dashboard() : register()"
-                                    >Essai gratuit de {{ trialDays }} jours
+                                    >Essayer gratuitement
                                     <ArrowRight
                                         class="size-4"
                                         aria-hidden="true"
                                 /></Link>
                             </Button>
-                            <Button
-                                as-child
-                                size="lg"
-                                variant="outline"
-                                class="h-12 text-base"
+                            <a
+                                href="#fonctions"
+                                class="inline-flex min-h-11 items-center gap-2 px-2 text-base font-medium text-foreground transition-colors hover:text-[var(--color-brand-teal)]"
                             >
-                                <a href="#fonctions">Voir ce que ça fait</a>
-                            </Button>
+                                <span
+                                    class="flex size-8 items-center justify-center rounded-full border"
+                                    ><span class="ml-0.5 text-xs">▶</span></span
+                                >
+                                Découvrir l’application
+                            </a>
                         </div>
                         <p class="text-sm text-muted-foreground">
-                            Sans carte bancaire · Sans installation · Annulable
-                            à tout moment
+                            {{ trialDays }} jours gratuits
+                            <span class="mx-2">·</span> Sans engagement
                         </p>
+                        <a
+                            href="#boutique"
+                            class="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-brand-teal)] hover:underline"
+                        >
+                            <Store class="size-4" aria-hidden="true" /> Au
+                            comptoir et en ligne : découvrez votre boutique
+                            <ArrowRight class="size-4" aria-hidden="true" />
+                        </a>
                     </div>
 
                     <!-- Aperçu de l'application (dessiné en CSS : rien à télécharger) -->
@@ -460,13 +552,13 @@ const yearlyKnown = computed(() =>
                         class="relative mx-auto w-full max-w-lg"
                         aria-label="Aperçu de démonstration de DIABA GESCOM"
                     >
-                        <p
-                            class="mb-3 text-center text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase"
-                        >
-                            Données de démonstration
-                        </p>
                         <div
-                            class="hidden rounded-xl border bg-card p-3 shadow-xl sm:block"
+                            class="absolute top-0 right-0 rounded-full border border-[var(--color-brand-teal)]/30 bg-[var(--color-brand-teal)]/5 px-3 py-1 text-[10px] font-bold tracking-[0.12em] text-[var(--color-brand-teal)] uppercase"
+                        >
+                            Démo interactive
+                        </div>
+                        <div
+                            class="rounded-xl border bg-card p-3 shadow-xl sm:mt-8"
                         >
                             <div class="mb-3 flex gap-1.5">
                                 <span class="size-2.5 rounded-full bg-muted" />
