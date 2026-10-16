@@ -156,6 +156,7 @@ class SalesReportController extends Controller
             'byDay' => $byDay,
             'byDayMargin' => $data['byDayMargin'],
             'byWarehouse' => $byWarehouse,
+            'warehouseComparison' => $data['warehouseComparison'],
             'bySeller' => $bySeller,
             'byMethod' => $byMethod,
             'topProducts' => $topProducts,
