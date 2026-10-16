@@ -13,6 +13,7 @@ import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 import { t } from '@/i18n';
 import { confirmAction } from '@/composables/useConfirm';
+import { unsentCommandCount } from '@/offline/commandGuard';
 import { clearOfflineData, syncState } from '@/offline/sync';
 
 type Props = {
@@ -22,7 +23,11 @@ type Props = {
 // Déconnexion : prévenir si des ventes hors ligne ne sont pas envoyées, puis
 // effacer la base locale et les caches de l'appareil (docs/08).
 const confirmLogout = (): boolean => {
-    if (syncState.pending === 0) {
+    // Les commandes « à traiter » (refusées, en conflit, à vérifier) comptent aussi :
+    // elles seraient supprimées de l'appareil sans que personne les ait vues.
+    const unsent = unsentCommandCount(syncState);
+
+    if (unsent === 0) {
         void clearOfflineData();
 
         return true;
@@ -30,7 +35,7 @@ const confirmLogout = (): boolean => {
 
     // Ventes en attente : on demande d'abord, puis on se déconnecte si l'utilisateur confirme.
     void confirmAction({
-        title: t('offline.logout_pending', { count: syncState.pending }),
+        title: t('offline.logout_pending', { count: unsent }),
         confirmLabel: t('confirm.logout'),
         tone: 'danger',
     }).then((confirmed) => {
