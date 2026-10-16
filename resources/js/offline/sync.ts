@@ -456,70 +456,115 @@ async function pullCatalog(context: SyncContext<IDBDatabase>): Promise<void> {
 
     const warehouse = context.scope.warehouseId;
     const since = await getMeta<string>(context.db, `cursor:${warehouse}`);
-    const response = await api(
-        catalogRoute({ query: { warehouse, ...(since ? { since } : {}) } }).url,
-        { signal: context.controller.signal },
-        context.deviceKey,
-    );
+    // Le catalogue arrive par pages : le curseur de synchronisation est celui de la
+    // première page (le plus ancien) et n'est enregistré qu'une fois TOUTES les pages
+    // reçues. Une synchronisation interrompue ne perd donc rien : elle recommence.
+    let afterProducts: string | null = null;
+    let afterCustomers: string | null = null;
+    let cursor: string | null = null;
+    let stockSnapshot: Record<string, string> | null = null;
 
-    if (!response.ok) {
-        if (isCurrentContext(context)) {
-            syncState.problem = response.status === 403 ? 'device' : 'session';
+    for (;;) {
+        const response = await api(
+            catalogRoute({
+                query: {
+                    warehouse,
+                    ...(since ? { since } : {}),
+                    ...(afterProducts ? { after_products: afterProducts } : {}),
+                    ...(afterCustomers
+                        ? { after_customers: afterCustomers }
+                        : {}),
+                },
+            }).url,
+            { signal: context.controller.signal },
+            context.deviceKey,
+        );
+
+        if (!response.ok) {
+            if (isCurrentContext(context)) {
+                syncState.problem =
+                    response.status === 403 ? 'device' : 'session';
+            }
+
+            return;
         }
 
+        const data = (await response.json()) as {
+            cursor: string;
+            full: boolean;
+            first_page: boolean;
+            has_more: boolean;
+            next_after_products: string | null;
+            next_after_customers: string | null;
+            products: (Omit<
+                OfflineProduct,
+                'search' | 'standard_cost' | 'available'
+            > & { removed: boolean })[];
+            customers: (Omit<OfflineCustomer, 'search'> & {
+                removed: boolean;
+            })[];
+            stock: Record<string, string> | null;
+            sessions: unknown[] | null;
+        };
+
+        if (data.first_page) {
+            cursor = data.cursor;
+            stockSnapshot = data.stock;
+
+            if (data.full) {
+                await clearStore(context.db, 'products');
+                await clearStore(context.db, 'customers');
+            }
+        }
+
+        await remove(
+            context.db,
+            'products',
+            data.products.filter((p) => p.removed).map((p) => p.id),
+        );
+        await put(
+            context.db,
+            'products',
+            data.products
+                .filter((p) => !p.removed)
+                .map((p) => ({
+                    ...p,
+                    standard_cost: null,
+                    search: normalize(
+                        `${p.name} ${p.sku} ${p.barcodes.join(' ')}`,
+                    ),
+                })),
+        );
+        await remove(
+            context.db,
+            'customers',
+            data.customers.filter((c) => c.removed).map((c) => c.id),
+        );
+        await put(
+            context.db,
+            'customers',
+            data.customers
+                .filter((c) => !c.removed)
+                .map((c) => ({
+                    ...c,
+                    search: normalize(`${c.name} ${c.code} ${c.phone ?? ''}`),
+                })),
+        );
+
+        if (!data.has_more) {
+            break;
+        }
+
+        afterProducts = data.next_after_products;
+        afterCustomers = data.next_after_customers;
+    }
+
+    if (cursor === null || stockSnapshot === null) {
         return;
     }
 
-    const data = (await response.json()) as {
-        cursor: string;
-        full: boolean;
-        products: (Omit<
-            OfflineProduct,
-            'search' | 'standard_cost' | 'available'
-        > & { removed: boolean })[];
-        customers: (Omit<OfflineCustomer, 'search'> & { removed: boolean })[];
-        stock: Record<string, string>;
-        sessions: unknown[];
-    };
-
-    if (data.full) {
-        await clearStore(context.db, 'products');
-        await clearStore(context.db, 'customers');
-    }
-
-    await remove(
-        context.db,
-        'products',
-        data.products.filter((p) => p.removed).map((p) => p.id),
-    );
-    await put(
-        context.db,
-        'products',
-        data.products
-            .filter((p) => !p.removed)
-            .map((p) => ({
-                ...p,
-                standard_cost: null,
-                search: normalize(`${p.name} ${p.sku} ${p.barcodes.join(' ')}`),
-            })),
-    );
-    await remove(
-        context.db,
-        'customers',
-        data.customers.filter((c) => c.removed).map((c) => c.id),
-    );
-    await put(
-        context.db,
-        'customers',
-        data.customers
-            .filter((c) => !c.removed)
-            .map((c) => ({
-                ...c,
-                search: normalize(`${c.name} ${c.code} ${c.phone ?? ''}`),
-            })),
-    );
-    await setMeta(context.db, `stock:${warehouse}`, data.stock);
-    await setMeta(context.db, `cursor:${warehouse}`, data.cursor);
+    await setMeta(context.db, `stock:${warehouse}`, stockSnapshot);
+    await setMeta(context.db, `cursor:${warehouse}`, cursor);
     await setMeta(
         context.db,
         `synced_at:${warehouse}`,

@@ -43,6 +43,12 @@ class SyncController extends Controller
      * Catalogue minimal du dépôt pour vendre hors connexion. Incrémental : avec
      * `since`, seuls les articles et clients modifiés depuis (y compris archivés,
      * pour suppression locale). Les soldes de stock sont toujours complets.
+     *
+     * Paginé par identifiant (curseurs `after_products` / `after_customers`, `limit` par
+     * page, 5 000 au plus) : l'appareil enchaîne les pages tant que `has_more` est vrai et
+     * n'enregistre le curseur de synchronisation qu'à la dernière, pour qu'aucun article
+     * ne soit jamais perdu au-delà de la taille de page. Stock et caisses ouvertes ne sont
+     * envoyés qu'avec la première page.
      */
     public function catalog(Request $request, OfflineSync $sync, StockAccess $access, SalesDocumentService $sales): JsonResponse
     {
@@ -51,15 +57,28 @@ class SyncController extends Controller
         $user = $request->user();
         $sync->device($user, $request->header('X-Device-Key'));
 
-        $data = $request->validate(['warehouse' => ['required', 'uuid'], 'since' => ['nullable', 'date']]);
+        $data = $request->validate([
+            'warehouse' => ['required', 'uuid'],
+            'since' => ['nullable', 'date'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:5000'],
+            'after_products' => ['nullable', 'uuid'],
+            'after_customers' => ['nullable', 'uuid'],
+        ]);
         $warehouse = $access->warehouse((string) $data['warehouse']);
+        $limit = (int) ($data['limit'] ?? 5000);
+        $firstPage = ! isset($data['after_products']) && ! isset($data['after_customers']);
         $since = isset($data['since']) ? CarbonImmutable::parse((string) $data['since'])->subSeconds(5) : null;
         $cursor = now()->toIso8601String();
 
-        $products = Product::query()->with(['unit:id,code,decimals_allowed', 'taxRate:id,rate_basis_points', 'barcodes:id,product_id,code'])
+        // On lit une ligne de plus que la page pour savoir s'il en reste, sans requête de comptage.
+        $productRows = Product::query()->with(['unit:id,code,decimals_allowed', 'taxRate:id,rate_basis_points', 'barcodes:id,product_id,code'])
             ->when($since === null, fn ($q) => $q->whereNull('archived_at')->where('active', true))
             ->when($since !== null, fn ($q) => $q->where('updated_at', '>', $since))
-            ->orderBy('name')->limit(5000)->get()
+            ->when(isset($data['after_products']), fn ($q) => $q->where('id', '>', $data['after_products']))
+            ->orderBy('id')->limit($limit + 1)->get();
+        $moreProducts = $productRows->count() > $limit;
+        $productRows = $productRows->take($limit);
+        $products = $productRows
             ->map(fn (Product $p) => [
                 'id' => $p->id,
                 'sku' => $p->sku,
@@ -73,28 +92,36 @@ class SyncController extends Controller
                 'removed' => $p->archived_at !== null || ! $p->active,
             ]);
 
-        $customers = Customer::query()
+        $customerRows = Customer::query()
             ->when($since === null, fn ($q) => $q->whereNull('archived_at'))
             ->when($since !== null, fn ($q) => $q->where('updated_at', '>', $since))
-            ->orderBy('name')->limit(5000)->get(['id', 'code', 'name', 'phone', 'credit_limit', 'archived_at'])
+            ->when(isset($data['after_customers']), fn ($q) => $q->where('id', '>', $data['after_customers']))
+            ->orderBy('id')->limit($limit + 1)->get(['id', 'code', 'name', 'phone', 'credit_limit', 'archived_at']);
+        $moreCustomers = $customerRows->count() > $limit;
+        $customerRows = $customerRows->take($limit);
+        $customers = $customerRows
             ->map(fn (Customer $c) => [
                 ...$c->only(['id', 'code', 'name', 'phone', 'credit_limit']),
                 'outstanding' => $sales->outstanding($c->id),
                 'removed' => $c->archived_at !== null,
             ]);
 
-        $stock = DB::table('inventory_balances')->where('warehouse_id', $warehouse->id)
+        $stock = $firstPage ? DB::table('inventory_balances')->where('warehouse_id', $warehouse->id)
             ->pluck('quantity_on_hand', 'product_id')
-            ->map(fn ($q) => Quantity::of((string) $q)->format());
+            ->map(fn ($q) => Quantity::of((string) $q)->format()) : null;
 
         return response()->json([
             'cursor' => $cursor,
             'full' => $since === null,
+            'first_page' => $firstPage,
+            'has_more' => $moreProducts || $moreCustomers,
+            'next_after_products' => $productRows->last()?->id ?? ($data['after_products'] ?? null),
+            'next_after_customers' => $customerRows->last()?->id ?? ($data['after_customers'] ?? null),
             'warehouse' => $warehouse->only(['id', 'code', 'name']),
-            'products' => $products,
-            'customers' => $customers,
+            'products' => $products->values(),
+            'customers' => $customers->values(),
             'stock' => $stock,
-            'sessions' => SalesDocumentController::openSessions($warehouse->id),
+            'sessions' => $firstPage ? SalesDocumentController::openSessions($warehouse->id) : null,
         ]);
     }
 
