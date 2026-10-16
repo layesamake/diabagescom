@@ -131,6 +131,11 @@ final class CashService
      */
     public function recordMovement(CashSession $session, string $type, int $amount, User $actor, string $idempotencyKey, ?Payment $payment = null, ?string $label = null, ?string $reason = null, ?string $number = null): CashMovement
     {
+        // Une caisse fermée ne reçoit rien (la base le garantit aussi, avec un message technique).
+        if ($session->status !== CashSession::OPEN) {
+            throw new InvalidCashOperation(__('cash.errors.session_closed'));
+        }
+
         if ($amount < 0 && $this->drawerBalance($session) + $amount < 0) {
             throw new InvalidCashOperation(__('cash.errors.insufficient_cash', [
                 'available' => number_format($this->drawerBalance($session), 0, ',', ' '),
