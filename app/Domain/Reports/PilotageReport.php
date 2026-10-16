@@ -433,9 +433,7 @@ final class PilotageReport
                 'sales_count' => $salesCount,
                 'coverage_days' => $coverageDays,
                 'lead_time_days' => $leadTimeDays,
-                'reorder_date' => $status !== null
-                    ? $today->addDays(max(0, ($coverageDays ?? 0) - $leadTimeDays))->toDateString()
-                    : null,
+                'reorder_date' => $today->addDays(max(0, ($coverageDays ?? 0) - $leadTimeDays))->toDateString(),
                 'coverage_state' => $state,
                 'status' => $status,
                 'below_reorder' => $below,
