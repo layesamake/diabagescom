@@ -20,12 +20,7 @@
  */
 importScripts('/sw-helpers.js');
 
-const {
-    isPrivateOfflinePage,
-    isStorefrontPage,
-    privatePageCacheKey,
-    shouldPurgeEntry,
-} = self.SwHelpers;
+const Sw = self.SwHelpers;
 
 const VERSION = 'diaba-v3';
 const SHELL_CACHE = `${VERSION}-shell`;
@@ -162,14 +157,14 @@ async function setIdentity(identity) {
     const keys = await cache.keys();
     await Promise.all(
         keys
-            .filter((request) => shouldPurgeEntry(request.url, identity))
+            .filter((request) => Sw.shouldPurgeEntry(request.url, identity))
             .map((request) => cache.delete(request)),
     );
 }
 
 async function navigation(request, url) {
-    const storefront = isStorefrontPage(url.pathname, url.search);
-    const privatePage = isPrivateOfflinePage(url.pathname);
+    const storefront = Sw.isStorefrontPage(url.pathname, url.search);
+    const privatePage = Sw.isPrivateOfflinePage(url.pathname);
 
     try {
         const response = await fetch(request);
@@ -190,7 +185,7 @@ async function navigation(request, url) {
                 // compte qui se connecterait ensuite sur cet appareil.
                 if (identity) {
                     (await caches.open(PAGE_CACHE)).put(
-                        privatePageCacheKey(url.pathname, identity),
+                        Sw.privatePageCacheKey(url.pathname, identity),
                         response.clone(),
                     );
                 }
@@ -211,7 +206,7 @@ async function navigation(request, url) {
             const identity = await getIdentity();
             const cached = identity
                 ? await caches.match(
-                      privatePageCacheKey(url.pathname, identity),
+                      Sw.privatePageCacheKey(url.pathname, identity),
                   )
                 : undefined;
 
