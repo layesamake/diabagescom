@@ -4,6 +4,7 @@ import {
     clearStore,
     databaseName,
     deleteDatabase,
+    get,
     getAll,
     getMeta,
     openDatabase,
@@ -16,6 +17,7 @@ import {
     commands as commandsRoute,
 } from '@/routes/sync';
 import { register as registerRoute } from '@/routes/sync/devices';
+import { decideEnqueue } from '@/offline/commandGuard';
 import { clearIdentity } from '@/offline/identity';
 import { SyncContextRegistry, isSameBase } from '@/offline/syncContext';
 import type { SyncContext } from '@/offline/syncContext';
@@ -656,6 +658,20 @@ export async function enqueueSale(
 ): Promise<LocalCommand> {
     if (!db) {
         throw new Error('Offline storage unavailable');
+    }
+
+    if (commandId !== undefined) {
+        // Jamais d'écrasement silencieux d'une vente déjà en file (même identifiant).
+        const existing = await get<LocalCommand>(db, 'commands', commandId);
+        const decision = decideEnqueue(existing, payload);
+
+        if (decision === 'reuse' && existing) {
+            return existing;
+        }
+
+        if (decision === 'conflict') {
+            throw new Error('command_id_conflict');
+        }
     }
 
     const command: LocalCommand = {

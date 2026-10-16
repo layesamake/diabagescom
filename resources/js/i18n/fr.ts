@@ -2607,7 +2607,7 @@ export const fr = {
         provisional_hint:
             'Reçu provisoire : la vente sera validée par le serveur au retour du réseau. Elle ne fait pas encore foi.',
         logout_pending:
-            '{count} vente(s) n’ont pas encore été envoyées. En vous déconnectant, elles seront supprimées de cet appareil. Continuer ?',
+            '{count} vente(s) hors ligne ne sont pas réglées (non envoyées, refusées ou à vérifier). En vous déconnectant, elles seront supprimées de cet appareil. Continuer ?',
         devices: 'Appareils',
         devices_description:
             'Appareils autorisés à vendre hors connexion. Révoquez un appareil perdu ou qui n’est plus utilisé.',
