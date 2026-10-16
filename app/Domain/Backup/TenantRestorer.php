@@ -150,6 +150,9 @@ final class TenantRestorer
 
         try {
             return DB::transaction(function () use ($zip, $manifest, $owner, $plan): array {
+                // La base refuse tout ajout à une caisse fermée ; la restauration réinsère un historique
+                // déjà clos et le déclare, pour cette transaction seulement.
+                DB::statement("SELECT set_config('diaba.restore', 'on', true)");
                 $source = (array) $manifest['tenant'];
                 $this->oldTenantId = (string) $source['id'];
                 $this->ownerId = $owner->id;
