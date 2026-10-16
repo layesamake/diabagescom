@@ -137,13 +137,13 @@ class SalesReportController extends Controller
                 $data['warehouseComparison']->map(fn (array $r) => [$r['name'], $r['total'], $r['sales'], $r['margin'], $r['stock_value'], $r['payables']])->all());
 
             $sections[] = TabularReport::section(__('reports.product_profitability'), [__('reports.product'), __('reports.quantity'), __('reports.revenue_excl_tax'), __('reports.margin'), __('reports.stock'), __('reports.last_sale')],
-                $products->map(fn (array $r) => [$r['label'], $r['quantity'], $r['revenue_excl_tax'], $r['margin'], $r['stock'], $r['last_sale']])->all());
+                $data['products']->map(fn (array $r) => [$r['label'], $r['quantity'], $r['revenue_excl_tax'], $r['margin'], $r['stock'], $r['last_sale']])->all());
 
             if ($data['stockInsights'] !== null) {
                 $sections[] = TabularReport::section(__('reports.stock_risk'), [__('reports.product'), __('reports.risk_status'), __('reports.available'), __('reports.coverage'), __('reports.supplier_lead_time'), __('reports.reorder_date')],
-                    collect($data['stockInsights']['coverage']['items'])->map(fn (array $r) => [$r['label'], $r['status'], $r['available'], $r['coverage_days'], $r['lead_time_days'], $r['reorder_date']])->all());
+                    array_map(fn (array $r) => [$r['label'], $r['status'], $r['available'], $r['coverage_days'], $r['lead_time_days'], $r['reorder_date']], $data['stockInsights']['coverage']['items']));
                 $sections[] = TabularReport::section(__('reports.transfer_suggestions'), [__('reports.product'), __('reports.source'), __('reports.destination'), __('reports.quantity'), __('reports.coverage')],
-                    collect($data['stockInsights']['transfers']['items'])->map(fn (array $r) => [$r['label'], $r['source']['name'], $r['destination']['name'], $r['quantity'], $r['destination_coverage_days']])->all());
+                    array_map(fn (array $r) => [$r['label'], $r['source']['name'], $r['destination']['name'], $r['quantity'], $r['destination_coverage_days']], $data['stockInsights']['transfers']['items']));
             }
 
             if ($data['receivables'] !== null) {
