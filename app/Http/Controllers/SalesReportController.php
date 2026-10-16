@@ -133,6 +133,31 @@ class SalesReportController extends Controller
                     $bySeller->map(fn (array $r) => [$r['label'], $r['total']])->all());
             }
 
+            $sections[] = TabularReport::section(__('reports.warehouse_comparison'), [__('reports.warehouse'), __('reports.revenue'), __('reports.sales_count'), __('reports.margin'), __('reports.stock_value'), __('reports.payables')],
+                $data['warehouseComparison']->map(fn (array $r) => [$r['name'], $r['total'], $r['sales'], $r['margin'], $r['stock_value'], $r['payables']])->all());
+
+            $sections[] = TabularReport::section(__('reports.product_profitability'), [__('reports.product'), __('reports.quantity'), __('reports.revenue_excl_tax'), __('reports.margin'), __('reports.stock'), __('reports.last_sale')],
+                $products->map(fn (array $r) => [$r['label'], $r['quantity'], $r['revenue_excl_tax'], $r['margin'], $r['stock'], $r['last_sale']])->all());
+
+            if ($data['stockInsights'] !== null) {
+                $sections[] = TabularReport::section(__('reports.stock_risk'), [__('reports.product'), __('reports.risk_status'), __('reports.available'), __('reports.coverage'), __('reports.supplier_lead_time'), __('reports.reorder_date')],
+                    collect($data['stockInsights']['coverage']['items'])->map(fn (array $r) => [$r['label'], $r['status'], $r['available'], $r['coverage_days'], $r['lead_time_days'], $r['reorder_date']])->all());
+                $sections[] = TabularReport::section(__('reports.transfer_suggestions'), [__('reports.product'), __('reports.source'), __('reports.destination'), __('reports.quantity'), __('reports.coverage')],
+                    collect($data['stockInsights']['transfers']['items'])->map(fn (array $r) => [$r['label'], $r['source']['name'], $r['destination']['name'], $r['quantity'], $r['destination_coverage_days']])->all());
+            }
+
+            if ($data['receivables'] !== null) {
+                $sections[] = TabularReport::section(__('reports.money_to_collect'), [__('reports.bucket'), __('reports.amount'), __('reports.invoices')], array_map(fn (array $r) => [$r[0], $data['receivables']['aging'][$r[1]]['amount'], $data['receivables']['aging'][$r[1]]['count']], [
+                    [__('reports.aging_1_7'), '1_7'], [__('reports.aging_8_30'), '8_30'], [__('reports.aging_31_60'), '31_60'], [__('reports.aging_over_60'), 'over_60'],
+                ]));
+            }
+
+            if ($data['payablesSchedule'] !== null) {
+                $sections[] = TabularReport::section(__('reports.money_to_pay'), [__('reports.bucket'), __('reports.amount'), __('reports.invoices')], array_map(fn (array $r) => [$r[0], $data['payablesSchedule'][$r[1]]['amount'], $data['payablesSchedule'][$r[1]]['count']], [
+                    [__('reports.due_overdue'), 'overdue'], [__('reports.due_7'), 'due_7'], [__('reports.due_8_30'), 'due_8_30'], [__('reports.due_later'), 'later'],
+                ]));
+            }
+
             return $exporter->respond($format, new TabularReport(
                 __('reports.title'),
                 __('accounting.export.period', ['from' => $from->format('d/m/Y'), 'to' => $to->format('d/m/Y')]),
