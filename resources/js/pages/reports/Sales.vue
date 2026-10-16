@@ -20,6 +20,7 @@ import type { TranslationKey } from '@/i18n';
 import { formatDate } from '@/lib/dates';
 import { formatXof } from '@/lib/money';
 import { edit as productEdit } from '@/routes/products';
+import { create as transfersCreate } from '@/routes/transfers';
 import { index as supplierInvoicesIndex } from '@/routes/purchases/invoices';
 import { index as reportsIndex } from '@/routes/reports';
 import { index as salesIndex } from '@/routes/sales';
@@ -87,7 +88,20 @@ type CoverageItem = {
     status: 'out' | 'low' | 'reorder';
     below_reorder: boolean;
 };
+type TransferSuggestion = {
+    product_id: string;
+    sku: string;
+    label: string;
+    unit: string;
+    source: { id: string; name: string };
+    destination: { id: string; name: string };
+    quantity: string;
+    source_available: string;
+    destination_available: string;
+    destination_coverage_days: number;
+};
 type StockInsights = {
+    transfers: { target_days: number; items: TransferSuggestion[] };
     coverage: {
         window_days: number;
         min_history_days: number;
@@ -183,6 +197,7 @@ const props = defineProps<{
         catalog: boolean;
         sales: boolean;
         export: boolean;
+        transfer: boolean;
     };
 }>();
 
@@ -1377,6 +1392,103 @@ function priorityHref(priority: Priority): string {
                     })
                 }}
             </p>
+        </section>
+
+        <section
+            v-if="stockInsights"
+            class="space-y-3"
+            aria-labelledby="transfers-title"
+        >
+            <div>
+                <h2 id="transfers-title" class="text-lg font-semibold">
+                    {{ t('reports.transfer_suggestions') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{
+                        t('reports.transfer_suggestions_hint', {
+                            days: stockInsights.transfers.target_days,
+                        })
+                    }}
+                </p>
+            </div>
+            <EmptyState
+                v-if="stockInsights.transfers.items.length === 0"
+                :hint="t('reports.transfer_none_hint')"
+            >
+                {{ t('reports.transfer_none') }}
+            </EmptyState>
+            <div v-else class="overflow-x-auto rounded-xl border bg-card">
+                <table class="w-full text-sm">
+                    <caption class="sr-only">
+                        {{
+                            t('reports.transfer_suggestions')
+                        }}
+                    </caption>
+                    <thead class="text-left text-muted-foreground">
+                        <tr>
+                            <th scope="col" class="p-3">
+                                {{ t('reports.product') }}
+                            </th>
+                            <th scope="col" class="p-3">
+                                {{ t('reports.transfer_from') }}
+                            </th>
+                            <th scope="col" class="p-3">
+                                {{ t('reports.transfer_to') }}
+                            </th>
+                            <th scope="col" class="p-3 text-right">
+                                {{ t('reports.transfer_quantity') }}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="item in stockInsights.transfers.items"
+                            :key="item.product_id + item.destination.id"
+                            class="border-t"
+                        >
+                            <td class="p-3">
+                                <span class="font-medium">{{
+                                    item.label
+                                }}</span>
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >{{ item.sku }}</span
+                                >
+                            </td>
+                            <td class="p-3">
+                                {{ item.source.name }}
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >{{ t('reports.available') }} :
+                                    {{ item.source_available }}
+                                    {{ item.unit }}</span
+                                >
+                            </td>
+                            <td class="p-3">
+                                {{ item.destination.name }}
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                    >{{ t('reports.available') }} :
+                                    {{ item.destination_available }}
+                                    {{ item.unit }} ·
+                                    {{ item.destination_coverage_days }}
+                                    {{ t('reports.days') }}</span
+                                >
+                            </td>
+                            <td class="p-3 text-right tabular-nums">
+                                {{ item.quantity }} {{ item.unit }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <Button v-if="can.transfer" as-child variant="outline"
+                ><Link :href="transfersCreate()"
+                    ><ArrowRight class="size-4" />{{
+                        t('reports.prepare_transfer')
+                    }}</Link
+                ></Button
+            >
         </section>
 
         <section

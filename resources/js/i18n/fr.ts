@@ -2255,6 +2255,17 @@ export const fr = {
         missing_due_dates: 'de créances n’ont pas de date d’échéance.',
         view_invoices: 'Voir les factures à encaisser',
         watch: 'À surveiller',
+        transfer_suggestions: 'Transferts possibles entre dépôts',
+        transfer_suggestions_hint:
+            'Suggestion, sans effet : un dépôt qui manque bientôt d’un article (demande fiable) pourrait recevoir l’excédent d’un autre dépôt. Le dépôt source conserve {days} jours de sa propre demande et son seuil de réapprovisionnement ; un dépôt sans historique fiable n’est jamais vidé. Seuls les dépôts affichés dans le filtre sont comparés.',
+        transfer_none: 'Aucun transfert à suggérer.',
+        transfer_none_hint:
+            'Il faut au moins deux dépôts dans le périmètre, un dépôt à court d’un article et un autre avec un excédent sûr.',
+        transfer_from: 'Depuis',
+        transfer_to: 'Vers',
+        transfer_quantity: 'Quantité suggérée',
+        prepare_transfer:
+            'Préparer un transfert (aucune ligne n’est préremplie)',
         stock_risk: 'Risque de rupture',
         stock_risk_hint:
             'Estimation : stock disponible divisé par les ventes par jour observées sur les {window} derniers jours (ou depuis la première entrée en stock). Elle n’est calculée qu’avec au moins {history} jours d’historique et {sales} ventes. Les commandes d’achat attendues ne sont pas comptées, et si le stock a été à zéro la demande peut être sous-estimée. Un article est signalé sous {risk} jours de couverture, en rupture ou au seuil de réapprovisionnement.',

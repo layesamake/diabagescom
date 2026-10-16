@@ -28,6 +28,9 @@ final class PilotageReport
     /** Nombre minimum de ventes (factures) sur la fenêtre pour calculer une couverture. */
     private const int COVERAGE_MIN_SALES = 3;
 
+    /** Jours de demande que doit couvrir un dépôt après transfert (et que la source conserve). */
+    private const int TRANSFER_TARGET_DAYS = 30;
+
     /** Un article est « à risque » sous ce nombre de jours de couverture. */
     private const int COVERAGE_RISK_DAYS = 7;
 
@@ -65,6 +68,7 @@ final class PilotageReport
             ? [
                 'dormant' => $this->dormantStock($selectedWarehouses, $today, $dormantDays, $canSeeMargin, $timezone),
                 'coverage' => $this->stockCoverage($selectedWarehouses, $today),
+                'transfers' => $this->transferSuggestions($selectedWarehouses, $today),
             ]
             : null;
 
@@ -438,6 +442,142 @@ final class PilotageReport
         $counts['out_of_stock'] = count(array_filter($items, fn (array $i): bool => $i['status'] === 'out'));
 
         return [...$parameters, 'counts' => $counts, 'items' => array_slice($items, 0, 20)];
+    }
+
+    /**
+     * Transferts suggérés : un dépôt dont la couverture est sous le seuil (demande fiable)
+     * reçoit l'excédent d'un autre dépôt du périmètre. Besoin = demande/jour × 30 − disponible.
+     * La source conserve sa propre demande × 30 (ou son seuil de réapprovisionnement s'il est
+     * plus haut) ; sans historique fiable (moins de 14 jours, ou quelques ventes seulement),
+     * elle n'est jamais vidée. Quantité = min(excédent, besoin), arrondie à l'unité si l'article
+     * n'accepte pas les décimales. Simple suggestion : aucun transfert n'est créé.
+     *
+     * @param  list<string>  $warehouseIds
+     * @return array<string, mixed>
+     */
+    private function transferSuggestions(array $warehouseIds, CarbonImmutable $today): array
+    {
+        $result = ['target_days' => self::TRANSFER_TARGET_DAYS, 'items' => []];
+
+        if (count($warehouseIds) < 2) {
+            return $result;
+        }
+
+        $tenant = $this->context->tenantId();
+        $in = implode(',', array_fill(0, count($warehouseIds), '?'));
+        $windowStart = $today->subDays(self::COVERAGE_WINDOW_DAYS)->toIso8601String();
+
+        $rows = DB::select("WITH sb AS (
+                SELECT b.warehouse_id, b.product_id, b.quantity_on_hand - b.quantity_reserved AS available
+                FROM inventory_balances b WHERE b.tenant_id = ? AND b.warehouse_id IN ({$in})
+            ), sa AS (
+                SELECT d.warehouse_id, l.product_id,
+                    SUM(CASE WHEN d.type = 'invoice' THEN l.quantity WHEN l.restock THEN -l.quantity ELSE 0 END) AS sold,
+                    COUNT(DISTINCT d.id) FILTER (WHERE d.type = 'invoice') AS sales_count,
+                    COUNT(DISTINCT l.unit_code) AS units
+                FROM sales_documents d
+                JOIN sales_document_lines l ON l.document_id = d.id AND l.tenant_id = d.tenant_id
+                WHERE d.tenant_id = ? AND d.status = 'validated' AND d.type IN ('invoice', 'credit_note')
+                    AND d.warehouse_id IN ({$in}) AND d.validated_at >= ?::timestamptz
+                GROUP BY d.warehouse_id, l.product_id
+            ), fi AS (
+                SELECT m.warehouse_id, m.product_id, MIN(m.occurred_at) AS first_in
+                FROM inventory_movements m
+                WHERE m.tenant_id = ? AND m.warehouse_id IN ({$in}) AND m.quantity_delta > 0
+                GROUP BY m.warehouse_id, m.product_id
+            )
+            SELECT sb.warehouse_id, p.id AS product_id, p.sku, p.name, u.code AS unit, u.decimals_allowed,
+                sb.available, s.reorder_point,
+                COALESCE(sa.sold, 0) AS sold, COALESCE(sa.sales_count, 0) AS sales_count, COALESCE(sa.units, 0) AS units,
+                FLOOR(EXTRACT(EPOCH FROM (?::timestamptz - fi.first_in)) / 86400) AS age_days
+            FROM sb
+            JOIN products p ON p.id = sb.product_id AND p.tenant_id = ?
+            JOIN units u ON u.id = p.unit_id
+            LEFT JOIN product_warehouse_settings s ON s.tenant_id = p.tenant_id AND s.product_id = sb.product_id AND s.warehouse_id = sb.warehouse_id
+            LEFT JOIN sa ON sa.warehouse_id = sb.warehouse_id AND sa.product_id = sb.product_id
+            LEFT JOIN fi ON fi.warehouse_id = sb.warehouse_id AND fi.product_id = sb.product_id
+            WHERE p.type IN ('stockable', 'consumable') AND p.archived_at IS NULL",
+            [$tenant, ...$warehouseIds, $tenant, ...$warehouseIds, $windowStart, $tenant, ...$warehouseIds,
+                $today->toIso8601String(), $tenant]);
+
+        $milli = fn (mixed $value): int => (int) round(((float) $value) * 1000);
+        $byProduct = [];
+
+        foreach ($rows as $row) {
+            $available = $milli($row->available);
+            $sold = $milli($row->sold);
+            $sales = (int) $row->sales_count;
+            $age = max(0, (int) $row->age_days);
+            $effective = min(self::COVERAGE_WINDOW_DAYS, $age);
+            $reliable = (int) $row->units <= 1 && $effective >= self::COVERAGE_MIN_HISTORY_DAYS
+                && $sales >= self::COVERAGE_MIN_SALES && $sold > 0;
+            $idle = $sales === 0 && $age >= self::COVERAGE_MIN_HISTORY_DAYS;
+            $target = $reliable ? intdiv($sold * self::TRANSFER_TARGET_DAYS, $effective) : 0;
+            $reorder = $row->reorder_point !== null ? $milli($row->reorder_point) : 0;
+
+            $byProduct[(string) $row->product_id][] = [
+                'warehouse' => (string) $row->warehouse_id,
+                'sku' => (string) $row->sku,
+                'label' => (string) $row->name,
+                'unit' => (string) $row->unit,
+                'whole' => ! (bool) $row->decimals_allowed,
+                'available' => $available,
+                'coverage' => $reliable ? intdiv(max(0, $available) * $effective, $sold) : null,
+                'need' => $reliable ? max(0, $target - max(0, $available)) : 0,
+                'surplus' => ($reliable || $idle) ? max(0, $available - max($target, $reorder)) : 0,
+            ];
+        }
+
+        $names = DB::table('warehouses')->where('tenant_id', $tenant)->whereIn('id', $warehouseIds)->pluck('name', 'id');
+        $format = fn (int $milli): string => number_format($milli / 1000, 3, '.', '');
+        $items = [];
+
+        foreach ($byProduct as $productId => $stocks) {
+            $destinations = array_filter($stocks, fn (array $s): bool => $s['coverage'] !== null
+                && $s['coverage'] < self::COVERAGE_RISK_DAYS && $s['need'] > 0);
+            usort($destinations, fn (array $a, array $b): int => $a['coverage'] <=> $b['coverage']);
+
+            foreach ($destinations as $destination) {
+                $sources = array_filter($stocks, fn (array $s): bool => $s['warehouse'] !== $destination['warehouse'] && $s['surplus'] > 0);
+                usort($sources, fn (array $a, array $b): int => $b['surplus'] <=> $a['surplus']);
+                $source = $sources[0] ?? null;
+
+                if ($source === null) {
+                    continue;
+                }
+
+                $quantity = min($source['surplus'], $destination['need']);
+                $quantity = $destination['whole'] ? intdiv($quantity, 1000) * 1000 : $quantity;
+
+                if ($quantity <= 0) {
+                    continue;
+                }
+
+                foreach ($stocks as $i => $s) {
+                    if ($s['warehouse'] === $source['warehouse']) {
+                        $stocks[$i]['surplus'] -= $quantity;
+                    }
+                }
+
+                $items[] = [
+                    'product_id' => $productId,
+                    'sku' => $destination['sku'],
+                    'label' => $destination['label'],
+                    'unit' => $destination['unit'],
+                    'source' => ['id' => $source['warehouse'], 'name' => (string) ($names[$source['warehouse']] ?? '')],
+                    'destination' => ['id' => $destination['warehouse'], 'name' => (string) ($names[$destination['warehouse']] ?? '')],
+                    'quantity' => $format($quantity),
+                    'source_available' => $format($source['available']),
+                    'destination_available' => $format($destination['available']),
+                    'destination_coverage_days' => $destination['coverage'],
+                ];
+            }
+        }
+
+        usort($items, fn (array $a, array $b): int => [$a['destination_coverage_days'], $a['sku']] <=> [$b['destination_coverage_days'], $b['sku']]);
+        $result['items'] = array_slice($items, 0, 20);
+
+        return $result;
     }
 
     /**
