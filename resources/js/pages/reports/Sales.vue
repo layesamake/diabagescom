@@ -634,9 +634,9 @@ function priorityHref(priority: Priority): string {
             </div>
             <EmptyState
                 v-if="priorities.length === 0"
-                :title="t('reports.no_priority')"
-                :description="t('reports.no_priority_hint')"
-            />
+                :hint="t('reports.no_priority_hint')"
+                >{{ t('reports.no_priority') }}</EmptyState
+            >
             <div v-else class="grid gap-3 lg:grid-cols-2">
                 <article
                     v-for="priority in priorities"
@@ -706,10 +706,9 @@ function priorityHref(priority: Priority): string {
                     <h3 class="font-semibold">
                         {{ t('reports.revenue_evolution') }}
                     </h3>
-                    <EmptyState
-                        v-if="byDay.length === 0"
-                        :title="t('reports.no_sales')"
-                    />
+                    <EmptyState v-if="byDay.length === 0">{{
+                        t('reports.no_sales')
+                    }}</EmptyState>
                     <ul v-else class="mt-4 space-y-2">
                         <li
                             v-for="day in byDay"
@@ -798,10 +797,9 @@ function priorityHref(priority: Priority): string {
                     <h3 class="font-semibold">
                         {{ t('reports.margin_evolution') }}
                     </h3>
-                    <EmptyState
-                        v-if="byDayMargin.length === 0"
-                        :title="t('reports.no_margin_data')"
-                    />
+                    <EmptyState v-if="byDayMargin.length === 0">{{
+                        t('reports.no_margin_data')
+                    }}</EmptyState>
                     <ul v-else class="mt-4 space-y-2">
                         <li
                             v-for="day in byDayMargin"
@@ -890,9 +888,9 @@ function priorityHref(priority: Priority): string {
             </div>
             <EmptyState
                 v-if="products.length === 0"
-                :title="t('reports.no_product_sales')"
-                :description="t('reports.no_product_sales_hint')"
-            />
+                :hint="t('reports.no_product_sales_hint')"
+                >{{ t('reports.no_product_sales') }}</EmptyState
+            >
             <div v-else>
                 <div class="grid gap-3 md:hidden">
                     <article
@@ -1529,10 +1527,9 @@ function priorityHref(priority: Priority): string {
         >
             <article class="rounded-xl border bg-card p-4">
                 <h2 class="font-semibold">{{ t('reports.by_method') }}</h2>
-                <EmptyState
-                    v-if="byMethod.length === 0"
-                    :title="t('reports.no_payment')"
-                />
+                <EmptyState v-if="byMethod.length === 0">{{
+                    t('reports.no_payment')
+                }}</EmptyState>
                 <ul v-else class="mt-3 divide-y text-sm">
                     <li
                         v-for="method in byMethod"
@@ -1550,10 +1547,9 @@ function priorityHref(priority: Priority): string {
             </article>
             <article class="rounded-xl border bg-card p-4">
                 <h2 class="font-semibold">{{ t('reports.by_warehouse') }}</h2>
-                <EmptyState
-                    v-if="byWarehouse.length === 0"
-                    :title="t('reports.no_sales')"
-                />
+                <EmptyState v-if="byWarehouse.length === 0">{{
+                    t('reports.no_sales')
+                }}</EmptyState>
                 <ul v-else class="mt-3 divide-y text-sm">
                     <li
                         v-for="warehouse in byWarehouse"
@@ -1569,10 +1565,9 @@ function priorityHref(priority: Priority): string {
             </article>
             <article v-if="can.all" class="rounded-xl border bg-card p-4">
                 <h2 class="font-semibold">{{ t('reports.by_seller') }}</h2>
-                <EmptyState
-                    v-if="bySeller.length === 0"
-                    :title="t('reports.no_sales')"
-                />
+                <EmptyState v-if="bySeller.length === 0">{{
+                    t('reports.no_sales')
+                }}</EmptyState>
                 <ul v-else class="mt-3 divide-y text-sm">
                     <li
                         v-for="seller in bySeller"
