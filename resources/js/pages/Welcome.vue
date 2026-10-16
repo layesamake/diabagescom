@@ -26,7 +26,7 @@ import {
     Wallet,
     X,
 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import { Button } from '@/components/ui/button';
 import { formatXof } from '@/lib/money';
@@ -61,6 +61,61 @@ const props = defineProps<{
 const page = usePage();
 const signedIn = computed(() => Boolean(page.props.auth?.user));
 const yearly = ref(false);
+const activeDemo = ref<'sell' | 'stock' | 'pilotage'>('sell');
+const paymentMethod = ref<'Espèces' | 'Wave' | 'Orange Money' | null>(null);
+const shopCart = ref<Record<string, number>>({});
+const shopOrderConfirmed = ref(false);
+
+const demoTabs = [
+    { id: 'sell' as const, label: 'Vendre et encaisser', icon: ScanBarcode },
+    { id: 'stock' as const, label: 'Maîtriser son stock', icon: Boxes },
+    {
+        id: 'pilotage' as const,
+        label: 'Piloter son activité',
+        icon: BookOpenCheck,
+    },
+];
+
+const demoPayments = ['Espèces', 'Wave', 'Orange Money'] as const;
+const shopProducts = [
+    { name: 'Riz parfumé 5 kg', price: 8500 },
+    { name: 'Huile 1 L', price: 1500 },
+    { name: 'Sucre 1 kg', price: 750 },
+];
+const shopCartCount = computed(() =>
+    Object.values(shopCart.value).reduce((sum, quantity) => sum + quantity, 0),
+);
+const shopTotal = computed(() =>
+    shopProducts.reduce(
+        (sum, product) =>
+            sum + product.price * (shopCart.value[product.name] ?? 0),
+        0,
+    ),
+);
+
+function addToShopCart(name: string): void {
+    shopCart.value[name] = (shopCart.value[name] ?? 0) + 1;
+    shopOrderConfirmed.value = false;
+}
+
+function resetShopDemo(): void {
+    shopCart.value = {};
+    shopOrderConfirmed.value = false;
+}
+
+onMounted(() => {
+    const reveal = new IntersectionObserver(
+        (entries) =>
+            entries.forEach((entry) => {
+                if (entry.isIntersecting)
+                    entry.target.classList.add('is-visible');
+            }),
+        { threshold: 0.08 },
+    );
+    document
+        .querySelectorAll('[data-reveal]')
+        .forEach((element) => reveal.observe(element));
+});
 
 const whatsappUrl = computed(() =>
     props.contact.whatsapp
@@ -363,16 +418,17 @@ const yearlyKnown = computed(() =>
                         <h1
                             class="text-4xl font-bold tracking-tight text-balance md:text-5xl"
                         >
-                            Gérez ventes, stock et caisse de votre boutique,
+                            Gérez votre commerce sans perdre le fil.
                             <span
                                 class="text-[var(--color-brand-teal)] dark:text-[var(--color-brand-teal-light)]"
-                                >même sans connexion</span
-                            >.
+                                >Votre commerce avance. Gardez la main.</span
+                            >
                         </h1>
                         <p class="max-w-xl text-lg text-muted-foreground">
-                            DIABA GESCOM remplace le cahier, la calculatrice et
-                            les factures faites à la main. Sur votre téléphone
-                            comme sur l’ordinateur, en francs CFA.
+                            Ventes, stock, caisse, facturation et boutique en
+                            ligne dans une seule application, sur téléphone ou
+                            ordinateur. La vente comptoir continue même sans
+                            connexion.
                         </p>
                         <div class="flex flex-col gap-3 sm:flex-row">
                             <Button as-child size="lg" class="h-12 text-base">
@@ -402,8 +458,13 @@ const yearlyKnown = computed(() =>
                     <!-- Aperçu de l'application (dessiné en CSS : rien à télécharger) -->
                     <div
                         class="relative mx-auto w-full max-w-lg"
-                        aria-hidden="true"
+                        aria-label="Aperçu de démonstration de DIABA GESCOM"
                     >
+                        <p
+                            class="mb-3 text-center text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase"
+                        >
+                            Données de démonstration
+                        </p>
                         <div
                             class="hidden rounded-xl border bg-card p-3 shadow-xl sm:block"
                         >
@@ -529,6 +590,146 @@ const yearlyKnown = computed(() =>
                             sans ressaisie.
                         </p>
                     </div>
+                    <div
+                        class="mb-8 flex flex-col gap-2 rounded-2xl border bg-card p-2 sm:flex-row"
+                        role="tablist"
+                        aria-label="Démonstrations métier"
+                    >
+                        <button
+                            v-for="tab in demoTabs"
+                            :key="tab.id"
+                            type="button"
+                            role="tab"
+                            :aria-selected="activeDemo === tab.id"
+                            class="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl px-3 text-left text-sm font-semibold transition-colors"
+                            :class="
+                                activeDemo === tab.id
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:bg-muted'
+                            "
+                            @click="activeDemo = tab.id"
+                        >
+                            <component
+                                :is="tab.icon"
+                                class="size-4"
+                                aria-hidden="true"
+                            />
+                            {{ tab.label }}
+                        </button>
+                    </div>
+                    <div
+                        data-reveal
+                        class="mb-10 grid gap-5 rounded-2xl bg-[var(--color-brand-navy)] p-5 text-white shadow-xl md:grid-cols-[1.2fr_0.8fr] md:p-7"
+                    >
+                        <div>
+                            <p
+                                class="text-sm font-semibold text-[var(--color-brand-teal-light)]"
+                            >
+                                Démonstration interactive
+                            </p>
+                            <h3 class="mt-2 text-2xl font-bold">
+                                {{
+                                    activeDemo === 'sell'
+                                        ? 'Encaissez sans ressaisie.'
+                                        : activeDemo === 'stock'
+                                          ? 'Voyez ce qui doit être réapprovisionné.'
+                                          : 'Décidez avec les bons chiffres.'
+                                }}
+                            </h3>
+                            <p
+                                class="mt-3 max-w-xl text-base leading-7 text-white/75"
+                            >
+                                {{
+                                    activeDemo === 'sell'
+                                        ? 'Choisissez un moyen de paiement : cette simulation ne crée aucune vente et ne touche jamais à vos données.'
+                                        : activeDemo === 'stock'
+                                          ? 'Les quantités, mouvements et dépôts restent lisibles sur téléphone comme sur ordinateur.'
+                                          : 'Ventes, encaissements et alertes se retrouvent au même endroit pour agir plus vite.'
+                                }}
+                            </p>
+                        </div>
+                        <div class="rounded-xl bg-white/10 p-4">
+                            <p
+                                class="text-xs tracking-wide text-white/60 uppercase"
+                            >
+                                {{
+                                    activeDemo === 'sell'
+                                        ? 'Simulation d’encaissement'
+                                        : activeDemo === 'stock'
+                                          ? 'Stock multi-dépôts'
+                                          : 'Pilotage du jour'
+                                }}
+                            </p>
+                            <template v-if="activeDemo === 'sell'">
+                                <p class="mt-3 text-2xl font-bold tabular-nums">
+                                    22 250 XOF
+                                </p>
+                                <div class="mt-3 grid gap-2 sm:grid-cols-3">
+                                    <button
+                                        v-for="method in demoPayments"
+                                        :key="method"
+                                        type="button"
+                                        class="min-h-11 rounded-lg border border-white/20 px-2 text-sm transition hover:bg-white/15"
+                                        :class="
+                                            paymentMethod === method
+                                                ? 'bg-[var(--color-brand-teal)] text-white'
+                                                : 'text-white/80'
+                                        "
+                                        @click="paymentMethod = method"
+                                    >
+                                        {{ method }}
+                                    </button>
+                                </div>
+                                <p
+                                    class="mt-3 text-sm text-[var(--color-brand-teal-light)]"
+                                    aria-live="polite"
+                                >
+                                    {{
+                                        paymentMethod
+                                            ? `Simulation validée par ${paymentMethod}.`
+                                            : 'Choisissez un moyen de paiement.'
+                                    }}
+                                </p>
+                            </template>
+                            <template v-else-if="activeDemo === 'stock'">
+                                <div class="mt-4 space-y-3 text-sm">
+                                    <p class="flex justify-between">
+                                        <span>Riz parfumé 5 kg</span
+                                        ><strong>24 unités</strong>
+                                    </p>
+                                    <p class="flex justify-between">
+                                        <span>Huile 1 L</span
+                                        ><strong class="text-amber-300"
+                                            >6 unités · à surveiller</strong
+                                        >
+                                    </p>
+                                    <p class="flex justify-between">
+                                        <span>Sucre 1 kg</span
+                                        ><strong
+                                            class="text-[var(--color-brand-teal-light)]"
+                                            >Dakar · 48</strong
+                                        >
+                                    </p>
+                                </div>
+                            </template>
+                            <template v-else>
+                                <div
+                                    class="mt-4 grid grid-cols-2 gap-2 text-sm"
+                                >
+                                    <p class="rounded-lg bg-white/10 p-3">
+                                        <span class="block text-white/60"
+                                            >Ventes</span
+                                        ><strong>486 500 XOF</strong>
+                                    </p>
+                                    <p class="rounded-lg bg-white/10 p-3">
+                                        <span class="block text-white/60"
+                                            >À encaisser</span
+                                        ><strong>95 000 XOF</strong>
+                                    </p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
                     <ul
                         class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                     >
@@ -597,14 +798,21 @@ const yearlyKnown = computed(() =>
                             marquées « Boutique en ligne » ci-dessous.
                         </p>
                         <div class="flex flex-col gap-3 sm:flex-row">
-                            <Button as-child size="lg" class="h-12 text-base">
-                                <Link
-                                    :href="signedIn ? dashboard() : register()"
-                                    >Essayer gratuitement
+                            <Button
+                                v-if="contactUrl"
+                                as-child
+                                size="lg"
+                                class="h-12 text-base"
+                            >
+                                <a
+                                    :href="contactUrl"
+                                    target="_blank"
+                                    rel="noopener"
+                                    >Je veux ma boutique en ligne
                                     <ArrowRight
                                         class="size-4"
                                         aria-hidden="true"
-                                /></Link>
+                                /></a>
                             </Button>
                             <Button
                                 as-child
@@ -618,7 +826,10 @@ const yearlyKnown = computed(() =>
                     </div>
 
                     <!-- Aperçu d'une boutique (dessiné en CSS : rien à télécharger) -->
-                    <div class="mx-auto w-full max-w-md" aria-hidden="true">
+                    <div
+                        class="mx-auto w-full max-w-md"
+                        aria-label="Démonstration de boutique en ligne"
+                    >
                         <div
                             class="overflow-hidden rounded-2xl border bg-white text-slate-900 shadow-2xl"
                         >
@@ -650,31 +861,67 @@ const yearlyKnown = computed(() =>
                             </div>
                             <div class="grid grid-cols-2 gap-2 p-3 pt-0">
                                 <div
-                                    v-for="item in [
-                                        ['Riz parfumé 5 kg', 8500],
-                                        ['Huile 1 L', 1500],
-                                        ['Sucre 1 kg', 750],
-                                        ['Lait en poudre', 3200],
-                                    ]"
-                                    :key="item[0]"
+                                    v-for="item in shopProducts"
+                                    :key="item.name"
                                     class="rounded-lg border p-2"
                                 >
                                     <span
                                         class="mb-2 block h-12 rounded bg-slate-100"
                                     />
                                     <p class="truncate text-[11px] font-medium">
-                                        {{ item[0] }}
+                                        {{ item.name }}
                                     </p>
                                     <p
                                         class="text-[11px] font-bold tabular-nums"
                                     >
-                                        {{ formatXof(item[1] as number) }}
+                                        {{ formatXof(item.price) }}
                                     </p>
-                                    <span
-                                        class="mt-1 block rounded bg-slate-900 py-1 text-center text-[10px] text-white"
-                                        >Commander</span
+                                    <button
+                                        type="button"
+                                        class="mt-1 block min-h-9 w-full rounded bg-slate-900 py-1 text-center text-[10px] text-white transition hover:bg-slate-700"
+                                        @click="addToShopCart(item.name)"
                                     >
+                                        Ajouter
+                                    </button>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 rounded-xl border bg-card p-4 text-sm">
+                            <div
+                                class="flex items-center justify-between gap-3"
+                            >
+                                <span class="font-semibold"
+                                    >Panier de démonstration ·
+                                    {{ shopCartCount }} article(s)</span
+                                >
+                                <span class="font-bold tabular-nums">{{
+                                    formatXof(shopTotal)
+                                }}</span>
+                            </div>
+                            <p
+                                v-if="shopOrderConfirmed"
+                                class="mt-2 text-sm text-success"
+                                aria-live="polite"
+                            >
+                                Commande simulée « À confirmer ». Rien n’a été
+                                envoyé.
+                            </p>
+                            <div class="mt-3 flex gap-2">
+                                <button
+                                    type="button"
+                                    class="min-h-11 flex-1 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                                    :disabled="shopCartCount === 0"
+                                    @click="shopOrderConfirmed = true"
+                                >
+                                    Simuler la commande
+                                </button>
+                                <button
+                                    type="button"
+                                    class="min-h-11 rounded-lg border px-3 text-sm"
+                                    @click="resetShopDemo"
+                                >
+                                    Recommencer
+                                </button>
                             </div>
                         </div>
                         <p
@@ -1042,6 +1289,27 @@ const yearlyKnown = computed(() =>
                 </div>
             </section>
         </main>
+
+        <div
+            class="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t bg-background/95 p-3 shadow-2xl backdrop-blur md:hidden"
+        >
+            <Button as-child class="min-h-11 flex-1">
+                <Link :href="signedIn ? dashboard() : register()"
+                    >Essayer gratuitement</Link
+                >
+            </Button>
+            <Button
+                v-if="whatsappUrl"
+                as-child
+                variant="outline"
+                class="min-h-11"
+                aria-label="Contacter DIABA GESCOM sur WhatsApp"
+            >
+                <a :href="whatsappUrl" target="_blank" rel="noopener"
+                    ><MessageCircle class="size-5" aria-hidden="true"
+                /></a>
+            </Button>
+        </div>
 
         <footer class="border-t">
             <div

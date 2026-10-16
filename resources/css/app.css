@@ -1,3 +1,4 @@
+@import '@fontsource/atkinson-hyperlegible-next';
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
@@ -9,7 +10,7 @@
 
 @theme inline {
     --font-sans:
-        Instrument Sans, ui-sans-serif, system-ui, sans-serif,
+        'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
@@ -100,7 +101,7 @@
     body,
     html {
         --font-sans:
-            'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+            'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif,
             'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
             'Noto Color Emoji';
     }
@@ -336,4 +337,33 @@
 
 .dark .app-topbar {
     background-color: #0a3f37;
+}
+
+@layer utilities {
+    [data-reveal] {
+        opacity: 0;
+        transform: translateY(12px);
+        transition:
+            opacity 500ms ease,
+            transform 500ms ease;
+    }
+
+    [data-reveal].is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-reveal] {
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+    }
+
+    @media (max-width: 767px) {
+        body {
+            padding-bottom: 76px;
+        }
+    }
 }
