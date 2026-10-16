@@ -2255,6 +2255,9 @@ export const fr = {
         missing_due_dates: 'de créances n’ont pas de date d’échéance.',
         view_invoices: 'Voir les factures à encaisser',
         watch: 'À surveiller',
+        warehouse_comparison: 'Comparaison des dépôts',
+        warehouse_comparison_hint:
+            'Ventes et marge sur la période choisie ; valeur du stock et dettes fournisseurs sont des situations actuelles. Mêmes définitions que les totaux de la page.',
         transfer_suggestions: 'Transferts possibles entre dépôts',
         transfer_suggestions_hint:
             'Suggestion, sans effet : un dépôt qui manque bientôt d’un article (demande fiable) pourrait recevoir l’excédent d’un autre dépôt. Le dépôt source conserve {days} jours de sa propre demande et son seuil de réapprovisionnement ; un dépôt sans historique fiable n’est jamais vidé. Seuls les dépôts affichés dans le filtre sont comparés.',

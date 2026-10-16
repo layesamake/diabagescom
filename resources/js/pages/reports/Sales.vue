@@ -88,6 +88,18 @@ type CoverageItem = {
     status: 'out' | 'low' | 'reorder';
     below_reorder: boolean;
 };
+type WarehouseComparisonRow = {
+    id: string;
+    name: string;
+    total: number;
+    excl_tax: number;
+    sales: number;
+    margin: number | null;
+    margin_rate_basis_points: number | null;
+    cost_complete: boolean | null;
+    stock_value: number | null;
+    payables: number | null;
+};
 type TransferSuggestion = {
     product_id: string;
     sku: string;
@@ -175,6 +187,7 @@ const props = defineProps<{
     byDay: { day: string; total: number; sales: number }[];
     byDayMargin: { day: string; margin: number }[];
     byWarehouse: { label: string; total: number }[];
+    warehouseComparison: WarehouseComparisonRow[];
     bySeller: { label: string; total: number }[];
     byMethod: { method: string; total: number }[];
     topProducts: {
@@ -1392,6 +1405,125 @@ function priorityHref(priority: Priority): string {
                     })
                 }}
             </p>
+        </section>
+
+        <section
+            v-if="warehouseComparison.length > 1"
+            class="space-y-3"
+            aria-labelledby="comparison-title"
+        >
+            <div>
+                <h2 id="comparison-title" class="text-lg font-semibold">
+                    {{ t('reports.warehouse_comparison') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('reports.warehouse_comparison_hint') }}
+                </p>
+            </div>
+            <div class="overflow-x-auto rounded-xl border bg-card">
+                <table class="w-full text-sm">
+                    <caption class="sr-only">
+                        {{
+                            t('reports.warehouse_comparison')
+                        }}
+                    </caption>
+                    <thead class="text-left text-muted-foreground">
+                        <tr>
+                            <th scope="col" class="p-3">
+                                {{ t('reports.warehouse') }}
+                            </th>
+                            <th scope="col" class="p-3 text-right">
+                                {{ t('reports.revenue') }}
+                            </th>
+                            <th scope="col" class="p-3 text-right">
+                                {{ t('reports.sales_count') }}
+                            </th>
+                            <th
+                                v-if="can.margin"
+                                scope="col"
+                                class="p-3 text-right"
+                            >
+                                {{ t('reports.margin') }}
+                            </th>
+                            <th
+                                v-if="can.margin && can.inventory"
+                                scope="col"
+                                class="p-3 text-right"
+                            >
+                                {{ t('reports.stock_value') }}
+                            </th>
+                            <th
+                                v-if="can.all && can.purchases"
+                                scope="col"
+                                class="p-3 text-right"
+                            >
+                                {{ t('reports.payables') }}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="row in warehouseComparison"
+                            :key="row.id"
+                            class="border-t"
+                        >
+                            <th scope="row" class="p-3 text-left font-medium">
+                                {{ row.name }}
+                            </th>
+                            <td class="p-3 text-right tabular-nums">
+                                {{ formatXof(row.total) }}
+                            </td>
+                            <td class="p-3 text-right tabular-nums">
+                                {{ row.sales }}
+                            </td>
+                            <td
+                                v-if="can.margin"
+                                class="p-3 text-right tabular-nums"
+                            >
+                                {{
+                                    row.margin !== null
+                                        ? formatXof(row.margin)
+                                        : '—'
+                                }}
+                                <span
+                                    v-if="row.margin_rate_basis_points !== null"
+                                    class="block text-xs text-muted-foreground"
+                                    >{{
+                                        formatPercent(
+                                            row.margin_rate_basis_points,
+                                        )
+                                    }}</span
+                                >
+                                <span
+                                    v-if="row.cost_complete === false"
+                                    class="block text-xs text-amber-700 dark:text-amber-300"
+                                    >{{ t('reports.cost_missing') }}</span
+                                >
+                            </td>
+                            <td
+                                v-if="can.margin && can.inventory"
+                                class="p-3 text-right tabular-nums"
+                            >
+                                {{
+                                    row.stock_value !== null
+                                        ? formatXof(row.stock_value)
+                                        : '—'
+                                }}
+                            </td>
+                            <td
+                                v-if="can.all && can.purchases"
+                                class="p-3 text-right tabular-nums"
+                            >
+                                {{
+                                    row.payables !== null
+                                        ? formatXof(row.payables)
+                                        : '—'
+                                }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <section

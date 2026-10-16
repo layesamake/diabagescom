@@ -78,6 +78,7 @@ final class PilotageReport
             'byDay' => $this->byDay($user, $all, $selectedWarehouses, $from, $to, $timezone),
             'byDayMargin' => $canSeeMargin ? $this->byDayMargin($user, $all, $selectedWarehouses, $from, $to, $timezone) : collect(),
             'byWarehouse' => $this->byWarehouse($user, $all, $selectedWarehouses, $from, $to),
+            'warehouseComparison' => $this->warehouseComparison($user, $all, $canSeeMargin, $canSeeInventory, $canSeePurchases, $selectedWarehouses, $from, $to),
             'bySeller' => $all ? $this->bySeller($selectedWarehouses, $from, $to) : collect(),
             'byMethod' => $this->byMethod($user, $all, $selectedWarehouses, $from, $to),
             'products' => $products,
@@ -875,6 +876,80 @@ final class PilotageReport
             ->selectRaw("w.name, SUM({$signed} * d.total) AS total")
             ->groupBy('w.id', 'w.name')->orderByDesc('total')->get()
             ->map(fn ($row): array => ['label' => (string) $row->name, 'total' => (int) $row->total]);
+    }
+
+    /**
+     * Comparaison des dépôts du périmètre : mêmes définitions que les totaux (ventes nettes
+     * des avoirs, marge sur coût historique figé, stock valorisé au coût moyen, dettes
+     * fournisseurs ouvertes). Aucune comparaison avec moins de deux dépôts. Coûts, valeur
+     * du stock et dettes sont nuls sans leur droit ; les ventes suivent le périmètre
+     * (vendeur ou global) comme le reste de l'écran.
+     *
+     * @param  list<string>  $warehouseIds
+     * @return list<array<string, mixed>>
+     */
+    private function warehouseComparison(User $user, bool $all, bool $canSeeMargin, bool $canSeeInventory, bool $canSeePurchases, array $warehouseIds, CarbonImmutable $from, CarbonImmutable $to): array
+    {
+        if (count($warehouseIds) < 2) {
+            return [];
+        }
+
+        $tenant = $this->context->tenantId();
+        $signed = "CASE WHEN d.type = 'credit_note' THEN -1 ELSE 1 END";
+        $documents = $this->documents($user, $all, $warehouseIds, $from, $to);
+
+        $sales = $documents()
+            ->selectRaw("d.warehouse_id, COALESCE(SUM({$signed} * d.total), 0) AS total, COALESCE(SUM({$signed} * d.total_excl_tax), 0) AS excl,
+                COUNT(*) FILTER (WHERE d.type = 'invoice') AS sales")
+            ->groupBy('d.warehouse_id')->get()->keyBy('warehouse_id');
+
+        $costs = $canSeeMargin ? $documents()
+            ->join('sales_document_lines as l', function ($join): void {
+                $join->on('l.document_id', '=', 'd.id')->on('l.tenant_id', '=', 'd.tenant_id');
+            })
+            ->selectRaw("d.warehouse_id, COALESCE(SUM(CASE
+                    WHEN l.product_type = 'service' THEN 0
+                    WHEN l.unit_cost IS NULL THEN 0
+                    WHEN d.type = 'invoice' THEN ROUND(l.quantity * l.unit_cost)
+                    WHEN d.type = 'credit_note' AND l.restock THEN -ROUND(l.quantity * l.unit_cost)
+                    ELSE 0 END), 0) AS cost,
+                COUNT(*) FILTER (WHERE l.product_type <> 'service' AND l.unit_cost IS NULL) AS missing")
+            ->groupBy('d.warehouse_id')->get()->keyBy('warehouse_id') : collect();
+
+        $stock = $canSeeMargin && $canSeeInventory ? DB::table('inventory_balances')
+            ->where('tenant_id', $tenant)->whereIn('warehouse_id', $warehouseIds)->where('quantity_on_hand', '>', 0)
+            ->selectRaw('warehouse_id, SUM(ROUND(quantity_on_hand * average_cost)) AS value')
+            ->groupBy('warehouse_id')->pluck('value', 'warehouse_id') : collect();
+
+        $payables = $all && $canSeePurchases ? DB::table('supplier_invoices')
+            ->where('tenant_id', $tenant)->where('status', 'validated')->whereIn('warehouse_id', $warehouseIds)
+            ->selectRaw('warehouse_id, SUM(GREATEST(total - amount_paid - amount_credited, 0)) AS due')
+            ->groupBy('warehouse_id')->pluck('due', 'warehouse_id') : collect();
+
+        $rows = [];
+
+        foreach (DB::table('warehouses')->where('tenant_id', $tenant)->whereIn('id', $warehouseIds)->get(['id', 'name']) as $warehouse) {
+            $id = (string) $warehouse->id;
+            $excl = (int) ($sales[$id]->excl ?? 0);
+            $margin = $canSeeMargin ? $excl - (int) ($costs[$id]->cost ?? 0) : null;
+
+            $rows[] = [
+                'id' => $id,
+                'name' => (string) $warehouse->name,
+                'total' => (int) ($sales[$id]->total ?? 0),
+                'excl_tax' => $excl,
+                'sales' => (int) ($sales[$id]->sales ?? 0),
+                'margin' => $margin,
+                'margin_rate_basis_points' => $margin !== null && $excl > 0 ? (int) round(($margin * 10000) / $excl) : null,
+                'cost_complete' => $canSeeMargin ? (int) ($costs[$id]->missing ?? 0) === 0 : null,
+                'stock_value' => $canSeeMargin && $canSeeInventory ? (int) ($stock[$id] ?? 0) : null,
+                'payables' => $all && $canSeePurchases ? (int) ($payables[$id] ?? 0) : null,
+            ];
+        }
+
+        usort($rows, fn (array $a, array $b): int => [$b['total'], $a['name']] <=> [$a['total'], $b['name']]);
+
+        return $rows;
     }
 
     /**
