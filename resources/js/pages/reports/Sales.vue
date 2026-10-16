@@ -84,6 +84,8 @@ type CoverageItem = {
     daily_demand: string | null;
     sales_count: number;
     coverage_days: number | null;
+    lead_time_days: number;
+    reorder_date: string | null;
     coverage_state: 'ok' | 'insufficient_history' | 'no_sales';
     status: 'out' | 'low' | 'reorder';
     below_reorder: boolean;
@@ -1374,6 +1376,18 @@ function priorityHref(priority: Priority): string {
                                 <template v-else>{{
                                     t('reports.insufficient_history')
                                 }}</template>
+                                <span
+                                    class="block text-xs text-muted-foreground"
+                                >
+                                    {{
+                                        t('reports.supplier_lead_time', {
+                                            days: item.lead_time_days,
+                                        })
+                                    }}
+                                    <template v-if="item.reorder_date">
+                                        · {{ formatDate(item.reorder_date) }}
+                                    </template>
+                                </span>
                             </td>
                             <td class="p-3 text-right">
                                 <Button

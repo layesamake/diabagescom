@@ -1251,6 +1251,7 @@ export const fr = {
         low_count: '{count} article(s) sous le seuil d’alerte',
         quantity: 'Quantité',
         reorder_point: 'Seuil',
+        lead_time: 'Délai fournisseur',
         average_cost: 'Coût moyen',
         value: 'Valeur',
         low: 'Stock bas',
@@ -2283,6 +2284,7 @@ export const fr = {
         daily_demand: 'Ventes par jour',
         coverage: 'Couverture',
         insufficient_history: 'Historique insuffisant',
+        supplier_lead_time: 'Délai fournisseur : {days} j.',
         no_sales_state: 'Aucune vente',
         view_movements: 'Voir les mouvements',
         coverage_counts:

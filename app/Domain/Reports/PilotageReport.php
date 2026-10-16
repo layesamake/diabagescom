@@ -339,7 +339,8 @@ final class PilotageReport
                 GROUP BY b.product_id
             ), ro AS (
                 SELECT s.product_id,
-                    BOOL_OR(s.reorder_point IS NOT NULL AND COALESCE(b.quantity_on_hand, 0) <= s.reorder_point) AS below
+                    BOOL_OR(s.reorder_point IS NOT NULL AND COALESCE(b.quantity_on_hand, 0) <= s.reorder_point) AS below,
+                    MAX(COALESCE(s.lead_time_days, 7)) AS lead_time_days
                 FROM product_warehouse_settings s
                 LEFT JOIN inventory_balances b ON b.tenant_id = s.tenant_id AND b.product_id = s.product_id AND b.warehouse_id = s.warehouse_id
                 WHERE s.tenant_id = ? AND s.warehouse_id IN ({$in})
@@ -362,6 +363,7 @@ final class PilotageReport
             )
             SELECT p.id, p.sku, p.name, u.code AS unit, sb.available,
                 COALESCE(ro.below, false) AS below_reorder,
+                COALESCE(ro.lead_time_days, 7) AS lead_time_days,
                 COALESCE(sa.sold, 0) AS sold, COALESCE(sa.sales_count, 0) AS sales_count, COALESCE(sa.units, 0) AS units,
                 FLOOR(EXTRACT(EPOCH FROM (?::timestamptz - fi.first_in)) / 86400) AS age_days
             FROM sb
@@ -396,12 +398,13 @@ final class PilotageReport
 
             $coverageDays = $state === 'ok' && $available > 0 ? intdiv($available * $effectiveDays, $sold) : null;
             $below = (bool) $row->below_reorder;
+            $leadTimeDays = max(1, (int) $row->lead_time_days);
             $status = null;
 
             if ($available <= 0 && $salesCount > 0) {
                 $status = 'out';
                 $coverageDays = 0;
-            } elseif ($state === 'ok' && $coverageDays !== null && $coverageDays < self::COVERAGE_RISK_DAYS) {
+            } elseif ($state === 'ok' && $coverageDays !== null && $coverageDays < $leadTimeDays) {
                 $status = 'low';
             } elseif ($below) {
                 $status = 'reorder';
@@ -429,6 +432,10 @@ final class PilotageReport
                 'daily_demand' => $state === 'ok' ? $format((int) round($sold / $effectiveDays)) : null,
                 'sales_count' => $salesCount,
                 'coverage_days' => $coverageDays,
+                'lead_time_days' => $leadTimeDays,
+                'reorder_date' => $status !== null
+                    ? $today->addDays(max(0, ($coverageDays ?? 0) - $leadTimeDays))->toDateString()
+                    : null,
                 'coverage_state' => $state,
                 'status' => $status,
                 'below_reorder' => $below,

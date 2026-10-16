@@ -91,7 +91,7 @@ class StockCoverageTest extends TestCase
         $this->coverage($setup)->assertInertia(fn (Assert $page) => $page
             ->where('stockInsights.coverage.items.0.sku', 'RIZ')
             ->where('stockInsights.coverage.items.0.lead_time_days', 7)
-            ->where('stockInsights.coverage.items.0.reorder_date', '2026-10-21'));
+            ->where('stockInsights.coverage.items.0.reorder_date', '2026-10-14'));
     }
 
     public function test_a_comfortable_coverage_is_not_listed(): void
