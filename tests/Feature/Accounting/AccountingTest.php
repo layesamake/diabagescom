@@ -86,7 +86,7 @@ class AccountingTest extends TestCase
 
     public function test_accounting_requires_a_compta_plan(): void
     {
-        $setup = $this->createTenantWithMember(plan: 'business');
+        $setup = $this->createTenantWithMember(plan: 'business', activateAccounting: false);
         $this->enter($setup);
 
         $this->expectException(InvalidAccountingOperation::class);

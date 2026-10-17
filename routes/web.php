@@ -42,6 +42,7 @@ use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Settings\BackupController;
 use App\Http\Controllers\Settings\CompanyController;
+use App\Http\Controllers\Settings\FeatureController;
 use App\Http\Controllers\Settings\GoogleDriveController;
 use App\Http\Controllers\Settings\MemberController;
 use App\Http\Controllers\Settings\NotificationController;
@@ -120,6 +121,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::post('settings/company/images/{slot}', [CompanyController::class, 'uploadImage'])->whereIn('slot', ['logo', 'stamp', 'cover'])->middleware('throttle:20,1')->name('company.images.store');
     Route::delete('settings/company/images/{slot}', [CompanyController::class, 'removeImage'])->whereIn('slot', ['logo', 'stamp', 'cover'])->name('company.images.destroy');
     Route::get('settings/company/images/{slot}', [CompanyController::class, 'image'])->whereIn('slot', ['logo', 'stamp', 'cover'])->middleware('signed')->name('company.images.show');
+    Route::get('settings/features', [FeatureController::class, 'edit'])->name('features.edit');
+    Route::put('settings/features/{feature}', [FeatureController::class, 'update'])->name('features.update');
     Route::get('settings/notifications', [NotificationController::class, 'edit'])->name('notifications.edit');
     Route::put('settings/notifications', [NotificationController::class, 'update'])->name('notifications.update');
     Route::middleware('feature:online_store')->prefix('storefront')->name('storefront.')->group(function (): void {

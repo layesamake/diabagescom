@@ -65,10 +65,12 @@ class AccountingHttpTest extends TestCase
         $this->assertTrue(AuditEvent::query()->withoutGlobalScopes()->where('action', 'accounting.exported')->exists());
     }
 
-    public function test_accounting_is_reserved_to_compta_plans_and_authorized_roles(): void
+    public function test_accounting_is_reserved_to_administrators_who_activated_it_and_authorized_roles(): void
     {
-        $noCompta = $this->createTenantWithMember(plan: 'business');
-        $this->actingAs($noCompta['user'])->get(route('accounting.index'))->assertRedirect();
+        // La comptabilité est incluse dans toutes les formules désormais ; elle
+        // reste indisponible tant que l'administrateur ne l'a pas activée.
+        $notActivated = $this->createTenantWithMember(plan: 'business', activateAccounting: false);
+        $this->actingAs($notActivated['user'])->get(route('accounting.index'))->assertRedirect();
 
         $setup = $this->initialized();
         $cashier = $this->member($setup, 'cashier');

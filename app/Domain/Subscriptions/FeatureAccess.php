@@ -73,6 +73,23 @@ final class FeatureAccess
 
     public function hasFeature(Tenant $tenant, string $feature): bool
     {
+        if (! $this->planIncludesFeature($tenant, $feature)) {
+            return false;
+        }
+
+        return match ($feature) {
+            self::FEATURE_ACCOUNTING => $tenant->accounting_activated,
+            self::FEATURE_ONLINE_STORE => $tenant->online_store_activated,
+            default => false,
+        };
+    }
+
+    /**
+     * La formule autorise la fonction ; indépendant de son activation effective
+     * par l'administrateur de l'entreprise (cf. hasFeature()).
+     */
+    public function planIncludesFeature(Tenant $tenant, string $feature): bool
+    {
         $plan = $this->subscription($tenant)?->plan;
 
         return match ($feature) {
