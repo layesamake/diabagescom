@@ -7,6 +7,7 @@ import {
     DatabaseBackup,
     Palette,
     ScrollText,
+    Settings2,
     ShieldCheck,
     Smartphone,
     UserRound,
@@ -23,6 +24,7 @@ import { edit as appearanceEdit } from '@/routes/appearance';
 import { index as auditIndex } from '@/routes/audit';
 import { index as backupIndex } from '@/routes/backup';
 import { edit as companyEdit } from '@/routes/company';
+import { edit as featuresEdit } from '@/routes/features';
 import { index as membersIndex } from '@/routes/members';
 import { edit as notificationsEdit } from '@/routes/notifications';
 import { edit as profileEdit } from '@/routes/profile';
@@ -122,6 +124,13 @@ const sections = computed(() => {
                     t('nav.subscription'),
                     subscriptionShow().url,
                     CreditCard,
+                ),
+                ...item(
+                    inCompany && context.value?.role.code === 'admin',
+                    'features',
+                    t('nav.features'),
+                    featuresEdit().url,
+                    Settings2,
                 ),
             ],
         },

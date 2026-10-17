@@ -32,7 +32,13 @@ abstract class TestCase extends BaseTestCase
      *
      * @return array{tenant: Tenant, user: User, membership: TenantMembership, warehouse: Warehouse}
      */
-    protected function createTenantWithMember(string $role = 'admin', ?User $user = null, ?string $plan = 'business_accounting'): array
+    protected function createTenantWithMember(
+        string $role = 'admin',
+        ?User $user = null,
+        ?string $plan = 'business_accounting',
+        bool $activateAccounting = true,
+        bool $activateOnlineStore = true,
+    ): array
     {
         $user ??= User::factory()->withTwoFactor()->create();
         $tenant = Tenant::factory()->create();
@@ -45,6 +51,13 @@ abstract class TestCase extends BaseTestCase
 
         if ($plan !== null) {
             app(SubscriptionLifecycle::class)->startTrial($tenant, Plan::query()->where('code', $plan)->firstOrFail());
+            // Les scénarios de test veulent presque toujours une fonction utilisable
+            // dès que la formule l'inclut ; le parcours réel (désactivée par défaut,
+            // activée par l'administrateur) est couvert spécifiquement ailleurs.
+            $tenant->forceFill([
+                'accounting_activated' => $activateAccounting,
+                'online_store_activated' => $activateOnlineStore,
+            ])->save();
         }
 
         return compact('tenant', 'user', 'membership', 'warehouse');

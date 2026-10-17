@@ -39,6 +39,7 @@ export const fr = {
         audit: "Journal d'audit",
         devices: 'Appareils',
         subscription: 'Abonnement',
+        features: 'Fonctionnalités',
         warehouses: 'Dépôts',
         settings: 'Paramètres',
         profile: 'Profil',
@@ -346,6 +347,8 @@ export const fr = {
             warehouses: 'Vos magasins et dépôts, et qui y a accès.',
             subscription:
                 'Votre formule, les options et les factures de l’abonnement.',
+            features:
+                'Activer ou désactiver la comptabilité et la boutique en ligne.',
             backup: 'Une copie de vos données sur votre ordinateur ou Google Drive.',
             audit: 'Qui a fait quoi et quand : le journal des actions importantes.',
             devices: 'Les appareils autorisés à vendre hors connexion.',
@@ -1144,6 +1147,19 @@ export const fr = {
                 "L'application est en lecture seule : vous pouvez consulter vos données mais plus en enregistrer.",
             suspended: "L'accès à cette entreprise est suspendu.",
             action: 'Voir mon abonnement',
+        },
+    },
+    features: {
+        description:
+            'La comptabilité et la boutique en ligne sont incluses dans votre formule : activez-les quand vous êtes prêt à les utiliser.',
+        hint: 'Incluse dans votre formule.',
+        not_included:
+            'Pas incluse dans votre formule actuelle. Contactez le support pour en savoir plus.',
+        activate: 'Activer',
+        deactivate: 'Désactiver',
+        labels: {
+            accounting: 'Comptabilité',
+            online_store: 'Boutique en ligne',
         },
     },
     warehouses: {

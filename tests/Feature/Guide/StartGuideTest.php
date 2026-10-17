@@ -133,7 +133,7 @@ class StartGuideTest extends TestCase
     public function test_accounting_steps_need_the_accounting_plan(): void
     {
         $with = $this->createTenantWithMember();
-        $without = $this->createTenantWithMember(plan: 'business');
+        $without = $this->createTenantWithMember(plan: 'business', activateAccounting: false);
 
         $this->actingAs($with['user'])->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page
             ->where('guide.steps', fn ($steps) => collect($steps)->pluck('key')->contains('accounting')));

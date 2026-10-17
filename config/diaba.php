@@ -40,41 +40,39 @@ return [
      * Formules créées si absentes (diaba:sync-plans). Une fois en base, elles
      * sont gérées par le super-administrateur et jamais écrasées ici.
      *
-     * À VALIDER PAR LE PROPRIÉTAIRE avant commercialisation : nombre
-     * d'utilisateurs inclus, nombre de dépôts « Business » et prix. Les prix
-     * restent null (non affichés, non facturables) tant qu'ils ne sont pas fixés.
+     * Restructuration validée le 17/10/2026 : 3 formules, comptabilité et
+     * boutique en ligne incluses partout (activables par l'administrateur
+     * de l'entreprise dans le backoffice, désactivées par défaut).
      */
     'default_plans' => [
         'essential' => [
             'name' => 'Essentiel',
             'warehouse_limit' => 1,
             'included_users' => 2,
-            'accounting_enabled' => false,
-            'online_store_enabled' => false,
-            'sort_order' => 10,
-        ],
-        'essential_accounting' => [
-            'name' => 'Essentiel Compta',
-            'warehouse_limit' => 1,
-            'included_users' => 3,
             'accounting_enabled' => true,
-            'online_store_enabled' => false,
-            'sort_order' => 20,
+            'online_store_enabled' => true,
+            'price_monthly' => 5000,
+            'price_yearly' => 51000,
+            'sort_order' => 10,
         ],
         'business' => [
             'name' => 'Business',
             'warehouse_limit' => 5,
             'included_users' => 5,
-            'accounting_enabled' => false,
-            'online_store_enabled' => false,
+            'accounting_enabled' => true,
+            'online_store_enabled' => true,
+            'price_monthly' => 12500,
+            'price_yearly' => 120000,
             'sort_order' => 30,
         ],
         'business_accounting' => [
-            'name' => 'Business Compta',
+            'name' => 'Premium',
             'warehouse_limit' => 5,
             'included_users' => 8,
             'accounting_enabled' => true,
-            'online_store_enabled' => false,
+            'online_store_enabled' => true,
+            'price_monthly' => 15000,
+            'price_yearly' => 135000,
             'sort_order' => 40,
         ],
     ],

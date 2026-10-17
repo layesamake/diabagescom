@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $timezone
  * @property string $locale
  * @property string $status
+ * @property bool $accounting_activated
+ * @property bool $online_store_activated
  * @property string|null $created_by
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -34,6 +36,14 @@ class Tenant extends Model
     protected $attributes = ['status' => 'active', 'country_code' => 'SN', 'currency_code' => 'XOF', 'timezone' => 'Africa/Dakar', 'locale' => 'fr'];
 
     protected $fillable = ['legal_name', 'display_name', 'country_code', 'timezone', 'locale'];
+
+    protected function casts(): array
+    {
+        return [
+            'accounting_activated' => 'boolean',
+            'online_store_activated' => 'boolean',
+        ];
+    }
 
     /**
      * @return HasMany<TenantMembership, $this>
