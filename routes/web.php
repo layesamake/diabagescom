@@ -158,6 +158,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('catalog/products/{product}', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('catalog/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::post('catalog/products/{product}/archive', [ProductController::class, 'archive'])->name('products.archive');
+    Route::post('catalog/products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
     Route::get('catalog/labels', [LabelController::class, 'show'])->middleware('throttle:30,1')->name('products.labels');
     Route::post('catalog/products/{product}/barcodes', [ProductController::class, 'addBarcode'])->name('products.barcodes.store');
     Route::delete('catalog/products/{product}/barcodes/{barcode}', [ProductController::class, 'removeBarcode'])->name('products.barcodes.destroy');

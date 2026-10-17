@@ -80,6 +80,24 @@ final class ImageStore
     }
 
     /**
+     * Duplique un fichier déjà stocké sous un nouveau nom, dans le même
+     * dossier (ou un autre). Utilisé pour cloner un article avec sa photo.
+     */
+    public function copy(string $path, string $folder): ?string
+    {
+        if (! Storage::disk(self::DISK)->exists($path)) {
+            return null;
+        }
+
+        $extension = pathinfo($path, PATHINFO_EXTENSION) ?: 'webp';
+        $target = trim($folder, '/').'/'.Str::uuid7().'.'.$extension;
+
+        Storage::disk(self::DISK)->copy($path, $target);
+
+        return $target;
+    }
+
+    /**
      * Les téléphones enregistrent souvent la photo « couchée » avec une étiquette
      * d'orientation : on la redresse avant de supprimer les métadonnées.
      */
