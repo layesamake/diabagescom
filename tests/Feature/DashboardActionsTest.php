@@ -41,6 +41,6 @@ class DashboardActionsTest extends TestCase
 
     public function test_accounting_is_only_proposed_with_the_accounting_plan(): void
     {
-        $this->assertActions($this->createTenantWithMember('accountant', null, 'business'), ['reports', 'cash', 'purchase']);
+        $this->assertActions($this->createTenantWithMember('accountant', null, 'business', false), ['reports', 'cash', 'purchase']);
     }
 }

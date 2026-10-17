@@ -245,6 +245,8 @@ export const fr = {
             "La fiche de votre entreprise : raison sociale, adresse, téléphone, NINEA, RCCM, logo, cachet et régime de TVA.\nCes informations s'impriment sur vos devis, factures et avoirs ; les champs vides ne s'impriment pas.",
         'settings/Devices':
             "Les appareils autorisés à vendre hors connexion (téléphone, tablette, ordinateur de caisse).\nSi un appareil est perdu ou n'est plus utilisé, révoquez-le : il ne pourra plus envoyer de ventes.",
+        'settings/Features':
+            "Activez la comptabilité et la boutique en ligne : incluses dans votre formule, mais éteintes jusqu'à votre décision.\nRéservé à l'administrateur. Une fois des données saisies (écritures, commandes), le module ne peut plus être désactivé.",
         'settings/Index':
             'Tous vos réglages au même endroit : votre compte, votre entreprise, vos données.\nChaque carte explique en une phrase à quoi elle sert. Vous ne voyez que ce que votre rôle vous permet de régler.',
         'settings/Notifications':
