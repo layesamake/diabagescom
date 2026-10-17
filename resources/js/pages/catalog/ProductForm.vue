@@ -5,6 +5,7 @@ import {
     Archive,
     ArchiveRestore,
     Barcode,
+    Copy,
     Trash2,
 } from '@lucide/vue';
 import { computed } from 'vue';
@@ -17,6 +18,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { t } from '@/i18n';
 import {
     archive as productArchive,
+    duplicate as productDuplicate,
     index as productsIndex,
     store as productStore,
     update as productUpdate,
@@ -97,6 +99,21 @@ function toggleArchive(): void {
             { archived: !props.product.archived },
             { preserveScroll: true },
         );
+    }
+}
+
+async function duplicateProduct(): Promise<void> {
+    if (!props.product) {
+        return;
+    }
+
+    if (
+        await confirmAction({
+            title: t('catalog.duplicate_confirm', { name: props.product.name }),
+            confirmLabel: t('catalog.duplicate'),
+        })
+    ) {
+        router.post(productDuplicate(props.product.id).url);
     }
 }
 </script>
@@ -472,6 +489,18 @@ function toggleArchive(): void {
                     :can-edit="can.update"
                     input-id="product-photo"
                 />
+            </section>
+
+            <section v-if="can.create" class="border-t pt-6">
+                <Button
+                    type="button"
+                    variant="outline"
+                    class="h-11"
+                    @click="duplicateProduct"
+                >
+                    <Copy class="size-4" />
+                    {{ t('catalog.duplicate') }}
+                </Button>
             </section>
 
             <section v-if="can.archive" class="border-t pt-6">

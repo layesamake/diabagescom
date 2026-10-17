@@ -202,6 +202,24 @@ class ProductController extends Controller
         return back(303);
     }
 
+    /**
+     * Clone un article pour accélérer la saisie d'articles voisins
+     * (nouveau SKU, nom suffixé « (copie) », photo recopiée, codes-barres
+     * non repris). Redirige vers la fiche de la copie pour ajustement.
+     */
+    public function duplicate(Request $request, Product $product, ProductService $service): RedirectResponse
+    {
+        Gate::authorize('catalog.create');
+
+        /** @var User $user */
+        $user = $request->user();
+        $copy = $service->duplicate($product, $user);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('catalog.product.duplicated', ['name' => $copy->name])]);
+
+        return to_route('products.edit', $copy);
+    }
+
     public function addBarcode(Request $request, Product $product, ProductService $service): RedirectResponse
     {
         Gate::authorize('catalog.update');

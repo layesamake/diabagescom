@@ -27,6 +27,8 @@ return [
         'barcode_added' => 'Code-barres ajouté.',
         'barcode_removed' => 'Code-barres retiré.',
         'image_updated' => 'Photo de l’article enregistrée.',
+        'duplicate_suffix' => '(copie)',
+        'duplicated' => 'Article « :name » créé par clonage.',
     ],
     'party' => [
         'code_taken' => 'Ce code est déjà utilisé.',
