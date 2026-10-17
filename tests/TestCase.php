@@ -38,8 +38,7 @@ abstract class TestCase extends BaseTestCase
         ?string $plan = 'business_accounting',
         bool $activateAccounting = true,
         bool $activateOnlineStore = true,
-    ): array
-    {
+    ): array {
         $user ??= User::factory()->withTwoFactor()->create();
         $tenant = Tenant::factory()->create();
         $membership = TenantFactory::addMember($tenant, $user, $role);
