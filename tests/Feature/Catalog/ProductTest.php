@@ -222,4 +222,71 @@ class ProductTest extends TestCase
             'image' => UploadedFile::fake()->create('script.php.png', 10, 'application/x-php'),
         ])->assertSessionHasErrors('image');
     }
+
+    public function test_admin_duplicates_a_product_with_a_new_sku_and_name_suffix(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $this->actingAs($setup['user'])->post(route('products.store'), $this->payload($setup));
+        $original = $this->product($setup);
+
+        $response = $this->actingAs($setup['user'])->post(route('products.duplicate', $original));
+        $response->assertSessionHasNoErrors();
+
+        $copy = app(TenantContext::class)->runAs($setup['tenant'], fn () => Product::query()->where('id', '!=', $original->id)->with('barcodes')->sole());
+        $response->assertRedirect(route('products.edit', $copy));
+
+        $this->assertSame('RIZ25-COPIE', $copy->sku);
+        $this->assertSame('Riz parfumé 25 kg (copie)', $copy->name);
+        $this->assertSame($original->type, $copy->type);
+        $this->assertSame($original->unit_id, $copy->unit_id);
+        $this->assertSame($original->tax_rate_id, $copy->tax_rate_id);
+        $this->assertSame($original->sale_price, $copy->sale_price);
+        // Les codes-barres ne sont jamais recopiés : ils désignent un seul article.
+        $this->assertCount(0, $copy->barcodes);
+        $this->assertDatabaseHas('audit_events', ['action' => 'product.duplicated', 'entity_id' => $copy->id]);
+    }
+
+    public function test_duplicating_twice_keeps_skus_unique(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $this->actingAs($setup['user'])->post(route('products.store'), $this->payload($setup));
+        $original = $this->product($setup);
+
+        $this->actingAs($setup['user'])->post(route('products.duplicate', $original))->assertSessionHasNoErrors();
+        $this->actingAs($setup['user'])->post(route('products.duplicate', $original))->assertSessionHasNoErrors();
+
+        $skus = app(TenantContext::class)->runAs($setup['tenant'], fn () => Product::query()->orderBy('sku')->pluck('sku')->all());
+        $this->assertSame(['RIZ25', 'RIZ25-COPIE', 'RIZ25-COPIE-2'], $skus);
+    }
+
+    public function test_duplicating_copies_the_image_file(): void
+    {
+        Storage::fake('local');
+        $setup = $this->createTenantWithMember();
+        $this->actingAs($setup['user'])->post(route('products.store'), $this->payload($setup));
+        $original = $this->product($setup);
+        $this->actingAs($setup['user'])->post(route('products.image.store', $original), [
+            'image' => UploadedFile::fake()->image('riz.png', 400, 400),
+        ]);
+        $original = $this->product($setup);
+
+        $this->actingAs($setup['user'])->post(route('products.duplicate', $original))->assertSessionHasNoErrors();
+
+        $copy = app(TenantContext::class)->runAs($setup['tenant'], fn () => Product::query()->where('id', '!=', $original->id)->sole());
+        $this->assertNotNull($copy->image_path);
+        $this->assertNotSame($original->image_path, $copy->image_path);
+        Storage::disk('local')->assertExists($copy->image_path);
+    }
+
+    public function test_cashiers_cannot_duplicate_products(): void
+    {
+        $setup = $this->createTenantWithMember();
+        $this->actingAs($setup['user'])->post(route('products.store'), $this->payload($setup));
+        $original = $this->product($setup);
+
+        $cashier = User::factory()->create();
+        \Database\Factories\TenantFactory::addMember($setup['tenant'], $cashier, 'cashier');
+
+        $this->actingAs($cashier)->post(route('products.duplicate', $original))->assertForbidden();
+    }
 }
