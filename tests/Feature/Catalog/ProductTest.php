@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductBarcode;
 use App\Models\Unit;
 use App\Models\User;
+use Database\Factories\TenantFactory;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -285,7 +286,7 @@ class ProductTest extends TestCase
         $original = $this->product($setup);
 
         $cashier = User::factory()->create();
-        \Database\Factories\TenantFactory::addMember($setup['tenant'], $cashier, 'cashier');
+        TenantFactory::addMember($setup['tenant'], $cashier, 'cashier');
 
         $this->actingAs($cashier)->post(route('products.duplicate', $original))->assertForbidden();
     }
