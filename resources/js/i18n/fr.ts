@@ -1230,7 +1230,8 @@ export const fr = {
         archive: "Archiver l'article",
         restore: "Réactiver l'article",
         duplicate: "Dupliquer l'article",
-        duplicate_confirm: "Dupliquer « {name} » ? Une nouvelle fiche sera créée pour modification immédiate.",
+        duplicate_confirm:
+            'Dupliquer « {name} » ? Une nouvelle fiche sera créée pour modification immédiate.',
         archived_notice:
             'Cet article est archivé : il ne peut plus être vendu mais reste dans l’historique.',
         back: 'Retour aux articles',
