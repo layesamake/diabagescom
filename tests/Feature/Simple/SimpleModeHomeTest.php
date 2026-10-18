@@ -14,6 +14,9 @@ use Tests\TestCase;
  * L'accueil montre les chiffres du jour du vendeur (pas un rapport de
  * gestion) : chaque vendeur voit toujours ses propres ventes, l'admin voit
  * tout. Mes ventes reprend la même règle sur un jour choisi.
+ *
+ * Note : makeProduct() fixe sale_price = cost * 2 (prix catalogue par
+ * défaut) ; les montants ci-dessous suivent cette règle.
  */
 class SimpleModeHomeTest extends TestCase
 {
@@ -56,18 +59,19 @@ class SimpleModeHomeTest extends TestCase
         $rice = $this->makeProduct($v, 'RIZ', 'U', 1000);
         $this->move($v, 'initial', [[$v['warehouse']->id, $rice->id, '10', 1000]]);
         $session = $this->openSession($v, 0);
-        $this->sell($v, $session, [[$rice->id, '2']], [['cash', 2000]]);
+        // Prix catalogue 2000 (cost 1000 * 2) ; 2 unités = 4000.
+        $this->sell($v, $session, [[$rice->id, '2']], [['cash', 4000]]);
 
         $other = $this->member($admin, 'cashier');
         $otherSession = $this->openSession($other, 0);
-        $this->sell($other, $otherSession, [[$rice->id, '1']], [['cash', 1000]]);
+        $this->sell($other, $otherSession, [[$rice->id, '1']], [['cash', 2000]]);
 
         $this->act($v)
             ->get('/simple')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('simple/Accueil')
-                ->where('figures.today.total', 2000)
+                ->where('figures.today.total', 4000)
                 ->where('figures.today.count', 1)
                 ->has('figures.yesterday')
                 ->has('tiles')
@@ -92,16 +96,16 @@ class SimpleModeHomeTest extends TestCase
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1000);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1000]]);
         $session1 = $this->openSession($v1, 0);
-        $this->sell($v1, $session1, [[$rice->id, '1']], [['cash', 1000]]);
+        $this->sell($v1, $session1, [[$rice->id, '1']], [['cash', 2000]]);
 
         $v2 = $this->member($admin, 'cashier');
         $session2 = $this->openSession($v2, 0);
-        $this->sell($v2, $session2, [[$rice->id, '1']], [['wave', 1000]]);
+        $this->sell($v2, $session2, [[$rice->id, '1']], [['wave', 2000]]);
 
         $this->act($admin)
             ->get('/simple')
             ->assertInertia(fn ($page) => $page
-                ->where('figures.today.total', 2000)
+                ->where('figures.today.total', 4000)
                 ->where('figures.today.count', 2));
     }
 
@@ -122,20 +126,21 @@ class SimpleModeHomeTest extends TestCase
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1500);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1500]]);
         $session = $this->openSession($v, 0);
-        $this->sell($v, $session, [[$rice->id, '2']], [['cash', 3000]]);
+        // Prix catalogue 3000 (cost 1500 * 2) ; 2 unités = 6000.
+        $this->sell($v, $session, [[$rice->id, '2']], [['cash', 6000]]);
 
         $other = $this->member($admin, 'cashier');
         $otherSession = $this->openSession($other, 0);
-        $this->sell($other, $otherSession, [[$rice->id, '1']], [['wave', 1500]]);
+        $this->sell($other, $otherSession, [[$rice->id, '1']], [['wave', 3000]]);
 
         $this->act($v)
             ->get('/simple/ventes')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('simple/Ventes')
-                ->where('total', 3000)
+                ->where('total', 6000)
                 ->has('sales', 1)
-                ->where('by_method.cash', 3000)
+                ->where('by_method.cash', 6000)
                 ->where('by_method.mobile', 0));
     }
 
@@ -146,16 +151,16 @@ class SimpleModeHomeTest extends TestCase
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1500);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1500]]);
         $session = $this->openSession($v, 0);
-        $this->sell($v, $session, [[$rice->id, '1']], [['cash', 1500]]);
+        $this->sell($v, $session, [[$rice->id, '1']], [['cash', 3000]]);
 
         $other = $this->member($admin, 'cashier');
         $otherSession = $this->openSession($other, 0);
-        $this->sell($other, $otherSession, [[$rice->id, '1']], [['wave', 1500]]);
+        $this->sell($other, $otherSession, [[$rice->id, '1']], [['wave', 3000]]);
 
         $this->act($admin)
             ->get('/simple/ventes')
             ->assertInertia(fn ($page) => $page
-                ->where('total', 3000)
+                ->where('total', 6000)
                 ->has('sales', 2));
     }
 
@@ -166,7 +171,7 @@ class SimpleModeHomeTest extends TestCase
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1000);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1000]]);
         $session = $this->openSession($v, 0);
-        $this->sell($v, $session, [[$rice->id, '1']], [['cash', 1000]]);
+        $this->sell($v, $session, [[$rice->id, '1']], [['cash', 2000]]);
 
         $this->act($v)
             ->get('/simple/ventes?day=2026-10-19')
@@ -183,7 +188,7 @@ class SimpleModeHomeTest extends TestCase
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1000);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1000]]);
         $session = $this->openSession($v, 0);
-        $invoice = $this->sell($v, $session, [[$rice->id, '1']], [['cash', 1000]]);
+        $invoice = $this->sell($v, $session, [[$rice->id, '1']], [['cash', 2000]]);
 
         $this->act($v)
             ->post("/simple/ventes/{$invoice->id}/annuler", ['reason' => 'Erreur de saisie'])
@@ -197,7 +202,7 @@ class SimpleModeHomeTest extends TestCase
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1000);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1000]]);
         $session = $this->openSession($v, 0);
-        $invoice = $this->sell($v, $session, [[$rice->id, '1']], [['cash', 1000]]);
+        $invoice = $this->sell($v, $session, [[$rice->id, '1']], [['cash', 2000]]);
 
         $this->act($admin)
             ->post("/simple/ventes/{$invoice->id}/annuler", ['reason' => 'Erreur de saisie'])
