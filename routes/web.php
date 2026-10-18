@@ -47,6 +47,7 @@ use App\Http\Controllers\Settings\GoogleDriveController;
 use App\Http\Controllers\Settings\MemberController;
 use App\Http\Controllers\Settings\NotificationController;
 use App\Http\Controllers\Simple\SimpleModeController;
+use App\Http\Controllers\Simple\SimpleSalesController;
 use App\Http\Controllers\Storefront\PublicStorefrontController;
 use App\Http\Controllers\Storefront\StorefrontController;
 use App\Http\Controllers\SubscriptionController;
@@ -115,6 +116,14 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('simple/maquettes/{fichier}', [SimpleModeController::class, 'mockup'])
         ->where('fichier', '[0-9a-z-]+')
         ->name('simple.mockup');
+
+    // Mode simple — lot 2 : vente et caisse simplifiées.
+    Route::get('simple/vendre', [SimpleSalesController::class, 'sell'])->name('simple.sell');
+    Route::post('simple/vendre', [SimpleSalesController::class, 'storeSale'])->name('simple.sell.store');
+    Route::get('simple/caisse', [SimpleSalesController::class, 'cash'])->name('simple.cash');
+    Route::post('simple/caisse/ouvrir', [SimpleSalesController::class, 'openRegister'])->name('simple.cash.open');
+    Route::post('simple/caisse/{session}/fermer', [SimpleSalesController::class, 'closeSession'])->name('simple.cash.close');
+    Route::post('simple/caisse/{session}/mouvement', [SimpleSalesController::class, 'movement'])->name('simple.cash.movement');
 
     Route::get('settings/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
     // Facturation de l'abonnement (accessible même suspendu, pour régulariser).

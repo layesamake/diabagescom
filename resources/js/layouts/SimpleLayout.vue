@@ -16,14 +16,16 @@ import {
 } from '@lucide/vue';
 import { computed } from 'vue';
 import BarreNavBas from '@/components/simple/BarreNavBas.vue';
-import { home as simpleHome } from '@/routes/simple';
+import {
+    home as simpleHome,
+    sell as simpleSell,
+    cash as simpleCash,
+} from '@/routes/simple';
 
 const props = withDefaults(defineProps<{ actif?: string }>(), {
     actif: 'accueil',
 });
 
-// Les écrans Vendre, Ventes, Stock et Plus arrivent aux lots suivants : tant
-// qu'ils n'existent pas, les entrées ramènent à l'accueil du mode simple.
 const accueil = computed(() => simpleHome().url);
 
 const entrees = computed(() => [
@@ -38,7 +40,7 @@ const entrees = computed(() => [
         cle: 'vendre',
         libelle: 'Vendre',
         icone: ShoppingCart,
-        href: accueil.value,
+        href: simpleSell().url,
     },
     { cle: 'stock', libelle: 'Stock', icone: Boxes, href: accueil.value },
     {
