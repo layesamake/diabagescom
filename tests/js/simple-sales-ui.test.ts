@@ -22,7 +22,10 @@ test('Vendre expose le parcours article, panier, paiement et ticket', () => {
 });
 
 test('Caisse utilise la route liée à la caisse et le contrat du résumé', () => {
-    assert.match(caisse, /`\/simple\/caisse\/\$\{props\.register\.id\}\/ouvrir`/);
+    assert.match(
+        caisse,
+        /`\/simple\/caisse\/\$\{props\.register\.id\}\/ouvrir`/,
+    );
     assert.match(caisse, /summary\.incomes/);
     assert.match(caisse, /summary\.expenses/);
     assert.doesNotMatch(caisse, /summary\.income[^s]/);
