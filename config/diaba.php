@@ -110,4 +110,15 @@ return [
     'simple_mode' => [
         'enabled' => (bool) env('DIABA_SIMPLE_MODE', false),
     ],
+
+    /*
+     * Filigrane DIABA GESCOM sur les documents imprimés et partagés.
+     *
+     * Activé sur les environnements d'essai pour protéger l'application :
+     * le logo apparaît en filigrane diagonal sur les PDF A4, les tickets
+     * thermiques et les tickets navigateur.
+     */
+    'trial_watermark' => [
+        'enabled' => (bool) env('DIABA_TRIAL_WATERMARK', false),
+    ],
 ];

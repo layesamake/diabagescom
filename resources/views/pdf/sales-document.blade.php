@@ -165,5 +165,6 @@
 <div class="footer">
     <img src="{{ $logo }}" alt="DIABA GESCOM"> {{ __('sales.pdf.provisional_rules') }} — {{ $document->number }}
 </div>
+@include('partials.trial-watermark')
 </body>
 </html>

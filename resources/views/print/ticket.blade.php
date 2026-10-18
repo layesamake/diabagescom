@@ -43,6 +43,7 @@
     <button type="button" class="secondary" id="close-button">{{ __('sales.ticket.close') }}</button>
 </div>
 @include('partials.receipt-body')
+@include('partials.trial-watermark')
 <script nonce="{{ Vite::cspNonce() }}">
     // Les attributs onclick sont interdits par la politique de sécurité : écouteurs ici.
     document.getElementById('print-button')?.addEventListener('click', () => window.print());

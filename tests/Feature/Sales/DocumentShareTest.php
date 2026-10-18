@@ -100,11 +100,16 @@ class DocumentShareTest extends TestCase
         [$setup, $invoice] = $this->invoice();
         $this->actingAs($setup['user']);
 
+        config()->set('diaba.trial_watermark.enabled', true);
         $this->get(route('sales.ticket', ['document' => $invoice, 'width' => 58, 'print' => 1]))->assertOk()
-            ->assertSee('size: 58mm auto', false)->assertSee($invoice->number)->assertSee('window.print()', false);
-        // Largeur inconnue : 80 mm par défaut, sans impression automatique.
+            ->assertSee('size: 58mm auto', false)->assertSee($invoice->number)->assertSee('window.print()', false)
+            ->assertSee('trial-watermark', false);
+
+        config()->set('diaba.trial_watermark.enabled', false);
+        // Largeur inconnue : 80 mm par défaut, sans impression automatique ni filigrane.
         $this->get(route('sales.ticket', ['document' => $invoice, 'width' => 99]))->assertOk()
-            ->assertSee('size: 80mm auto', false)->assertDontSee("addEventListener('load'", false);
+            ->assertSee('size: 80mm auto', false)->assertDontSee("addEventListener('load'", false)
+            ->assertDontSee('trial-watermark', false);
 
         foreach (['receipt', 'receipt_58', 'a4'] as $format) {
             $this->get(route('sales.pdf', ['document' => $invoice, 'format' => $format]))->assertOk()->assertHeader('content-type', 'application/pdf');
