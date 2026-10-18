@@ -8,7 +8,7 @@ use App\Models\Payment;
 use App\Models\SalesDocument;
 use App\Models\User;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Chiffres du jour d'un vendeur : ce n'est pas un rapport de gestion
