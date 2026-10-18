@@ -610,6 +610,10 @@ export const fr = {
                 title: 'Compléter la fiche de votre entreprise',
                 hint: 'Adresse, téléphone, NINEA et logo : ils s’impriment sur vos factures et devis.',
             },
+            voice: {
+                title: 'Enregistrer la voix du mode simple',
+                hint: 'Choisissez la langue locale et enregistrez les phrases : vos vendeurs les entendront au bon endroit.',
+            },
             products: {
                 title: 'Ajouter vos articles',
                 hint: 'Nom, prix de vente, et photo si vous voulez. Vous pouvez aussi les importer depuis Excel.',
