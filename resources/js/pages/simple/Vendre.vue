@@ -58,7 +58,7 @@ const page = usePage();
 const errors = computed(() => page.props.errors as Record<string, string>);
 const saleResult = computed(
     () =>
-        (page.props.flash as Record<string, unknown> | undefined)?.sale as
+        (page.flash as Record<string, unknown> | undefined)?.sale as
             | SaleFlash
             | undefined,
 );

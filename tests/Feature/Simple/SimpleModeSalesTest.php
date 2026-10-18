@@ -73,8 +73,8 @@ class SimpleModeSalesTest extends TestCase
                 ->has('registers')
                 ->has('frequent', 1)
                 ->where('frequent.0.id', $rice->id)
-                ->where('frequent.0.name', 'RIZ')
-                ->where('frequent.0.sale_price', 3000)
+                ->where('frequent.0.name', $rice->name)
+                ->where('frequent.0.sale_price', $rice->sale_price)
                 ->where('frequent.0.available', '10')
                 ->has('methods')
                 ->has('can'));
@@ -101,8 +101,8 @@ class SimpleModeSalesTest extends TestCase
 
         $invoice = SalesDocument::query()->where('idempotency_key', $key)->firstOrFail();
         $this->get('/simple/vendre')->assertInertia(fn ($page) => $page
-            ->where('flash.sale.id', $invoice->id)
-            ->where('flash.sale.ticket_url', route('sales.ticket', ['document' => $invoice])));
+            ->hasFlash('sale.id', $invoice->id)
+            ->hasFlash('sale.ticket_url', route('sales.ticket', ['document' => $invoice])));
         $this->assertSame('invoice', $invoice->type);
         $this->assertSame('validated', $invoice->status);
         $this->assertSame(6000, $invoice->total);
