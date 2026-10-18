@@ -105,6 +105,11 @@ function confirmerAnnulation(): void {
     />
 
     <div class="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-0">
+        <h1
+            class="sr-only lg:not-sr-only lg:col-span-2 lg:text-[32px] lg:font-extrabold"
+        >
+            Mes ventes
+        </h1>
         <div class="flex items-center justify-between gap-2">
             <button
                 type="button"
