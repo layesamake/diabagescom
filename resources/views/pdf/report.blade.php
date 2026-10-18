@@ -67,5 +67,6 @@
 @endforeach
 
 <div class="footer">{{ $tenant->display_name }} — {{ $report->title }} — édité le {{ $generatedAt }} — DIABA GESCOM</div>
+@include('partials.trial-watermark')
 </body>
 </html>
