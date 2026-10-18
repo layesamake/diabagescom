@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $currency_code
  * @property string $timezone
  * @property string $locale
+ * @property string|null $voice_language
  * @property string $status
  * @property bool $accounting_activated
  * @property bool $online_store_activated
@@ -35,7 +36,7 @@ class Tenant extends Model
 
     protected $attributes = ['status' => 'active', 'country_code' => 'SN', 'currency_code' => 'XOF', 'timezone' => 'Africa/Dakar', 'locale' => 'fr'];
 
-    protected $fillable = ['legal_name', 'display_name', 'country_code', 'timezone', 'locale'];
+    protected $fillable = ['legal_name', 'display_name', 'country_code', 'timezone', 'locale', 'voice_language'];
 
     protected function casts(): array
     {

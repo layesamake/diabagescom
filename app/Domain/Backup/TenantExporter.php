@@ -43,7 +43,7 @@ final class TenantExporter
         'sales_documents', 'sales_document_lines', 'payments', 'cash_movements',
         'chart_accounts', 'accounting_settings', 'accounting_journals', 'account_mappings', 'fiscal_years', 'accounting_periods',
         'journal_entries', 'journal_entry_lines', 'journal_entry_attachments', 'accounting_postings', 'bank_reconciliations', 'bank_reconciliation_lines',
-        'audit_events',
+        'audit_events', 'audio_clips',
     ];
 
     /** Tables volontairement exclues (voir le commentaire de la classe). */
