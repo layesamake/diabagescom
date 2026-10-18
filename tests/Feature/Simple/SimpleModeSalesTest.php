@@ -3,10 +3,10 @@
 namespace Tests\Feature\Simple;
 
 use App\Http\Middleware\ResolveTenantContext;
+use App\Models\CashMovement;
 use App\Models\CashRegister;
 use App\Models\CashSession;
 use App\Models\SalesDocument;
-use App\Models\TenantMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\Feature\Sales\SalesTestHelpers;
@@ -132,7 +132,7 @@ class SimpleModeSalesTest extends TestCase
             ])
             ->assertRedirect();
 
-        $this->assertSame(0, \App\Models\CashMovement::query()
+        $this->assertSame(0, CashMovement::query()
             ->where('session_id', $session->id)
             ->where('type', '<>', 'opening')
             ->count());
