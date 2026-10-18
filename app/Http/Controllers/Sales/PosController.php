@@ -98,5 +98,4 @@ class PosController extends Controller
 
         return to_route('sales.show', ['document' => $sale, 'receipt' => 1]);
     }
-
 }
