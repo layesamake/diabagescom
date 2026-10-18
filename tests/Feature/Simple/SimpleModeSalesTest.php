@@ -77,7 +77,7 @@ class SimpleModeSalesTest extends TestCase
     public function test_a_simple_cash_sale_creates_the_same_invoice_as_the_expert_pos(): void
     {
         $v = $this->vendeur();
-        $rice = $this->makeProduct($v, 'RIZ', 'U');
+        $rice = $this->makeProduct($v, 'RIZ', 'U', 1500);
         $this->move($v, 'initial', [[$v['warehouse']->id, $rice->id, '10', 1500]]);
         $session = $this->openSession($v, 0);
 
@@ -88,22 +88,22 @@ class SimpleModeSalesTest extends TestCase
                 'warehouse_id' => $v['warehouse']->id,
                 'cash_session_id' => $session->id,
                 'customer_id' => null,
-                'lines' => [['product_id' => $rice->id, 'quantity' => '2', 'unit_price' => 1500, 'discount' => 0]],
-                'tenders' => [['method' => 'cash', 'amount' => 3000, 'reference' => null]],
+                'lines' => [['product_id' => $rice->id, 'quantity' => '2']],
+                'tenders' => [['method' => 'cash', 'amount' => 6000, 'reference' => null]],
             ])
             ->assertRedirect('/simple/vendre');
 
         $invoice = SalesDocument::query()->where('idempotency_key', $key)->firstOrFail();
         $this->assertSame('invoice', $invoice->type);
         $this->assertSame('validated', $invoice->status);
-        $this->assertSame(3000, $invoice->total);
-        $this->assertSame(3000, $invoice->amount_paid);
+        $this->assertSame(6000, $invoice->total);
+        $this->assertSame(6000, $invoice->amount_paid);
     }
 
     public function test_a_simple_sale_replays_idempotently(): void
     {
         $v = $this->vendeur();
-        $rice = $this->makeProduct($v, 'RIZ', 'U');
+        $rice = $this->makeProduct($v, 'RIZ', 'U', 1500);
         $this->move($v, 'initial', [[$v['warehouse']->id, $rice->id, '10', 1500]]);
         $session = $this->openSession($v, 0);
 
@@ -113,8 +113,8 @@ class SimpleModeSalesTest extends TestCase
             'warehouse_id' => $v['warehouse']->id,
             'cash_session_id' => $session->id,
             'customer_id' => null,
-            'lines' => [['product_id' => $rice->id, 'quantity' => '1', 'unit_price' => 1500, 'discount' => 0]],
-            'tenders' => [['method' => 'cash', 'amount' => 1500, 'reference' => null]],
+            'lines' => [['product_id' => $rice->id, 'quantity' => '1']],
+            'tenders' => [['method' => 'cash', 'amount' => 3000, 'reference' => null]],
         ];
 
         $this->act($v);
@@ -127,8 +127,8 @@ class SimpleModeSalesTest extends TestCase
     public function test_a_simple_wave_sale_does_not_create_a_cash_movement(): void
     {
         $v = $this->vendeur();
-        $rice = $this->makeProduct($v, 'RIZ', 'U');
-        $this->move($v, 'initial', [[$v['warehouse']->id, $rice->id, '5', 2000]]);
+        $rice = $this->makeProduct($v, 'RIZ', 'U', 1000);
+        $this->move($v, 'initial', [[$v['warehouse']->id, $rice->id, '5', 1000]]);
         $session = $this->openSession($v, 0);
 
         $this->act($v)
@@ -137,7 +137,7 @@ class SimpleModeSalesTest extends TestCase
                 'warehouse_id' => $v['warehouse']->id,
                 'cash_session_id' => $session->id,
                 'customer_id' => null,
-                'lines' => [['product_id' => $rice->id, 'quantity' => '1', 'unit_price' => 2000, 'discount' => 0]],
+                'lines' => [['product_id' => $rice->id, 'quantity' => '1']],
                 'tenders' => [['method' => 'wave', 'amount' => 2000, 'reference' => 'W123']],
             ])
             ->assertRedirect();
