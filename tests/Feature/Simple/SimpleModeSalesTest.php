@@ -178,8 +178,7 @@ class SimpleModeSalesTest extends TestCase
         $register = CashRegister::query()->where('warehouse_id', $v['warehouse']->id)->where('active', true)->firstOrFail();
 
         $this->act($v)
-            ->post('/simple/caisse/ouvrir', [
-                'register_id' => $register->id,
+            ->post("/simple/caisse/{$register->id}/ouvrir", [
                 'opening_amount' => 25000,
             ])
             ->assertRedirect('/simple/caisse');

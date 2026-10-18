@@ -153,16 +153,12 @@ class SimpleSalesController extends Controller
         ]);
     }
 
-    public function openRegister(Request $request, CashService $cash): RedirectResponse
+    public function openRegister(Request $request, CashRegister $register, CashService $cash): RedirectResponse
     {
         Gate::authorize('cash.open_close');
         $data = $request->validate([
-            'register_id' => ['required', 'uuid'],
             'opening_amount' => ['required', 'integer', 'min:0', 'max:999999999999'],
         ], attributes: ['opening_amount' => 'fond de caisse']);
-
-        /** @var CashRegister $register */
-        $register = CashRegister::query()->findOrFail($data['register_id']);
 
         /** @var User $user */
         $user = $request->user();

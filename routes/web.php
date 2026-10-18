@@ -121,7 +121,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('simple/vendre', [SimpleSalesController::class, 'sell'])->name('simple.sell');
     Route::post('simple/vendre', [SimpleSalesController::class, 'storeSale'])->name('simple.sell.store');
     Route::get('simple/caisse', [SimpleSalesController::class, 'cash'])->name('simple.cash');
-    Route::post('simple/caisse/ouvrir', [SimpleSalesController::class, 'openRegister'])->name('simple.cash.open');
+    Route::post('simple/caisse/{register}/ouvrir', [SimpleSalesController::class, 'openRegister'])->name('simple.cash.open');
     Route::post('simple/caisse/{session}/fermer', [SimpleSalesController::class, 'closeSession'])->name('simple.cash.close');
     Route::post('simple/caisse/{session}/mouvement', [SimpleSalesController::class, 'movement'])->name('simple.cash.movement');
 
