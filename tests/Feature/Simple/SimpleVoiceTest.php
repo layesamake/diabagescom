@@ -98,6 +98,29 @@ class SimpleVoiceTest extends TestCase
             ->assertInertia(fn ($page) => $page->where('progress.done', 1));
     }
 
+    public function test_an_invalid_language_code_is_rejected(): void
+    {
+        $admin = $this->createTenantWithMember();
+
+        $this->act($admin)
+            ->put('/simple/voix/langue', ['language' => '../../etc/passwd'])
+            ->assertInvalid(['language']);
+    }
+
+    public function test_a_file_that_is_too_large_or_not_audio_is_rejected(): void
+    {
+        $admin = $this->createTenantWithMember();
+        $this->act($admin)->put('/simple/voix/langue', ['language' => 'wo']);
+
+        $tooLarge = UploadedFile::fake()->create('big.webm', 1024, 'audio/webm');
+        $this->act($admin)->post('/simple/voix/COM-01/0', ['audio' => $tooLarge])->assertInvalid(['audio']);
+
+        $wrongType = UploadedFile::fake()->create('notes.txt', 10, 'text/plain');
+        $this->act($admin)->post('/simple/voix/COM-01/0', ['audio' => $wrongType])->assertInvalid(['audio']);
+
+        $this->assertDatabaseMissing('audio_clips', ['code' => 'COM-01']);
+    }
+
     public function test_recording_the_71_core_phrases_marks_the_guide_step_done(): void
     {
         $admin = $this->createTenantWithMember();

@@ -79,7 +79,10 @@ class SimpleVoiceController extends Controller
         $tenant = $this->adminTenant($context);
 
         $data = $request->validate([
-            'language' => ['required', 'string', 'max:16'],
+            // Codes ISO 639 (wo, ff, bm, srr, dyo, snk, mnk…) ou « autre » —
+            // le nom libre associé à « autre » n'est pas encore saisi dans
+            // cette première version de l'écran (évolution possible).
+            'language' => ['required', 'string', 'max:16', 'regex:/\A([a-z]{2,3}(-[a-z]+)?|autre)\z/i'],
         ]);
 
         $tenant->voice_language = $data['language'];
