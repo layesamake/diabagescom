@@ -1,19 +1,79 @@
 <script setup lang="ts">
 /**
- * Accueil provisoire du mode simple (lot 1).
- *
- * Les vrais contenus (carte « Aujourd'hui », tuiles, alertes, 7 derniers
- * jours) arrivent au lot 3 ; cet écran montre que la bascule, la mise en page
- * et la barre du bas fonctionnent, et donne le chemin vers la page de
- * comparaison des composants.
+ * Accueil du mode simple (lot 3) : chiffres du jour (toujours les siennes
+ * pour un vendeur, tout le dépôt pour un administrateur), tuiles d'action
+ * limitées aux écrans qui existent déjà, alertes partagées avec le tableau
+ * de bord expert.
  */
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Settings2 } from '@lucide/vue';
+import { PackageX, Settings2, ShoppingCart, Wallet, Wrench } from '@lucide/vue';
+import { computed } from 'vue';
+import CarteMontant from '@/components/simple/CarteMontant.vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
+import LigneAlerte from '@/components/simple/LigneAlerte.vue';
+import TuileAction from '@/components/simple/TuileAction.vue';
 import { useAppContext } from '@/composables/useAppContext';
-import { demo as simpleDemo, mode as simpleMode } from '@/routes/simple';
+import {
+    cash as simpleCash,
+    demo as simpleDemo,
+    mode as simpleMode,
+    sell as simpleSell,
+} from '@/routes/simple';
+
+type Jour = { total: number; count: number };
+type Tile = 'sell' | 'cash';
+
+const props = defineProps<{
+    figures: { today: Jour; yesterday: Jour };
+    tiles: Tile[];
+    alerts: {
+        low_stock?: number;
+        cash_to_close?: number;
+    };
+}>();
 
 const { context } = useAppContext();
+
+const tendance = computed<'hausse' | 'baisse' | null>(() => {
+    if (props.figures.today.total === props.figures.yesterday.total) {
+        return null;
+    }
+
+    return props.figures.today.total > props.figures.yesterday.total
+        ? 'hausse'
+        : 'baisse';
+});
+
+const tuiles = computed(() =>
+    (
+        [
+            {
+                cle: 'sell' as const,
+                libelle: 'Vendre',
+                icone: ShoppingCart,
+                couleur: 'vert' as const,
+                href: simpleSell().url,
+            },
+            {
+                cle: 'cash' as const,
+                libelle: 'Caisse',
+                icone: Wallet,
+                couleur: 'orange' as const,
+                href: simpleCash().url,
+            },
+        ] satisfies {
+            cle: Tile;
+            libelle: string;
+            icone: typeof ShoppingCart;
+            couleur: 'vert' | 'orange';
+            href: string;
+        }[]
+    ).filter((tuile) => props.tiles.includes(tuile.cle)),
+);
+
+function ouvrir(href: string): void {
+    router.get(href);
+}
 
 function versModeExpert(): void {
     router.post(simpleMode().url, { mode: 'expert' });
@@ -21,42 +81,71 @@ function versModeExpert(): void {
 </script>
 
 <template>
-    <Head title="Mode simple" />
+    <Head title="Accueil" />
 
-    <EnTeteEcran titre="Mode simple" :retour-visible="false" />
+    <EnTeteEcran titre="Accueil" :retour-visible="false" />
 
     <div class="grid gap-4 p-4">
-        <p
-            class="rounded-[24px] p-4 text-[17px] font-semibold"
-            :style="{
-                backgroundColor: 'var(--s-surface)',
-                border: '1px solid var(--s-bordure)',
-            }"
+        <CarteMontant
+            libelle="Aujourd'hui"
+            :montant="figures.today.total"
+            :pastilles="[`${figures.today.count} ventes`]"
+            :tendance="tendance"
+        />
+
+        <div class="grid grid-cols-2 gap-3">
+            <TuileAction
+                v-for="tuile in tuiles"
+                :key="tuile.cle"
+                :libelle="tuile.libelle"
+                :icone="tuile.icone"
+                :couleur="tuile.couleur"
+                @appui="ouvrir(tuile.href)"
+            />
+        </div>
+
+        <section
+            v-if="Object.keys(alerts).length > 0"
+            class="overflow-hidden rounded-[24px]"
+            :style="{ border: '1px solid var(--s-bordure)' }"
         >
-            Lot 1 livré : couleurs, police, 14 composants, bascule et barre du
-            bas. Les écrans Vendre, Caisse et Accueil arrivent aux lots
-            suivants.
-        </p>
+            <LigneAlerte
+                v-if="alerts.low_stock"
+                :icone="PackageX"
+                couleur="rouge"
+                :valeur="String(alerts.low_stock)"
+                texte="articles presque finis"
+            />
+            <LigneAlerte
+                v-if="alerts.cash_to_close"
+                :icone="Wrench"
+                couleur="orange"
+                :valeur="String(alerts.cash_to_close)"
+                texte="caisse à fermer"
+            />
+        </section>
 
         <Link
             v-if="context?.role.code === 'admin'"
             :href="simpleDemo()"
-            class="flex min-h-16 items-center justify-center gap-2 rounded-[24px] text-[20px] font-extrabold"
+            class="flex min-h-14 items-center justify-center gap-2 rounded-[24px] text-[17px] font-bold"
             :style="{
-                backgroundColor: 'var(--s-vert)',
-                color: 'var(--s-sur-vert)',
+                backgroundColor: 'var(--s-surface)',
+                color: 'var(--s-texte)',
+                border: '1px solid var(--s-bordure)',
             }"
         >
-            <Settings2 :size="26" :stroke-width="2" aria-hidden="true" />
+            <Settings2 :size="22" :stroke-width="2" aria-hidden="true" />
             Voir les composants
         </Link>
 
         <button
+            v-if="context?.role.code === 'admin'"
             type="button"
-            class="min-h-16 rounded-[24px] text-[20px] font-extrabold"
+            class="min-h-14 rounded-[24px] text-[17px] font-bold"
             :style="{
                 backgroundColor: 'var(--s-surface)',
-                color: 'var(--s-texte)',
+                color: 'var(--s-texte-doux)',
                 border: '1px solid var(--s-bordure)',
             }"
             @click="versModeExpert"

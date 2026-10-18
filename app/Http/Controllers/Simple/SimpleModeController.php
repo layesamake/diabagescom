@@ -3,12 +3,18 @@
 namespace App\Http\Controllers\Simple;
 
 use App\Domain\Audit\AuditLog;
+use App\Domain\Notifications\AlertCenter;
+use App\Domain\Notifications\NotificationPreferences;
+use App\Domain\Sales\SalesDayLedger;
 use App\Domain\Tenancy\TenantContext;
 use App\Http\Controllers\Controller;
 use App\Models\TenantMembership;
+use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -53,11 +59,40 @@ class SimpleModeController extends Controller
     }
 
     /**
-     * Accueil provisoire du mode simple : les écrans arrivent au lot 2.
+     * Accueil du mode simple : chiffres du jour du vendeur (pas un rapport
+     * de gestion — tout rôle qui vend voit toujours ses propres ventes),
+     * tuiles d'action selon ses permissions, alertes partagées avec le
+     * tableau de bord expert.
      */
-    public function home(): Response
-    {
-        return Inertia::render('simple/Accueil');
+    public function home(
+        Request $request,
+        TenantContext $context,
+        SalesDayLedger $ledger,
+        AlertCenter $center,
+        NotificationPreferences $preferences,
+    ): Response {
+        $membership = $context->membership();
+        abort_if($membership === null, 403);
+
+        /** @var User $user */
+        $user = $request->user();
+        $all = Gate::allows('report.view_all');
+        $today = CarbonImmutable::today();
+
+        $pending = $center->pending($user);
+        $visible = array_keys(array_filter($preferences->for($user, array_keys($pending)), fn (array $p) => $p['in_app']));
+
+        return Inertia::render('simple/Accueil', [
+            'figures' => [
+                'today' => $ledger->totalsForDay($today, $user, $all),
+                'yesterday' => $ledger->totalsForDay($today->subDay(), $user, $all),
+            ],
+            'tiles' => array_values(array_filter([
+                Gate::allows('sale.create') && Gate::allows('sale.validate') ? 'sell' : null,
+                Gate::any(['cash.view_own', 'cash.view_all']) ? 'cash' : null,
+            ])),
+            'alerts' => array_intersect_key($pending, array_flip($visible)),
+        ]);
     }
 
     /**
