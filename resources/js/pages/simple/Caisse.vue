@@ -73,9 +73,16 @@ function fermer(): void {
 <template>
     <Head title="Caisse" />
 
-    <EnTeteEcran titre="Caisse" :icone="Wallet" :retour-visible="false" />
+    <EnTeteEcran
+        class="lg:hidden"
+        titre="Caisse"
+        :icone="Wallet"
+        :retour-visible="false"
+    />
 
-    <div class="grid gap-4 p-4 pb-28">
+    <div
+        class="grid max-w-[880px] gap-4 p-4 pb-28 lg:grid-cols-2 lg:p-0 lg:pb-0"
+    >
         <p
             v-if="!register"
             class="rounded-[24px] p-4 text-center text-[17px] font-semibold"
@@ -128,7 +135,11 @@ function fermer(): void {
         </template>
 
         <template v-else>
-            <CarteMontant libelle="Dans la caisse" :montant="session.drawer" />
+            <CarteMontant
+                class="lg:col-span-2"
+                libelle="Dans la caisse"
+                :montant="session.drawer"
+            />
 
             <div class="grid grid-cols-2 gap-3">
                 <div
