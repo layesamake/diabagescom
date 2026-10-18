@@ -60,6 +60,8 @@ class SimpleModeSalesTest extends TestCase
     public function test_the_sell_page_loads_with_session_and_frequent_products(): void
     {
         $v = $this->vendeur();
+        $rice = $this->makeProduct($v, 'RIZ', 'U', 1500);
+        $this->move($v, 'initial', [[$v['warehouse']->id, $rice->id, '10', 1500]]);
         $this->openSession($v, 0);
 
         $this->act($v)
@@ -69,7 +71,11 @@ class SimpleModeSalesTest extends TestCase
                 ->component('simple/Vendre')
                 ->has('sessions')
                 ->has('registers')
-                ->has('frequent')
+                ->has('frequent', 1)
+                ->where('frequent.0.id', $rice->id)
+                ->where('frequent.0.name', 'RIZ')
+                ->where('frequent.0.sale_price', 3000)
+                ->where('frequent.0.available', '10')
                 ->has('methods')
                 ->has('can'));
     }
@@ -94,6 +100,9 @@ class SimpleModeSalesTest extends TestCase
             ->assertRedirect('/simple/vendre');
 
         $invoice = SalesDocument::query()->where('idempotency_key', $key)->firstOrFail();
+        $this->get('/simple/vendre')->assertInertia(fn ($page) => $page
+            ->where('flash.sale.id', $invoice->id)
+            ->where('flash.sale.ticket_url', route('sales.ticket', ['document' => $invoice])));
         $this->assertSame('invoice', $invoice->type);
         $this->assertSame('validated', $invoice->status);
         $this->assertSame(6000, $invoice->total);
