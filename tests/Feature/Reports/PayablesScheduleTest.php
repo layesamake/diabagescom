@@ -38,6 +38,10 @@ class PayablesScheduleTest extends TestCase
 
         if ($due === null) {
             // Le service impose toujours une échéance : on simule une facture historique sans date.
+            // Les contrôles différés (cohérence des paiements) bloquent un ALTER TABLE tant qu'ils
+            // sont en attente : on les exécute d'abord, la transaction du test n'étant jamais validée.
+            DB::statement('SET CONSTRAINTS ALL IMMEDIATE');
+            DB::statement('SET CONSTRAINTS ALL DEFERRED');
             DB::statement('ALTER TABLE supplier_invoices DISABLE TRIGGER supplier_invoices_frozen');
             DB::table('supplier_invoices')->where('id', $invoice->id)->update(['due_date' => null]);
             DB::statement('ALTER TABLE supplier_invoices ENABLE TRIGGER supplier_invoices_frozen');
