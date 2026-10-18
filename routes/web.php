@@ -130,7 +130,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('simple/voix', [SimpleVoiceController::class, 'index'])->name('simple.voice.index');
     Route::put('simple/voix/langue', [SimpleVoiceController::class, 'updateLanguage'])->name('simple.voice.language');
     Route::post('simple/voix/{code}/{segment}', [SimpleVoiceController::class, 'storeSegment'])
-        ->where('code', '[A-Z]{3}-[0-9]{2}')->where('segment', '[0-9]+')->middleware('throttle:60,1')->name('simple.voice.segments.store');
+        ->where('code', '[A-Z]{3}-[0-9]{2}')->where('segment', '[0-9]+')->middleware('throttle:200,1')->name('simple.voice.segments.store');
     Route::delete('simple/voix/{code}/{segment}', [SimpleVoiceController::class, 'destroySegment'])
         ->where('code', '[A-Z]{3}-[0-9]{2}')->where('segment', '[0-9]+')->name('simple.voice.segments.destroy');
     Route::get('simple/voix/clips/{clip}', [SimpleVoiceController::class, 'clip'])->whereUuid('clip')->name('simple.voice.clips.show');
