@@ -148,13 +148,13 @@ class SimpleModeTest extends TestCase
         ['tenant' => $tenant, 'user' => $vendeur] = $this->createTenantWithMember('cashier');
         $this->actingAs($vendeur)
             ->withSession([ResolveTenantContext::SESSION_TENANT => $tenant->id])
-            ->get('/simple/maquettes/01-accueil.png')
+            ->get('/simple/maquettes/01-accueil')
             ->assertForbidden();
 
         ['tenant' => $autreTenant, 'user' => $admin] = $this->createTenantWithMember('admin');
         $this->actingAs($admin)
             ->withSession([ResolveTenantContext::SESSION_TENANT => $autreTenant->id])
-            ->get('/simple/maquettes/01-accueil.png')
+            ->get('/simple/maquettes/01-accueil')
             ->assertOk()
             ->assertHeader('content-type', 'image/png');
     }
