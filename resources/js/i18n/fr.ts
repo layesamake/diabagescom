@@ -40,6 +40,7 @@ export const fr = {
         devices: 'Appareils',
         subscription: 'Abonnement',
         features: 'Fonctionnalités',
+        simple_mode: 'Mode simple (images)',
         warehouses: 'Dépôts',
         settings: 'Paramètres',
         profile: 'Profil',
@@ -245,6 +246,8 @@ export const fr = {
             "La fiche de votre entreprise : raison sociale, adresse, téléphone, NINEA, RCCM, logo, cachet et régime de TVA.\nCes informations s'impriment sur vos devis, factures et avoirs ; les champs vides ne s'impriment pas.",
         'settings/Devices':
             "Les appareils autorisés à vendre hors connexion (téléphone, tablette, ordinateur de caisse).\nSi un appareil est perdu ou n'est plus utilisé, révoquez-le : il ne pourra plus envoyer de ventes.",
+        'simple/Demo':
+            'Chaque composant du mode simple à côté de la maquette qui lui sert de référence.\\nOutil de validation interne : comparez, puis signalez ce qui doit changer.',
         'settings/Features':
             "Activez la comptabilité et la boutique en ligne : incluses dans votre formule, mais éteintes jusqu'à votre décision.\nRéservé à l'administrateur. Une fois des données saisies (écritures, commandes), le module ne peut plus être désactivé.",
         'settings/Index':

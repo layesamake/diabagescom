@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string $user_id
  * @property string $role_id
  * @property string $status
+ * @property string $ui_mode
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read Tenant $tenant
@@ -35,7 +36,14 @@ class TenantMembership extends Model
 
     public const string STATUS_SUSPENDED = 'suspended';
 
-    protected $attributes = ['status' => 'active'];
+    public const string MODE_SIMPLE = 'simple';
+
+    public const string MODE_EXPERT = 'expert';
+
+    /** Rôles de terrain : le mode simple est leur interface par défaut. */
+    public const array FIELD_ROLES = ['cashier', 'warehouse_manager'];
+
+    protected $attributes = ['status' => 'active', 'ui_mode' => 'expert'];
 
     /**
      * @return BelongsTo<Tenant, $this>
@@ -82,5 +90,10 @@ class TenantMembership extends Model
         return $this->role->system
             && $this->role->tenant_id === null
             && $this->role->code === PermissionCatalog::ADMIN_ROLE;
+    }
+
+    public function usesSimpleMode(): bool
+    {
+        return $this->ui_mode === self::MODE_SIMPLE;
     }
 }

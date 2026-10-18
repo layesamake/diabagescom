@@ -46,6 +46,7 @@ use App\Http\Controllers\Settings\FeatureController;
 use App\Http\Controllers\Settings\GoogleDriveController;
 use App\Http\Controllers\Settings\MemberController;
 use App\Http\Controllers\Settings\NotificationController;
+use App\Http\Controllers\Simple\SimpleModeController;
 use App\Http\Controllers\Storefront\PublicStorefrontController;
 use App\Http\Controllers\Storefront\StorefrontController;
 use App\Http\Controllers\SubscriptionController;
@@ -104,6 +105,13 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
 
     Route::post('context/tenant', [ContextController::class, 'switchTenant'])->name('context.tenant');
     Route::post('context/warehouse', [ContextController::class, 'switchWarehouse'])->name('context.warehouse');
+
+    // Mode simple (lot 1 : bascule et page de comparaison). Les routes
+    // existent toujours — pour que le build génère leurs helpers — mais
+    // répondent 404 tant que DIABA_SIMPLE_MODE n'est pas activé.
+    Route::post('mode', [SimpleModeController::class, 'switch'])->name('simple.mode');
+    Route::get('simple', [SimpleModeController::class, 'home'])->name('simple.home');
+    Route::get('simple/composants', [SimpleModeController::class, 'demo'])->name('simple.demo');
 
     Route::get('settings/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
     // Facturation de l'abonnement (accessible même suspendu, pour régulariser).

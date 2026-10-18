@@ -15,7 +15,7 @@ use RecursiveIteratorIterator;
 class HelpCoverageTest extends TestCase
 {
     /** Pages publiques ou sans barre d'en-tête : pas de bouton d'aide. */
-    private const array WITHOUT_HELP = ['Welcome', 'billing/SandboxCheckout', 'storefront/Public', 'storefront/Confirmation'];
+    private const array WITHOUT_HELP = ['Welcome', 'billing/SandboxCheckout', 'storefront/Public', 'storefront/Confirmation', 'simple/Accueil'];
 
     private const array PREFIXES_WITHOUT_HELP = ['auth/', 'legal/', 'onboarding/'];
 

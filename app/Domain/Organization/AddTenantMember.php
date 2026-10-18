@@ -44,6 +44,10 @@ final class AddTenantMember
             $membership->user_id = $user->id;
             $membership->role_id = Role::system(PermissionCatalog::SCOPE_TENANT, $roleCode)->id;
             $membership->status = TenantMembership::STATUS_ACTIVE;
+            // Les rôles de terrain arrivent en mode simple ; les autres en mode expert.
+            $membership->ui_mode = in_array($roleCode, TenantMembership::FIELD_ROLES, true)
+                ? TenantMembership::MODE_SIMPLE
+                : TenantMembership::MODE_EXPERT;
             $membership->save();
 
             $this->audit->record('membership.created', $membership, after: ['user_id' => $user->id, 'role' => $roleCode]);

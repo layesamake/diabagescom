@@ -8,6 +8,14 @@ export function formatXof(amount: number): string {
     return `${xof.format(amount)} XOF`;
 }
 
+/**
+ * Montant du mode simple : « 45 000 F », jamais « XOF », jamais de décimale
+ * (règle 4 du cahier des charges du mode simple).
+ */
+export function formatFranc(amount: number): string {
+    return `${xof.format(amount)} F`;
+}
+
 /** Montant saisi (« 12 500 », « 12500 ») → entier XOF ; 0 si vide ou invalide. */
 export function parseAmount(value: string | number | null | undefined): number {
     if (typeof value === 'number') {
