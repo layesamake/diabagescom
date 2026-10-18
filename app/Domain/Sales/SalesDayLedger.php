@@ -65,7 +65,7 @@ final class SalesDayLedger
             'total' => (int) $documents->sum('total'),
             'count' => $documents->count(),
             'by_method' => $byMethod,
-            'sales' => $documents->map(fn (SalesDocument $document) => [
+            'sales' => array_values($documents->map(fn (SalesDocument $document) => [
                 'id' => $document->id,
                 'number' => $document->number,
                 'time' => $document->validated_at?->format('H:i'),
@@ -74,7 +74,7 @@ final class SalesDayLedger
                 'balance' => $document->balanceDue(),
                 'seller' => $document->author->name,
                 'ticket_url' => route('sales.ticket', ['document' => $document]),
-            ])->values()->all(),
+            ])->all()),
         ];
     }
 
