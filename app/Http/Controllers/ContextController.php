@@ -23,19 +23,19 @@ class ContextController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $allowed = TenantMembership::query()
+        $membership = TenantMembership::query()
             ->where('user_id', $user->id)
             ->where('tenant_id', $tenantId)
             ->where('status', TenantMembership::STATUS_ACTIVE)
             ->whereHas('tenant', fn ($q) => $q->where('status', 'active'))
-            ->exists();
+            ->first();
 
-        abort_unless($allowed, 404);
+        abort_if($membership === null, 404);
 
         $request->session()->put(ResolveTenantContext::SESSION_TENANT, $tenantId);
         $request->session()->forget(ResolveTenantContext::SESSION_WAREHOUSE);
 
-        return redirect()->route('dashboard');
+        return redirect()->route($membership->homeRoute());
     }
 
     public function switchWarehouse(Request $request, TenantContext $context, WarehouseAccess $access): RedirectResponse

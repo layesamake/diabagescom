@@ -367,3 +367,58 @@
         }
     }
 }
+
+/*
+  Mode simple (interface en images pour les vendeurs qui lisent mal).
+
+  Valeurs exactes du cahier des charges : à n'écrire qu'ici, jamais en dur
+  dans les écrans. Les couleurs ne changent jamais de sens : Vendre vert,
+  Caisse orange, Stock bleu, Clients violet, alerte rouge.
+
+  Le mode simple est toujours en thème clair (lisible en plein soleil) :
+  ces variables ne sont pas redéfinies par .dark.
+*/
+.mode-simple {
+    --s-fond: #f1f4f3;
+    --s-surface: #ffffff;
+    --s-texte: #10201c;
+    --s-texte-doux: #4a5a56;
+    --s-bordure: #d5dedb;
+    --s-marque: #0a3f37;
+    --s-marque-2: #0f5247;
+    --s-vert: #34b89c;
+    --s-vert-fonce: #1e9c80;
+    --s-vert-clair: #e3f6f0;
+    --s-orange: #f2a93b;
+    --s-orange-clair: #fff1d6;
+    --s-bleu: #2563c9;
+    --s-bleu-clair: #dce8fb;
+    --s-violet: #6d3fb8;
+    --s-violet-clair: #ede4fa;
+    --s-rouge: #c8372d;
+    --s-rouge-clair: #fce3de;
+
+    /* Texte à poser sur chacune de ces couleurs (contraste vérifié). */
+    --s-sur-marque: #ffffff;
+    --s-sur-vert: #04201a;
+    --s-sur-vert-fonce: #04201a;
+    --s-sur-vert-clair: #0a3f37;
+    --s-sur-orange: #2a1a00;
+    --s-sur-orange-clair: #6b4300;
+    --s-sur-bleu: #ffffff;
+    --s-sur-bleu-clair: #173e80;
+    --s-sur-violet: #ffffff;
+    --s-sur-violet-clair: #3f2270;
+    --s-sur-rouge: #ffffff;
+    --s-sur-rouge-clair: #a0261e;
+
+    /* Rayons et hauteur de la barre du bas. */
+    --s-rayon-champ: 16px;
+    --s-rayon-carte: 24px;
+    --s-barre-bas: 88px;
+
+    background-color: var(--s-fond);
+    color: var(--s-texte);
+    font-family:
+        'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;
+}

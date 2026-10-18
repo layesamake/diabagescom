@@ -99,4 +99,15 @@ return [
     'storefront' => [
         'orders_per_phone_per_hour' => 5,
     ],
+
+    /*
+     * Mode simple (interface en images pour les vendeurs qui lisent mal).
+     *
+     * Tant que ce drapeau est faux, les routes /simple et la bascule
+     * n'existent pas : un lot livré sur dev ne peut pas apparaître chez un
+     * client en production avant validation.
+     */
+    'simple_mode' => [
+        'enabled' => (bool) env('DIABA_SIMPLE_MODE', false),
+    ],
 ];

@@ -91,6 +91,8 @@ class HandleInertiaRequests extends Middleware
             'tenant' => ['id' => $membership->tenant->id, 'name' => $membership->tenant->display_name],
             'warehouse' => $warehouse ? ['id' => $warehouse->id, 'code' => $warehouse->code, 'name' => $warehouse->name] : null,
             'role' => ['code' => $membership->role->code, 'name' => $membership->role->name],
+            'ui_mode' => $membership->ui_mode,
+            'simple_mode_available' => (bool) config('diaba.simple_mode.enabled'),
             'tenants' => TenantMembership::query()
                 ->with('tenant:id,display_name')
                 ->where('user_id', $user->id)

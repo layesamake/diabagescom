@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, Settings } from '@lucide/vue';
+import { LayoutGrid, LogOut, Settings } from '@lucide/vue';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -8,8 +8,10 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
+import { useAppContext } from '@/composables/useAppContext';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
+import { mode as simpleMode } from '@/routes/simple';
 import type { User } from '@/types';
 import { t } from '@/i18n';
 import { confirmAction } from '@/composables/useConfirm';
@@ -19,6 +21,12 @@ import { clearOfflineData, syncState } from '@/offline/sync';
 type Props = {
     user: User;
 };
+
+const { context } = useAppContext();
+
+function versModeSimple(): void {
+    router.post(simpleMode().url, { mode: 'simple' });
+}
 
 // Déconnexion : prévenir si des ventes hors ligne ne sont pas envoyées, puis
 // effacer la base locale et les caches de l'appareil (docs/08).
@@ -67,6 +75,21 @@ defineProps<Props>();
                 <Settings class="mr-2 h-4 w-4" />
                 {{ t('nav.settings') }}
             </Link>
+        </DropdownMenuItem>
+        <!-- Bascule vers l'interface en images (absente si le mode simple
+             n'est pas activé sur cet environnement). -->
+        <DropdownMenuItem
+            v-if="context?.simple_mode_available"
+            :as-child="true"
+        >
+            <button
+                type="button"
+                class="block w-full cursor-pointer text-left"
+                @click="versModeSimple"
+            >
+                <LayoutGrid class="mr-2 inline h-4 w-4" />
+                {{ t('nav.simple_mode') }}
+            </button>
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
