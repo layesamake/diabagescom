@@ -97,14 +97,21 @@ function confirmerAnnulation(): void {
 <template>
     <Head title="Mes ventes" />
 
-    <EnTeteEcran titre="Mes ventes" :icone="ReceiptText" :retour-visible="false" />
+    <EnTeteEcran
+        titre="Mes ventes"
+        :icone="ReceiptText"
+        :retour-visible="false"
+    />
 
     <div class="grid gap-4 p-4">
         <div class="flex items-center justify-between gap-2">
             <button
                 type="button"
                 class="min-h-11 rounded-[16px] px-4 font-bold"
-                :style="{ backgroundColor: 'var(--s-surface)', border: '1px solid var(--s-bordure)' }"
+                :style="{
+                    backgroundColor: 'var(--s-surface)',
+                    border: '1px solid var(--s-bordure)',
+                }"
                 @click="changerJour(-1)"
             >
                 ← Hier
@@ -113,21 +120,35 @@ function confirmerAnnulation(): void {
             <button
                 type="button"
                 class="min-h-11 rounded-[16px] px-4 font-bold"
-                :style="{ backgroundColor: 'var(--s-surface)', border: '1px solid var(--s-bordure)' }"
+                :style="{
+                    backgroundColor: 'var(--s-surface)',
+                    border: '1px solid var(--s-bordure)',
+                }"
                 @click="changerJour(1)"
             >
                 Demain →
             </button>
         </div>
 
-        <CarteMontant libelle="Vendu" :montant="total" :pastilles="[`${count} ventes`]" />
+        <CarteMontant
+            libelle="Vendu"
+            :montant="total"
+            :pastilles="[`${count} ventes`]"
+        />
 
-        <CompteursFiltres :cases="cases" :actif="filtre" @filtrer="filtre = $event" />
+        <CompteursFiltres
+            :cases="cases"
+            :actif="filtre"
+            @filtrer="filtre = $event"
+        />
 
         <p
             v-if="sales.length === 0"
             class="rounded-[24px] p-4 text-center text-[17px] font-semibold"
-            :style="{ backgroundColor: 'var(--s-surface)', border: '1px solid var(--s-bordure)' }"
+            :style="{
+                backgroundColor: 'var(--s-surface)',
+                border: '1px solid var(--s-bordure)',
+            }"
         >
             Aucune vente ce jour-là.
         </p>
@@ -137,11 +158,18 @@ function confirmerAnnulation(): void {
                 v-for="vente in sales.filter(visible)"
                 :key="vente.id"
                 class="flex items-center gap-3 rounded-[20px] p-3"
-                :style="{ backgroundColor: 'var(--s-surface)', border: '1px solid var(--s-bordure)' }"
+                :style="{
+                    backgroundColor: 'var(--s-surface)',
+                    border: '1px solid var(--s-bordure)',
+                }"
             >
                 <div class="min-w-0 flex-1">
-                    <p class="text-[15px] font-semibold" :style="{ color: 'var(--s-texte-doux)' }">
-                        {{ vente.time }} · {{ vente.customer ?? 'Client comptoir' }}
+                    <p
+                        class="text-[15px] font-semibold"
+                        :style="{ color: 'var(--s-texte-doux)' }"
+                    >
+                        {{ vente.time }} ·
+                        {{ vente.customer ?? 'Client comptoir' }}
                     </p>
                     <p class="text-[20px] font-extrabold tabular-nums">
                         {{ formatFranc(vente.total) }}
@@ -152,7 +180,10 @@ function confirmerAnnulation(): void {
                     target="_blank"
                     rel="noopener"
                     class="min-h-11 rounded-[16px] px-3 text-[15px] font-bold"
-                    :style="{ backgroundColor: 'var(--s-vert-clair)', color: 'var(--s-sur-vert-clair)' }"
+                    :style="{
+                        backgroundColor: 'var(--s-vert-clair)',
+                        color: 'var(--s-sur-vert-clair)',
+                    }"
                 >
                     Ticket
                 </a>
@@ -160,7 +191,10 @@ function confirmerAnnulation(): void {
                     v-if="can.cancel"
                     type="button"
                     class="min-h-11 rounded-[16px] px-3 text-[15px] font-bold"
-                    :style="{ backgroundColor: 'var(--s-rouge-clair)', color: 'var(--s-sur-rouge-clair)' }"
+                    :style="{
+                        backgroundColor: 'var(--s-rouge-clair)',
+                        color: 'var(--s-sur-rouge-clair)',
+                    }"
                     @click="demanderAnnulation(vente)"
                 >
                     Annuler
@@ -178,7 +212,10 @@ function confirmerAnnulation(): void {
             :style="{ backgroundColor: 'var(--s-surface)' }"
         >
             <h2 class="mb-3 text-[20px] font-extrabold">Annuler la vente ?</h2>
-            <label for="simple-cancel-reason" class="mb-1 block text-[15px] font-semibold">
+            <label
+                for="simple-cancel-reason"
+                class="mb-1 block text-[15px] font-semibold"
+            >
                 Pourquoi ?
             </label>
             <textarea
@@ -200,7 +237,10 @@ function confirmerAnnulation(): void {
                 <button
                     type="button"
                     class="h-14 rounded-[20px] text-[17px] font-extrabold"
-                    :style="{ backgroundColor: 'var(--s-rouge)', color: 'var(--s-sur-rouge)' }"
+                    :style="{
+                        backgroundColor: 'var(--s-rouge)',
+                        color: 'var(--s-sur-rouge)',
+                    }"
                     @click="confirmerAnnulation"
                 >
                     Annuler la vente

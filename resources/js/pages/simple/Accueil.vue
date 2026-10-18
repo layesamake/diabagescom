@@ -6,13 +6,7 @@
  * de bord expert.
  */
 import { Head, Link, router } from '@inertiajs/vue3';
-import {
-    PackageX,
-    Settings2,
-    ShoppingCart,
-    Wallet,
-    Wrench,
-} from '@lucide/vue';
+import { PackageX, Settings2, ShoppingCart, Wallet, Wrench } from '@lucide/vue';
 import { computed } from 'vue';
 import CarteMontant from '@/components/simple/CarteMontant.vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
