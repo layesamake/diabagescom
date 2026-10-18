@@ -12,7 +12,8 @@ import { computed, ref } from 'vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 import EcranResultat from '@/components/simple/EcranResultat.vue';
 import { formatFranc } from '@/lib/money';
-import type { FlashData } from '@/types';
+
+type SaleFlash = { number: string; total: number; amount_paid: number };
 
 type Props = {
     warehouses: { id: string; code: string; name: string }[];
@@ -32,11 +33,10 @@ type Props = {
 const props = defineProps<Props>();
 
 const page = usePage();
-const flash = computed(() => page.props.flash as FlashData | undefined);
 const saleResult = computed(
     () =>
-        flash.value?.sale as
-            | { number: string; total: number; amount_paid: number }
+        (page.props.flash as Record<string, unknown> | undefined)?.sale as
+            | SaleFlash
             | undefined,
 );
 
