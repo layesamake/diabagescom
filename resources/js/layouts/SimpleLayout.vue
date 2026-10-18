@@ -19,7 +19,7 @@ import BarreNavBas from '@/components/simple/BarreNavBas.vue';
 import {
     home as simpleHome,
     sell as simpleSell,
-    cash as simpleCash,
+    sales as simpleSales,
 } from '@/routes/simple';
 
 const props = withDefaults(defineProps<{ actif?: string }>(), {
@@ -34,7 +34,7 @@ const entrees = computed(() => [
         cle: 'ventes',
         libelle: 'Ventes',
         icone: ReceiptText,
-        href: accueil.value,
+        href: simpleSales().url,
     },
     {
         cle: 'vendre',
