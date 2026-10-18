@@ -15,9 +15,9 @@ void test('Vendre expose le parcours article, panier, paiement et ticket', () =>
     assert.match(vendre, /<CarteArticle/);
     assert.match(vendre, /function ajouterArticle/);
     assert.match(vendre, /function validerVente/);
-    assert.match(vendre, /router\.post\(['"]\/simple\/vendre['"]/);
+    assert.match(vendre, /router\.post\(\s*['"]\/simple\/vendre['"]/);
     assert.match(vendre, /@secondaire="ouvrirTicket"/);
-    assert.match(vendre, /saleResult\.ticket_url/);
+    assert.match(vendre, /saleResult(?:\.value)?\.ticket_url/);
     assert.doesNotMatch(vendre, /en cours de construction/i);
 });
 

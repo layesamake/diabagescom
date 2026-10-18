@@ -1,15 +1,12 @@
 <script setup lang="ts">
 /**
- * Écran Caisse du mode simple (lot 2).
- *
- * Une seule page pilotée par l'état de la session : fermée (proposer d'ouvrir),
- * ouverte (solde, entrées/sorties, proposer de fermer), résultat de fermeture.
+ * Écran Caisse du mode simple : ouverture, synthèse et fermeture. Les grands
+ * montants sont saisis directement et tout écart exige une justification.
  */
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { Wallet } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import CarteMontant from '@/components/simple/CarteMontant.vue';
-import Compteur from '@/components/simple/Compteur.vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 import { formatFranc } from '@/lib/money';
 
@@ -20,9 +17,10 @@ type SessionData = {
     opened_by: string;
     opened_at: string;
     summary: {
-        opening: number;
-        income: number;
-        expense: number;
+        incomes: number;
+        expenses: number;
+        refunds: number;
+        supplier_payments: number;
         drawer: number;
         by_method: Record<string, number>;
     };
@@ -33,6 +31,7 @@ type Props = {
     warehouse: { id: string; code: string; name: string } | null;
     register: { id: string; name: string } | null;
     session: SessionData | null;
+
     can: {
         open: boolean;
         close: boolean;
@@ -42,19 +41,28 @@ type Props = {
 };
 
 const props = defineProps<Props>();
-
-const openForm = useForm({
-    register_id: props.register?.id ?? '',
-    opening_amount: 0,
+const openForm = useForm({ opening_amount: 0 });
+const closeForm = useForm({
+    counted_amount: props.session?.drawer ?? 0,
+    note: '',
 });
-const closeForm = useForm({ counted_amount: 0, note: '' });
+const ecartDeCaisse = computed(() =>
+    props.session ? closeForm.counted_amount - props.session.drawer : 0,
+);
+const fermetureValide = computed(
+    () => ecartDeCaisse.value === 0 || closeForm.note.trim().length >= 3,
+);
 
 function ouvrir(): void {
-    openForm.post('/simple/caisse/ouvrir', { preserveScroll: true });
+    if (props.register) {
+        openForm.post(`/simple/caisse/${props.register.id}/ouvrir`, {
+            preserveScroll: true,
+        });
+    }
 }
 
 function fermer(): void {
-    if (props.session) {
+    if (props.session && fermetureValide.value) {
         closeForm.post(`/simple/caisse/${props.session.id}/fermer`, {
             preserveScroll: true,
         });
@@ -67,8 +75,7 @@ function fermer(): void {
 
     <EnTeteEcran titre="Caisse" :icone="Wallet" :retour-visible="false" />
 
-    <div class="grid gap-4 p-4">
-        <!-- Pas de caisse configurée -->
+    <div class="grid gap-4 p-4 pb-28">
         <p
             v-if="!register"
             class="rounded-[24px] p-4 text-center text-[17px] font-semibold"
@@ -80,40 +87,46 @@ function fermer(): void {
             Aucune caisse configurée pour ce dépôt.
         </p>
 
-        <!-- Caisse fermée : proposer d'ouvrir -->
         <template v-else-if="!session">
             <p
                 class="text-center text-[17px] font-semibold"
                 :style="{ color: 'var(--s-texte-doux)' }"
             >
-                La caisse « {{ register.name }} » est fermée.
+                La caisse « {{ register?.name }} » est fermée.
             </p>
 
-            <div v-if="can.open" class="grid gap-3">
-                <label class="text-[17px] font-semibold">Fond de caisse</label>
-                <div class="flex justify-center">
-                    <Compteur
-                        v-model:valeur="openForm.opening_amount"
-                        :min="0"
-                        unite="F"
-                    />
-                </div>
+            <form v-if="can.open" class="grid gap-3" @submit.prevent="ouvrir">
+                <label for="opening-amount" class="text-[17px] font-semibold">
+                    Fond de caisse
+                </label>
+                <input
+                    id="opening-amount"
+                    v-model.number="openForm.opening_amount"
+                    type="number"
+                    min="0"
+                    inputmode="numeric"
+                    class="h-16 rounded-[20px] border px-4 text-center text-[26px] font-extrabold tabular-nums"
+                />
+                <p
+                    v-if="openForm.errors.opening_amount"
+                    class="font-bold text-red-700"
+                >
+                    {{ openForm.errors.opening_amount }}
+                </p>
                 <button
-                    type="button"
+                    type="submit"
                     class="h-16 rounded-[24px] text-[20px] font-extrabold"
                     :style="{
                         backgroundColor: 'var(--s-vert)',
                         color: 'var(--s-sur-vert)',
                     }"
                     :disabled="openForm.processing"
-                    @click="ouvrir"
                 >
-                    Ouvrir la caisse
+                    Ouvrir avec {{ formatFranc(openForm.opening_amount) }}
                 </button>
-            </div>
+            </form>
         </template>
 
-        <!-- Caisse ouverte -->
         <template v-else>
             <CarteMontant libelle="Dans la caisse" :montant="session.drawer" />
 
@@ -127,7 +140,7 @@ function fermer(): void {
                 >
                     <p class="text-[14px] font-semibold">Entrées</p>
                     <p class="text-[22px] font-extrabold tabular-nums">
-                        {{ formatFranc(session.summary.income) }}
+                        {{ formatFranc(session.summary.incomes) }}
                     </p>
                 </div>
                 <div
@@ -139,33 +152,70 @@ function fermer(): void {
                 >
                     <p class="text-[14px] font-semibold">Sorties</p>
                     <p class="text-[22px] font-extrabold tabular-nums">
-                        {{ formatFranc(session.summary.expense) }}
+                        {{ formatFranc(session.summary.expenses) }}
                     </p>
                 </div>
             </div>
 
-            <div v-if="can.close" class="grid gap-3">
-                <label class="text-[17px] font-semibold">Montant compté</label>
-                <div class="flex justify-center">
-                    <Compteur
-                        v-model:valeur="closeForm.counted_amount"
-                        :min="0"
-                        unite="F"
+            <form v-if="can.close" class="grid gap-3" @submit.prevent="fermer">
+                <label for="counted-amount" class="text-[17px] font-semibold">
+                    Montant compté
+                </label>
+                <input
+                    id="counted-amount"
+                    v-model.number="closeForm.counted_amount"
+                    type="number"
+                    min="0"
+                    inputmode="numeric"
+                    class="h-16 rounded-[20px] border px-4 text-center text-[26px] font-extrabold tabular-nums"
+                />
+
+                <div
+                    v-if="ecartDeCaisse !== 0"
+                    class="grid gap-2 rounded-[20px] p-3"
+                    :style="{
+                        backgroundColor: 'var(--s-orange-clair)',
+                        color: 'var(--s-sur-orange-clair)',
+                    }"
+                >
+                    <p class="text-[17px] font-extrabold">
+                        Écart : {{ formatFranc(ecartDeCaisse) }}
+                    </p>
+                    <label for="closing-note" class="font-bold">
+                        Pourquoi y a-t-il un écart ?
+                    </label>
+                    <textarea
+                        id="closing-note"
+                        v-model="closeForm.note"
+                        rows="3"
+                        maxlength="500"
+                        class="rounded-[16px] border bg-white p-3 text-[17px] text-black"
+                        placeholder="Écrivez au moins 3 caractères"
                     />
                 </div>
+
+                <p
+                    v-if="
+                        closeForm.errors.counted_amount || closeForm.errors.note
+                    "
+                    class="font-bold text-red-700"
+                >
+                    {{
+                        closeForm.errors.counted_amount ?? closeForm.errors.note
+                    }}
+                </p>
                 <button
-                    type="button"
-                    class="h-16 rounded-[24px] text-[20px] font-extrabold"
+                    type="submit"
+                    class="h-16 rounded-[24px] text-[20px] font-extrabold disabled:opacity-40"
                     :style="{
                         backgroundColor: 'var(--s-rouge)',
                         color: 'var(--s-sur-rouge)',
                     }"
-                    :disabled="closeForm.processing"
-                    @click="fermer"
+                    :disabled="closeForm.processing || !fermetureValide"
                 >
                     Fermer la caisse
                 </button>
-            </div>
+            </form>
         </template>
     </div>
 </template>

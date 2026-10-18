@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Simple;
 
 use App\Domain\Cash\CashService;
 use App\Domain\Inventory\StockAccess;
+use App\Domain\Sales\FrequentProducts;
 use App\Domain\Sales\PointOfSale;
 use App\Domain\Tenancy\TenantContext;
 use App\Http\Controllers\Controller;
@@ -35,8 +36,11 @@ class SimpleSalesController extends Controller
 
     // ── Vendre ──────────────────────────────────────────────────────────
 
-    public function sell(StockAccess $access, TenantContext $context): Response
-    {
+    public function sell(
+        StockAccess $access,
+        TenantContext $context,
+        FrequentProducts $frequentProducts,
+    ): Response {
         Gate::authorize('sale.create');
         Gate::authorize('sale.validate');
 
@@ -52,7 +56,7 @@ class SimpleSalesController extends Controller
                 ->where('warehouse_id', $warehouse->id)->where('active', true)
                 ->whereDoesntHave('openSession')->orderBy('name')->get(['id', 'name']) : [],
             'methods' => Payment::METHODS,
-            'frequent' => [], // Les articles fréquents seront ajoutés avec la grille photo.
+            'frequent' => $warehouse !== null ? $frequentProducts->forWarehouse($warehouse->id) : [],
             'can' => [
                 'price_override' => Gate::allows('catalog.price_override'),
                 'discount' => Gate::allows('sale.discount_standard') || Gate::allows('sale.discount_exception'),
@@ -102,9 +106,11 @@ class SimpleSalesController extends Controller
         ], $user, (string) $data['idempotency_key']);
 
         Inertia::flash('sale', [
+            'id' => $sale->id,
             'number' => $sale->number,
             'total' => $sale->total,
             'amount_paid' => $sale->amount_paid,
+            'ticket_url' => route('sales.ticket', ['document' => $sale]),
         ]);
 
         return to_route('simple.sell');
