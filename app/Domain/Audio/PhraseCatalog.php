@@ -250,7 +250,10 @@ final class PhraseCatalog
         return array_keys(array_filter(self::PHRASES, fn (array $p): bool => $p['group'] === $group));
     }
 
-    /** Codes des 4 premiers groupes (71 au total), qui cochent l'étape 2 du guide. */
+    /** Codes des 4 premiers groupes (71 au total), qui cochent l'étape 2 du guide.
+     *
+     * @return list<string>
+     */
     public static function coreCodes(): array
     {
         return array_merge(...array_map(self::codesInGroup(...), self::CORE_GROUPS));
@@ -262,7 +265,10 @@ final class PhraseCatalog
         return count(self::PHRASES[$code]['tokens']) + 1;
     }
 
-    /** Index des segments qui demandent réellement un enregistrement. */
+    /** Index des segments qui demandent réellement un enregistrement.
+     *
+     * @return list<int>
+     */
     public static function requiredSegments(string $code): array
     {
         $blank = self::BLANK_SEGMENTS[$code] ?? [];

@@ -32,13 +32,19 @@ final class NumberWords
 
     private const string MINUTES = 'CHF-30';
 
-    /** Un montant en francs, à lire tel quel (sans décimales). */
+    /** Un montant en francs, à lire tel quel (sans décimales).
+     *
+     * @return list<string>
+     */
     public static function montant(int $francs): array
     {
         return [...self::nombre(abs($francs)), self::FRANCS];
     }
 
-    /** Une heure « 14 h 05 » → « quatorze heures cinq minutes ». */
+    /** Une heure « 14 h 05 » → « quatorze heures cinq minutes ».
+     *
+     * @return list<string>
+     */
     public static function heure(int $hour, int $minute): array
     {
         $words = [...self::nombre($hour), self::HEURES];
@@ -50,7 +56,10 @@ final class NumberWords
         return $words;
     }
 
-    /** Un nombre entier quelconque, sans unité (ex. un décompte d'articles). */
+    /** Un nombre entier quelconque, sans unité (ex. un décompte d'articles).
+     *
+     * @return list<string>
+     */
     public static function nombre(int $n): array
     {
         if ($n === 0) {
@@ -98,7 +107,10 @@ final class NumberWords
         return $words === [] ? [self::UNITS[0]] : $words;
     }
 
-    /** Un groupe de 0 à 999. */
+    /** Un groupe de 0 à 999.
+     *
+     * @return list<string>
+     */
     private static function group(int $n): array
     {
         if ($n < 100) {
@@ -116,7 +128,10 @@ final class NumberWords
         return $words;
     }
 
-    /** De 0 à 99. */
+    /** De 0 à 99.
+     *
+     * @return list<string>
+     */
     private static function tens(int $n): array
     {
         if ($n <= 16) {

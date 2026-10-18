@@ -73,7 +73,11 @@ final class AudioLibrary
         return array_diff($required, $recorded) === [];
     }
 
-    /** Disponibilité de chaque code demandé, en une seule requête. */
+    /** Disponibilité de chaque code demandé, en une seule requête.
+     *
+     * @param  list<string>  $codes
+     * @return array<string, bool>
+     */
     public function availability(array $codes): array
     {
         if ($this->tenant->voice_language === null || $codes === []) {
