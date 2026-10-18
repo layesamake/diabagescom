@@ -88,7 +88,7 @@ function confirmerAnnulation(): void {
     }
     router.post(
         `/simple/ventes/${venteAAnnuler.value.id}/annuler`,
-        { reason: motif.value },
+        { idempotency_key: crypto.randomUUID(), reason: motif.value },
         { onSuccess: () => (venteAAnnuler.value = null) },
     );
 }

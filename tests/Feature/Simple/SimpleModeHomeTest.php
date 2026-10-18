@@ -3,8 +3,10 @@
 namespace Tests\Feature\Simple;
 
 use App\Http\Middleware\ResolveTenantContext;
+use App\Models\SalesDocument;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\Feature\Sales\SalesTestHelpers;
 use Tests\TestCase;
 
@@ -15,8 +17,11 @@ use Tests\TestCase;
  * gestion) : chaque vendeur voit toujours ses propres ventes, l'admin voit
  * tout. Mes ventes reprend la même règle sur un jour choisi.
  *
- * Note : makeProduct() fixe sale_price = cost * 2 (prix catalogue par
- * défaut) ; les montants ci-dessous suivent cette règle.
+ * Notes :
+ * - makeProduct() fixe sale_price = cost * 2 (prix catalogue par défaut) ;
+ *   les montants ci-dessous suivent cette règle.
+ * - un dépôt n'a qu'une seule caisse par défaut : deux vendeurs du même
+ *   dépôt partagent la session ouverte (comme au comptoir).
  */
 class SimpleModeHomeTest extends TestCase
 {
@@ -56,15 +61,14 @@ class SimpleModeHomeTest extends TestCase
     {
         $admin = $this->createTenantWithMember();
         $v = $this->member($admin, 'cashier');
-        $rice = $this->makeProduct($v, 'RIZ', 'U', 1000);
-        $this->move($v, 'initial', [[$v['warehouse']->id, $rice->id, '10', 1000]]);
-        $session = $this->openSession($v, 0);
+        $other = $this->member($admin, 'cashier');
+        $rice = $this->makeProduct($admin, 'RIZ', 'U', 1000);
+        $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1000]]);
+        $session = $this->openSession($admin, 0);
+
         // Prix catalogue 2000 (cost 1000 * 2) ; 2 unités = 4000.
         $this->sell($v, $session, [[$rice->id, '2']], [['cash', 4000]]);
-
-        $other = $this->member($admin, 'cashier');
-        $otherSession = $this->openSession($other, 0);
-        $this->sell($other, $otherSession, [[$rice->id, '1']], [['cash', 2000]]);
+        $this->sell($other, $session, [[$rice->id, '1']], [['cash', 2000]]);
 
         $this->act($v)
             ->get('/simple')
@@ -93,14 +97,13 @@ class SimpleModeHomeTest extends TestCase
     {
         $admin = $this->createTenantWithMember();
         $v1 = $this->member($admin, 'cashier');
+        $v2 = $this->member($admin, 'cashier');
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1000);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1000]]);
-        $session1 = $this->openSession($v1, 0);
-        $this->sell($v1, $session1, [[$rice->id, '1']], [['cash', 2000]]);
+        $session = $this->openSession($admin, 0);
 
-        $v2 = $this->member($admin, 'cashier');
-        $session2 = $this->openSession($v2, 0);
-        $this->sell($v2, $session2, [[$rice->id, '1']], [['wave', 2000]]);
+        $this->sell($v1, $session, [[$rice->id, '1']], [['cash', 2000]]);
+        $this->sell($v2, $session, [[$rice->id, '1']], [['wave', 2000]]);
 
         $this->act($admin)
             ->get('/simple')
@@ -123,15 +126,14 @@ class SimpleModeHomeTest extends TestCase
     {
         $admin = $this->createTenantWithMember();
         $v = $this->member($admin, 'cashier');
+        $other = $this->member($admin, 'cashier');
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1500);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1500]]);
-        $session = $this->openSession($v, 0);
+        $session = $this->openSession($admin, 0);
+
         // Prix catalogue 3000 (cost 1500 * 2) ; 2 unités = 6000.
         $this->sell($v, $session, [[$rice->id, '2']], [['cash', 6000]]);
-
-        $other = $this->member($admin, 'cashier');
-        $otherSession = $this->openSession($other, 0);
-        $this->sell($other, $otherSession, [[$rice->id, '1']], [['wave', 3000]]);
+        $this->sell($other, $session, [[$rice->id, '1']], [['wave', 3000]]);
 
         $this->act($v)
             ->get('/simple/ventes')
@@ -148,14 +150,13 @@ class SimpleModeHomeTest extends TestCase
     {
         $admin = $this->createTenantWithMember();
         $v = $this->member($admin, 'cashier');
+        $other = $this->member($admin, 'cashier');
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1500);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1500]]);
-        $session = $this->openSession($v, 0);
-        $this->sell($v, $session, [[$rice->id, '1']], [['cash', 3000]]);
+        $session = $this->openSession($admin, 0);
 
-        $other = $this->member($admin, 'cashier');
-        $otherSession = $this->openSession($other, 0);
-        $this->sell($other, $otherSession, [[$rice->id, '1']], [['wave', 3000]]);
+        $this->sell($v, $session, [[$rice->id, '1']], [['cash', 3000]]);
+        $this->sell($other, $session, [[$rice->id, '1']], [['wave', 3000]]);
 
         $this->act($admin)
             ->get('/simple/ventes')
@@ -170,7 +171,7 @@ class SimpleModeHomeTest extends TestCase
         $v = $this->member($admin, 'cashier');
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1000);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1000]]);
-        $session = $this->openSession($v, 0);
+        $session = $this->openSession($admin, 0);
         $this->sell($v, $session, [[$rice->id, '1']], [['cash', 2000]]);
 
         $this->act($v)
@@ -187,11 +188,14 @@ class SimpleModeHomeTest extends TestCase
         $v = $this->member($admin, 'cashier');
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1000);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1000]]);
-        $session = $this->openSession($v, 0);
+        $session = $this->openSession($admin, 0);
         $invoice = $this->sell($v, $session, [[$rice->id, '1']], [['cash', 2000]]);
 
         $this->act($v)
-            ->post("/simple/ventes/{$invoice->id}/annuler", ['reason' => 'Erreur de saisie'])
+            ->post("/simple/ventes/{$invoice->id}/annuler", [
+                'idempotency_key' => (string) Str::uuid7(),
+                'reason' => 'Erreur de saisie',
+            ])
             ->assertForbidden();
     }
 
@@ -201,13 +205,21 @@ class SimpleModeHomeTest extends TestCase
         $v = $this->member($admin, 'cashier');
         $rice = $this->makeProduct($admin, 'RIZ', 'U', 1000);
         $this->move($admin, 'initial', [[$admin['warehouse']->id, $rice->id, '10', 1000]]);
-        $session = $this->openSession($v, 0);
+        $session = $this->openSession($admin, 0);
         $invoice = $this->sell($v, $session, [[$rice->id, '1']], [['cash', 2000]]);
 
         $this->act($admin)
-            ->post("/simple/ventes/{$invoice->id}/annuler", ['reason' => 'Erreur de saisie'])
+            ->post("/simple/ventes/{$invoice->id}/annuler", [
+                'idempotency_key' => (string) Str::uuid7(),
+                'reason' => 'Erreur de saisie',
+            ])
             ->assertRedirect('/simple/ventes');
 
-        $this->assertSame('cancelled', $invoice->fresh()->status);
+        // Une facture validée ne s'efface pas : un avoir annule son effet.
+        $this->assertSame('validated', $invoice->fresh()->status);
+        $this->assertTrue(SalesDocument::query()
+            ->where('type', 'credit_note')
+            ->where('source_document_id', $invoice->id)
+            ->exists());
     }
 }
