@@ -175,6 +175,7 @@ class SimpleModeSalesTest extends TestCase
     public function test_opening_a_register_from_simple_mode_redirects_to_the_simple_cash(): void
     {
         $v = $this->vendeur();
+        $this->enter($v);
         $register = CashRegister::query()->where('warehouse_id', $v['warehouse']->id)->where('active', true)->firstOrFail();
 
         $this->act($v)
