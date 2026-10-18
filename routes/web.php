@@ -48,6 +48,7 @@ use App\Http\Controllers\Settings\MemberController;
 use App\Http\Controllers\Settings\NotificationController;
 use App\Http\Controllers\Simple\SimpleModeController;
 use App\Http\Controllers\Simple\SimpleSalesController;
+use App\Http\Controllers\Simple\SimpleVoiceController;
 use App\Http\Controllers\Storefront\PublicStorefrontController;
 use App\Http\Controllers\Storefront\StorefrontController;
 use App\Http\Controllers\SubscriptionController;
@@ -124,6 +125,15 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::post('simple/caisse/{register}/ouvrir', [SimpleSalesController::class, 'openRegister'])->name('simple.cash.open');
     Route::post('simple/caisse/{session}/fermer', [SimpleSalesController::class, 'closeSession'])->name('simple.cash.close');
     Route::post('simple/caisse/{session}/mouvement', [SimpleSalesController::class, 'movement'])->name('simple.cash.movement');
+
+    // Mode simple — lot 4 : Messages audio, réservé à l'administrateur.
+    Route::get('simple/voix', [SimpleVoiceController::class, 'index'])->name('simple.voice.index');
+    Route::put('simple/voix/langue', [SimpleVoiceController::class, 'updateLanguage'])->name('simple.voice.language');
+    Route::post('simple/voix/{code}/{segment}', [SimpleVoiceController::class, 'storeSegment'])
+        ->where('code', '[A-Z]{3}-[0-9]{2}')->where('segment', '[0-9]+')->middleware('throttle:200,1')->name('simple.voice.segments.store');
+    Route::delete('simple/voix/{code}/{segment}', [SimpleVoiceController::class, 'destroySegment'])
+        ->where('code', '[A-Z]{3}-[0-9]{2}')->where('segment', '[0-9]+')->name('simple.voice.segments.destroy');
+    Route::get('simple/voix/clips/{clip}', [SimpleVoiceController::class, 'clip'])->whereUuid('clip')->name('simple.voice.clips.show');
 
     Route::get('settings/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
     // Facturation de l'abonnement (accessible même suspendu, pour régulariser).

@@ -56,6 +56,14 @@ final class StartGuide
             'route' => 'company.edit', 'pages' => ['settings/Company'],
             'sql' => "EXISTS (SELECT 1 FROM tenant_profiles WHERE tenant_id = {T} AND (logo_path IS NOT NULL OR COALESCE(ninea, '') <> '' OR COALESCE(address, '') <> '' OR COALESCE(phone, '') <> ''))",
         ],
+        // Mode simple (lot 4) : enregistrer la voix dans la langue locale de
+        // l'entreprise. Pas de détection automatique (table/sql) : le
+        // contrôleur coche lui-même l'étape dès que les 71 enregistrements
+        // « cœur » (Communs, Chiffres, Vendre, Caisse) existent.
+        'voice' => [
+            'phase' => self::PHASE_BEFORE, 'permissions' => ['organization.manage'],
+            'route' => 'simple.voice.index', 'pages' => ['simple/Voix'],
+        ],
         'products' => [
             'phase' => self::PHASE_BEFORE, 'permissions' => ['catalog.create'],
             'route' => 'products.create', 'pages' => ['catalog/Products', 'catalog/ProductForm', 'catalog/ProductImport'],
@@ -274,7 +282,13 @@ final class StartGuide
         $tenant = $this->context->tenant();
         $track = $this->track();
 
-        return array_filter(self::STEPS, function (array $step) use ($user, $tenant, $track): bool {
+        return array_filter(self::STEPS, function (array $step, string $key) use ($user, $tenant, $track): bool {
+            // L'étape « voix » du mode simple n'existe pas tant que le lot
+            // n'est pas activé sur l'environnement (comme les routes /simple).
+            if ($key === 'voice' && ! (bool) config('diaba.simple_mode.enabled')) {
+                return false;
+            }
+
             if (in_array($track, $step['except'] ?? [], true)) {
                 return false;
             }
@@ -290,7 +304,7 @@ final class StartGuide
             }
 
             return false;
-        });
+        }, ARRAY_FILTER_USE_BOTH);
     }
 
     /**
