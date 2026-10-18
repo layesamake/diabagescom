@@ -209,7 +209,9 @@ function ouvrirTicket(): void {
             :retour-visible="false"
         />
 
-        <div class="grid gap-5 p-4 pb-28 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:p-0 lg:pb-0">
+        <div
+            class="grid gap-5 p-4 pb-28 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:p-0 lg:pb-0"
+        >
             <p
                 v-if="sessions.length === 0"
                 class="rounded-[24px] p-4 text-center text-[17px] font-semibold"
@@ -245,7 +247,7 @@ function ouvrirTicket(): void {
 
                 <section
                     v-if="panier.length > 0"
-                    class="grid gap-3 rounded-[24px] p-4 lg:col-start-2 lg:row-span-2 lg:sticky lg:top-6"
+                    class="grid gap-3 rounded-[24px] p-4 lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2"
                     :style="{ backgroundColor: 'var(--s-surface)' }"
                 >
                     <h2 class="text-[20px] font-extrabold">Panier</h2>
@@ -286,7 +288,10 @@ function ouvrirTicket(): void {
                     </p>
                 </section>
 
-                <section v-if="panier.length > 0" class="grid gap-3 lg:col-start-2">
+                <section
+                    v-if="panier.length > 0"
+                    class="grid gap-3 lg:col-start-2"
+                >
                     <h2 class="text-[20px] font-extrabold">
                         Comment le client paie ?
                     </h2>

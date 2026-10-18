@@ -204,12 +204,25 @@ function confirmerAnnulation(): void {
         </ul>
 
         <aside
-            class="hidden rounded-[24px] border p-5 lg:block lg:col-start-2 lg:row-start-1 lg:row-span-4"
-            :style="{ backgroundColor: 'var(--s-surface)', borderColor: 'var(--s-bordure)' }"
+            class="hidden rounded-[24px] border p-5 lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:block"
+            :style="{
+                backgroundColor: 'var(--s-surface)',
+                borderColor: 'var(--s-bordure)',
+            }"
         >
-            <p class="text-[15px] font-bold" :style="{ color: 'var(--s-texte-doux)' }">Détail de la vente</p>
-            <p class="mt-3 text-[20px] font-extrabold">Sélectionnez une vente</p>
-            <p class="mt-2 text-[16px] leading-relaxed" :style="{ color: 'var(--s-texte-doux)' }">
+            <p
+                class="text-[15px] font-bold"
+                :style="{ color: 'var(--s-texte-doux)' }"
+            >
+                Détail de la vente
+            </p>
+            <p class="mt-3 text-[20px] font-extrabold">
+                Sélectionnez une vente
+            </p>
+            <p
+                class="mt-2 text-[16px] leading-relaxed"
+                :style="{ color: 'var(--s-texte-doux)' }"
+            >
                 Le ticket et les actions disponibles apparaîtront ici.
             </p>
         </aside>

@@ -31,25 +31,64 @@ const page = usePage();
 const accueil = computed(() => simpleHome().url);
 const actif = computed(() => {
     if (props.actif !== 'accueil') return props.actif;
-    return ({
-        'simple/Accueil': 'accueil',
-        'simple/Vendre': 'vendre',
-        'simple/Caisse': 'caisse',
-        'simple/Ventes': 'ventes',
-    } as Record<string, string>)[page.component] ?? 'accueil';
+    return (
+        (
+            {
+                'simple/Accueil': 'accueil',
+                'simple/Vendre': 'vendre',
+                'simple/Caisse': 'caisse',
+                'simple/Ventes': 'ventes',
+            } as Record<string, string>
+        )[page.component] ?? 'accueil'
+    );
 });
 const entrees = computed(() => [
     { cle: 'accueil', libelle: 'Accueil', icone: Home, href: accueil.value },
-    { cle: 'ventes', libelle: 'Ventes', icone: ReceiptText, href: simpleSales().url },
-    { cle: 'vendre', libelle: 'Vendre', icone: ShoppingCart, href: simpleSell().url },
+    {
+        cle: 'ventes',
+        libelle: 'Ventes',
+        icone: ReceiptText,
+        href: simpleSales().url,
+    },
+    {
+        cle: 'vendre',
+        libelle: 'Vendre',
+        icone: ShoppingCart,
+        href: simpleSell().url,
+    },
     { cle: 'stock', libelle: 'Stock', icone: Boxes, href: accueil.value },
-    { cle: 'plus', libelle: 'Plus', icone: MoreHorizontal, href: accueil.value },
+    {
+        cle: 'plus',
+        libelle: 'Plus',
+        icone: MoreHorizontal,
+        href: accueil.value,
+    },
 ]);
 const navigationOrdinateur = computed(() => [
-    { libelle: 'Accueil', icone: Home, href: accueil.value, actif: actif.value === 'accueil' },
-    { libelle: 'Vendre', icone: ShoppingCart, href: simpleSell().url, actif: actif.value === 'vendre' },
-    { libelle: 'Caisse', icone: Wallet, href: '/simple/caisse', actif: actif.value === 'caisse' },
-    { libelle: 'Mes ventes', icone: ReceiptText, href: simpleSales().url, actif: actif.value === 'ventes' },
+    {
+        libelle: 'Accueil',
+        icone: Home,
+        href: accueil.value,
+        actif: actif.value === 'accueil',
+    },
+    {
+        libelle: 'Vendre',
+        icone: ShoppingCart,
+        href: simpleSell().url,
+        actif: actif.value === 'vendre',
+    },
+    {
+        libelle: 'Caisse',
+        icone: Wallet,
+        href: '/simple/caisse',
+        actif: actif.value === 'caisse',
+    },
+    {
+        libelle: 'Mes ventes',
+        icone: ReceiptText,
+        href: simpleSales().url,
+        actif: actif.value === 'ventes',
+    },
     { libelle: 'Produits', icone: Package, href: accueil.value, actif: false },
     { libelle: 'Stock', icone: Boxes, href: accueil.value, actif: false },
     { libelle: 'Clients', icone: Users, href: accueil.value, actif: false },
@@ -57,13 +96,25 @@ const navigationOrdinateur = computed(() => [
 </script>
 
 <template>
-    <div class="mode-simple min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
+    <div
+        class="mode-simple min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]"
+    >
         <aside
             class="hidden min-h-dvh flex-col border-r p-4 lg:flex"
-            :style="{ backgroundColor: 'var(--s-surface)', borderColor: 'var(--s-bordure)' }"
+            :style="{
+                backgroundColor: 'var(--s-surface)',
+                borderColor: 'var(--s-bordure)',
+            }"
         >
             <a :href="accueil" class="mb-8 flex items-center gap-3 px-3">
-                <span class="grid size-10 place-items-center rounded-[14px] text-xl font-black" :style="{ backgroundColor: 'var(--s-marque)', color: 'var(--s-sur-marque)' }">D</span>
+                <span
+                    class="grid size-10 place-items-center rounded-[14px] text-xl font-black"
+                    :style="{
+                        backgroundColor: 'var(--s-marque)',
+                        color: 'var(--s-sur-marque)',
+                    }"
+                    >D</span
+                >
                 <span class="text-lg font-extrabold tracking-tight">DIABA</span>
             </a>
             <nav aria-label="Navigation principale" class="grid gap-1">
@@ -72,24 +123,51 @@ const navigationOrdinateur = computed(() => [
                     :key="entree.libelle"
                     :href="entree.href"
                     class="flex min-h-12 items-center gap-3 rounded-[14px] px-3 text-[16px] font-bold transition-colors"
-                    :style="entree.actif ? { backgroundColor: 'var(--s-vert-clair)', color: 'var(--s-sur-vert-clair)' } : { color: 'var(--s-texte-doux)' }"
+                    :style="
+                        entree.actif
+                            ? {
+                                  backgroundColor: 'var(--s-vert-clair)',
+                                  color: 'var(--s-sur-vert-clair)',
+                              }
+                            : { color: 'var(--s-texte-doux)' }
+                    "
                 >
-                    <component :is="entree.icone" :size="21" aria-hidden="true" />
+                    <component
+                        :is="entree.icone"
+                        :size="21"
+                        aria-hidden="true"
+                    />
                     {{ entree.libelle }}
                 </a>
             </nav>
-            <div class="mt-auto rounded-[18px] p-3" :style="{ backgroundColor: 'var(--s-fond)' }">
-                <p class="truncate text-sm font-extrabold">{{ context?.tenant?.name ?? 'Mon entreprise' }}</p>
-                <p class="mt-1 text-xs font-semibold" :style="{ color: 'var(--s-texte-doux)' }">Mode simple</p>
+            <div
+                class="mt-auto rounded-[18px] p-3"
+                :style="{ backgroundColor: 'var(--s-fond)' }"
+            >
+                <p class="truncate text-sm font-extrabold">
+                    {{ context?.tenant?.name ?? 'Mon entreprise' }}
+                </p>
+                <p
+                    class="mt-1 text-xs font-semibold"
+                    :style="{ color: 'var(--s-texte-doux)' }"
+                >
+                    Mode simple
+                </p>
             </div>
         </aside>
 
         <main class="min-w-0">
-            <div class="mx-auto w-full max-w-[1440px] pb-[calc(var(--s-barre-bas)+16px)] lg:px-8 lg:py-8 lg:pb-10">
+            <div
+                class="mx-auto w-full max-w-[1440px] pb-[calc(var(--s-barre-bas)+16px)] lg:px-8 lg:py-8 lg:pb-10"
+            >
                 <slot />
             </div>
         </main>
 
-        <BarreNavBas class="lg:hidden" :actif="props.actif" :entrees="entrees" />
+        <BarreNavBas
+            class="lg:hidden"
+            :actif="props.actif"
+            :entrees="entrees"
+        />
     </div>
 </template>
