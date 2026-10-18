@@ -161,6 +161,7 @@ class SimpleSalesController extends Controller
             'opening_amount' => ['required', 'integer', 'min:0', 'max:999999999999'],
         ], attributes: ['opening_amount' => 'fond de caisse']);
 
+        /** @var CashRegister $register */
         $register = CashRegister::query()->findOrFail($data['register_id']);
 
         /** @var User $user */
