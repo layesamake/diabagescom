@@ -103,7 +103,9 @@ const composants = [
 ] as const;
 
 function maquetteUrl(fichier: string): string {
-    return `/simple/maquettes/${encodeURIComponent(fichier)}`;
+    const identifiant = fichier.replace(/\.png$/, '');
+
+    return `/simple/maquettes/${encodeURIComponent(identifiant)}`;
 }
 </script>
 
