@@ -32,7 +32,7 @@ final class AudioLibrary
         $path = $file->store("tenants/{$this->tenant->id}/audio/{$language}", 'local');
 
         return AudioClip::query()->updateOrCreate(
-            ['tenant_id' => $this->tenant->id, 'code' => $code, 'language' => $language, 'segment_index' => $segment],
+            ['code' => $code, 'language' => $language, 'segment_index' => $segment],
             ['file_path' => $path, 'duration_ms' => null, 'created_by' => $author?->id],
         );
     }
@@ -41,7 +41,7 @@ final class AudioLibrary
     {
         $language = $this->requireLanguage();
         $clip = AudioClip::query()
-            ->where(['tenant_id' => $this->tenant->id, 'code' => $code, 'language' => $language, 'segment_index' => $segment])
+            ->where(['code' => $code, 'language' => $language, 'segment_index' => $segment])
             ->first();
 
         if ($clip === null) {

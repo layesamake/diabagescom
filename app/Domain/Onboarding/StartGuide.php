@@ -282,7 +282,13 @@ final class StartGuide
         $tenant = $this->context->tenant();
         $track = $this->track();
 
-        return array_filter(self::STEPS, function (array $step) use ($user, $tenant, $track): bool {
+        return array_filter(self::STEPS, function (array $step, string $key) use ($user, $tenant, $track): bool {
+            // L'étape « voix » du mode simple n'existe pas tant que le lot
+            // n'est pas activé sur l'environnement (comme les routes /simple).
+            if ($key === 'voice' && ! (bool) config('diaba.simple_mode.enabled')) {
+                return false;
+            }
+
             if (in_array($track, $step['except'] ?? [], true)) {
                 return false;
             }
@@ -298,7 +304,7 @@ final class StartGuide
             }
 
             return false;
-        });
+        }, ARRAY_FILTER_USE_BOTH);
     }
 
     /**

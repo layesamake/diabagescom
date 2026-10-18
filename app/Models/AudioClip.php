@@ -28,6 +28,8 @@ class AudioClip extends Model
 {
     use BelongsToTenant, HasUuids;
 
+    protected $fillable = ['code', 'language', 'segment_index', 'file_path', 'duration_ms', 'created_by'];
+
     protected function casts(): array
     {
         return ['segment_index' => 'integer', 'duration_ms' => 'integer'];
