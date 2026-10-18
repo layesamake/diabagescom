@@ -116,4 +116,12 @@ class TenantMembership extends Model
     {
         return $this->ui_mode === self::MODE_SIMPLE;
     }
+
+    /** Route d'accueil réelle, en respectant le drapeau d'environnement. */
+    public function homeRoute(): string
+    {
+        return config('diaba.simple_mode.enabled') && $this->usesSimpleMode()
+            ? 'simple.home'
+            : 'dashboard';
+    }
 }

@@ -103,7 +103,7 @@ const composants = [
 ] as const;
 
 function maquetteUrl(fichier: string): string {
-    return `/maquettes/simple/${fichier}`;
+    return `/simple/maquettes/${encodeURIComponent(fichier)}`;
 }
 </script>
 

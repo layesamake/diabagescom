@@ -7,7 +7,7 @@
  * Fermeture par le voile, par le bouton Retour ou par la touche Échap ; le
  * défilement de la page est bloqué pendant l'ouverture.
  */
-import { onBeforeUnmount, watch } from 'vue';
+import { onBeforeUnmount, onMounted, watch, type WatchHandle } from 'vue';
 import BoutonHautParleur from './BoutonHautParleur.vue';
 
 const props = withDefaults(
@@ -28,21 +28,27 @@ function surTouche(evenement: KeyboardEvent): void {
     }
 }
 
-watch(
-    () => props.ouverte,
-    (ouverte) => {
-        document.body.style.overflow = ouverte ? 'hidden' : '';
+let arreterSurveillance: WatchHandle | undefined;
 
-        if (ouverte) {
-            window.addEventListener('keydown', surTouche);
-        } else {
-            window.removeEventListener('keydown', surTouche);
-        }
-    },
-    { immediate: true },
-);
+onMounted(() => {
+    // document/window n'existent pas pendant le rendu SSR Inertia.
+    arreterSurveillance = watch(
+        () => props.ouverte,
+        (ouverte) => {
+            document.body.style.overflow = ouverte ? 'hidden' : '';
+
+            if (ouverte) {
+                window.addEventListener('keydown', surTouche);
+            } else {
+                window.removeEventListener('keydown', surTouche);
+            }
+        },
+        { immediate: true },
+    );
+});
 
 onBeforeUnmount(() => {
+    arreterSurveillance?.();
     document.body.style.overflow = '';
     window.removeEventListener('keydown', surTouche);
 });

@@ -11,6 +11,7 @@ use App\Domain\Tenancy\TenantContext;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -38,8 +39,18 @@ class DashboardController extends Controller
 
     private const int MAX_ACTIONS = 6;
 
-    public function __invoke(Request $request, TenantContext $context, StockAccess $access, AlertCenter $center, NotificationPreferences $preferences, StartGuide $guide, FeatureAccess $features): Response
+    public function __invoke(Request $request, TenantContext $context, StockAccess $access, AlertCenter $center, NotificationPreferences $preferences, StartGuide $guide, FeatureAccess $features): Response|RedirectResponse
     {
+        $membership = $context->membership();
+        abort_if($membership === null, 403);
+
+        // Fortify et les liens historiques arrivent sur /dashboard. Cette
+        // redirection centrale garantit qu'une appartenance en mode simple
+        // n'ouvre jamais involontairement l'interface experte.
+        if ($membership->homeRoute() === 'simple.home') {
+            return to_route('simple.home');
+        }
+
         /** @var User $user */
         $user = $request->user();
         $pending = $center->pending($user);
