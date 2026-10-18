@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Simple;
 
+use App\Domain\Audio\PhraseCatalog;
 use App\Domain\Onboarding\StartGuide;
 use App\Http\Middleware\ResolveTenantContext;
 use App\Models\AudioClip;
@@ -102,8 +103,8 @@ class SimpleVoiceTest extends TestCase
         $admin = $this->createTenantWithMember();
         $this->act($admin)->put('/simple/voix/langue', ['language' => 'wo']);
 
-        foreach (\App\Domain\Audio\PhraseCatalog::coreCodes() as $code) {
-            foreach (\App\Domain\Audio\PhraseCatalog::requiredSegments($code) as $segment) {
+        foreach (PhraseCatalog::coreCodes() as $code) {
+            foreach (PhraseCatalog::requiredSegments($code) as $segment) {
                 $file = UploadedFile::fake()->create("{$code}-{$segment}.webm", 5, 'audio/webm');
                 $this->act($admin)->post("/simple/voix/{$code}/{$segment}", ['audio' => $file])->assertRedirect();
             }

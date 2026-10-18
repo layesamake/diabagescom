@@ -8,6 +8,7 @@ use App\Domain\Onboarding\StartGuide;
 use App\Domain\Tenancy\TenantContext;
 use App\Http\Controllers\Controller;
 use App\Models\AudioClip;
+use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -128,7 +129,7 @@ class SimpleVoiceController extends Controller
         ]);
     }
 
-    private function adminTenant(TenantContext $context): \App\Models\Tenant
+    private function adminTenant(TenantContext $context): Tenant
     {
         abort_unless($context->membership()?->isAdmin(), 403);
 

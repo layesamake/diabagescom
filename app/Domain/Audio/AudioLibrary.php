@@ -93,7 +93,7 @@ final class AudioLibrary
 
         foreach ($codes as $code) {
             $required = PhraseCatalog::requiredSegments($code);
-            $result[$code] = array_diff($required, $recorded->get($code, []))  === [];
+            $result[$code] = array_diff($required, $recorded->get($code, [])) === [];
         }
 
         return $result;
