@@ -43,7 +43,27 @@ class TenantMembership extends Model
     /** Rôles de terrain : le mode simple est leur interface par défaut. */
     public const array FIELD_ROLES = ['cashier', 'warehouse_manager'];
 
-    protected $attributes = ['status' => 'active', 'ui_mode' => 'expert'];
+    protected $attributes = ['status' => 'active'];
+
+    /**
+     * Mode d'interface par défaut, quel que soit le chemin de création de
+     * l'appartenance (invitation, restauration, jeux de test) : les rôles de
+     * terrain arrivent en mode simple, les autres en mode expert.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $membership): void {
+            if (! empty($membership->ui_mode)) {
+                return;
+            }
+
+            $code = Role::query()->whereKey($membership->role_id)->value('code');
+
+            $membership->ui_mode = in_array($code, self::FIELD_ROLES, true)
+                ? self::MODE_SIMPLE
+                : self::MODE_EXPERT;
+        });
+    }
 
     /**
      * @return BelongsTo<Tenant, $this>

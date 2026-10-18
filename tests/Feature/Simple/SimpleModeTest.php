@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Simple;
 
+use App\Http\Middleware\ResolveTenantContext;
 use App\Models\TenantMembership;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -23,7 +24,7 @@ class SimpleModeTest extends TestCase
     public function test_the_simple_mode_does_not_exist_until_it_is_activated_on_the_environment(): void
     {
         config()->set('diaba.simple_mode.enabled', false);
-        [, $user] = $this->createTenantWithMember();
+        ['user' => $user] = $this->createTenantWithMember();
 
         $this->actingAs($user)->get('/simple')->assertNotFound();
         $this->actingAs($user)->post('/mode', ['mode' => 'simple'])->assertNotFound();
@@ -32,8 +33,8 @@ class SimpleModeTest extends TestCase
 
     public function test_a_field_role_arrives_in_simple_mode_and_a_manager_in_expert_mode(): void
     {
-        [, $vendeur] = $this->createTenantWithMember('cashier');
-        [, $admin] = $this->createTenantWithMember('admin');
+        ['user' => $vendeur] = $this->createTenantWithMember('cashier');
+        ['user' => $admin] = $this->createTenantWithMember('admin');
 
         $this->assertTrue($vendeur->memberships()->firstOrFail()->usesSimpleMode());
         $this->assertFalse($admin->memberships()->firstOrFail()->usesSimpleMode());
@@ -41,13 +42,13 @@ class SimpleModeTest extends TestCase
 
     public function test_switching_changes_the_mode_of_the_membership_only(): void
     {
-        [$tenant, $user] = $this->createTenantWithMember('admin');
+        ['tenant' => $tenant, 'user' => $user] = $this->createTenantWithMember('admin');
         // Le même compte est comptable dans une seconde entreprise : son mode
         // y reste expert, car le choix porte sur l'appartenance.
-        [$autre] = $this->createTenantWithMember('accountant', $user);
+        ['tenant' => $autre] = $this->createTenantWithMember('accountant', $user);
 
         $this->actingAs($user)
-            ->withSession(['tenant_id' => $tenant->id])
+            ->withSession([ResolveTenantContext::SESSION_TENANT => $tenant->id])
             ->post('/mode', ['mode' => 'simple'])
             ->assertRedirect('/simple');
 
@@ -63,10 +64,10 @@ class SimpleModeTest extends TestCase
 
     public function test_switching_back_to_expert_returns_to_the_dashboard(): void
     {
-        [$tenant, $user] = $this->createTenantWithMember('cashier');
+        ['tenant' => $tenant, 'user' => $user] = $this->createTenantWithMember('cashier');
 
         $this->actingAs($user)
-            ->withSession(['tenant_id' => $tenant->id])
+            ->withSession([ResolveTenantContext::SESSION_TENANT => $tenant->id])
             ->post('/mode', ['mode' => 'expert'])
             ->assertRedirect('/dashboard');
 
@@ -78,20 +79,20 @@ class SimpleModeTest extends TestCase
 
     public function test_an_unknown_mode_is_refused(): void
     {
-        [$tenant, $user] = $this->createTenantWithMember('admin');
+        ['tenant' => $tenant, 'user' => $user] = $this->createTenantWithMember('admin');
 
         $this->actingAs($user)
-            ->withSession(['tenant_id' => $tenant->id])
+            ->withSession([ResolveTenantContext::SESSION_TENANT => $tenant->id])
             ->post('/mode', ['mode' => 'colore'])
             ->assertSessionHasErrors('mode');
     }
 
     public function test_the_shared_context_exposes_the_mode_of_the_current_membership(): void
     {
-        [$tenant, $user] = $this->createTenantWithMember('cashier');
+        ['tenant' => $tenant, 'user' => $user] = $this->createTenantWithMember('cashier');
 
         $this->actingAs($user)
-            ->withSession(['tenant_id' => $tenant->id])
+            ->withSession([ResolveTenantContext::SESSION_TENANT => $tenant->id])
             ->get('/simple')
             ->assertInertia(fn ($page) => $page
                 ->component('simple/Accueil')
@@ -101,17 +102,17 @@ class SimpleModeTest extends TestCase
 
     public function test_the_component_page_is_reserved_to_the_administrator(): void
     {
-        [$tenant, $vendeur] = $this->createTenantWithMember('cashier');
+        ['tenant' => $tenant, 'user' => $vendeur] = $this->createTenantWithMember('cashier');
 
         $this->actingAs($vendeur)
-            ->withSession(['tenant_id' => $tenant->id])
+            ->withSession([ResolveTenantContext::SESSION_TENANT => $tenant->id])
             ->get('/simple/composants')
             ->assertForbidden();
 
-        [$autreTenant, $admin] = $this->createTenantWithMember('admin');
+        ['tenant' => $autreTenant, 'user' => $admin] = $this->createTenantWithMember('admin');
 
         $this->actingAs($admin)
-            ->withSession(['tenant_id' => $autreTenant->id])
+            ->withSession([ResolveTenantContext::SESSION_TENANT => $autreTenant->id])
             ->get('/simple/composants')
             ->assertOk()
             ->assertInertia(fn ($page) => $page->component('simple/Demo'));
