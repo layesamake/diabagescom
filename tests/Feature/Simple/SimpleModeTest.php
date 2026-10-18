@@ -4,7 +4,9 @@ namespace Tests\Feature\Simple;
 
 use App\Http\Middleware\ResolveTenantContext;
 use App\Models\TenantMembership;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -116,5 +118,63 @@ class SimpleModeTest extends TestCase
             ->get('/simple/composants')
             ->assertOk()
             ->assertInertia(fn ($page) => $page->component('simple/Demo'));
+    }
+
+    public function test_the_dashboard_redirects_a_simple_membership_to_the_simple_home(): void
+    {
+        ['tenant' => $tenant, 'user' => $vendeur] = $this->createTenantWithMember('cashier');
+
+        $this->actingAs($vendeur)
+            ->withSession([ResolveTenantContext::SESSION_TENANT => $tenant->id])
+            ->get('/dashboard')
+            ->assertRedirect('/simple');
+    }
+
+    public function test_switching_company_uses_the_mode_of_the_target_membership(): void
+    {
+        ['tenant' => $expert, 'user' => $user] = $this->createTenantWithMember('admin');
+        ['tenant' => $simple] = $this->createTenantWithMember('cashier', $user);
+
+        $this->actingAs($user)
+            ->withSession([ResolveTenantContext::SESSION_TENANT => $expert->id])
+            ->post('/context/tenant', ['tenant_id' => $simple->id])
+            ->assertRedirect('/simple');
+    }
+
+    public function test_the_mockups_are_private_and_reserved_to_the_administrator(): void
+    {
+        $this->assertFileDoesNotExist(public_path('maquettes/simple/01-accueil.png'));
+
+        ['tenant' => $tenant, 'user' => $vendeur] = $this->createTenantWithMember('cashier');
+        $this->actingAs($vendeur)
+            ->withSession([ResolveTenantContext::SESSION_TENANT => $tenant->id])
+            ->get('/simple/maquettes/01-accueil.png')
+            ->assertForbidden();
+
+        ['tenant' => $autreTenant, 'user' => $admin] = $this->createTenantWithMember('admin');
+        $this->actingAs($admin)
+            ->withSession([ResolveTenantContext::SESSION_TENANT => $autreTenant->id])
+            ->get('/simple/maquettes/01-accueil.png')
+            ->assertOk()
+            ->assertHeader('content-type', 'image/png');
+    }
+
+    public function test_the_mode_change_is_rolled_back_if_the_audit_cannot_be_written(): void
+    {
+        ['tenant' => $tenant, 'user' => $admin, 'membership' => $membership] = $this->createTenantWithMember('admin');
+        Schema::drop('audit_events');
+
+        try {
+            $this->withoutExceptionHandling()
+                ->actingAs($admin)
+                ->withSession([ResolveTenantContext::SESSION_TENANT => $tenant->id])
+                ->post('/mode', ['mode' => 'simple']);
+            $this->fail('La requête devait échouer lorsque le journal d’audit est indisponible.');
+        } catch (QueryException) {
+            // Le journal indisponible reproduit une panne entre la mutation et
+            // son audit. La transaction doit annuler la mutation.
+        }
+
+        $this->assertSame(TenantMembership::MODE_EXPERT, $membership->fresh()->ui_mode);
     }
 }
