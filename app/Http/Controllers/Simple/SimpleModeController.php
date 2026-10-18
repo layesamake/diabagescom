@@ -75,9 +75,9 @@ class SimpleModeController extends Controller
     public function mockup(TenantContext $context, string $fichier): BinaryFileResponse
     {
         abort_unless($context->membership()?->isAdmin(), 403);
-        abort_unless((bool) preg_match('/\A[0-9a-z-]+\.png\z/', $fichier), 404);
+        abort_unless((bool) preg_match('/\A[0-9a-z-]+\z/', $fichier), 404);
 
-        $path = resource_path('maquettes/simple/'.$fichier);
+        $path = resource_path('maquettes/simple/'.$fichier.'.png');
         abort_unless(is_file($path), 404);
 
         return response()->file($path, [

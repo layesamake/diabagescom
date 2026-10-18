@@ -113,7 +113,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('simple', [SimpleModeController::class, 'home'])->name('simple.home');
     Route::get('simple/composants', [SimpleModeController::class, 'demo'])->name('simple.demo');
     Route::get('simple/maquettes/{fichier}', [SimpleModeController::class, 'mockup'])
-        ->where('fichier', '[0-9a-z-]+\.png')
+        ->where('fichier', '[0-9a-z-]+')
         ->name('simple.mockup');
 
     Route::get('settings/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
