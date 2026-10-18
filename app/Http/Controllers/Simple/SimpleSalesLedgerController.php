@@ -59,11 +59,11 @@ class SimpleSalesLedgerController extends Controller
 
         /** @var User $user */
         $user = $request->user();
-        $lines = $document->lines->map(fn (SalesDocumentLine $line) => [
+        $lines = array_values($document->lines->map(fn (SalesDocumentLine $line) => [
             'line_id' => $line->id,
             'quantity' => Quantity::of($line->quantity)->format(),
             'restock' => true,
-        ])->values()->all();
+        ])->all());
 
         $credits->create($document, $lines, (string) $data['reason'], $user, (string) $data['idempotency_key']);
 
