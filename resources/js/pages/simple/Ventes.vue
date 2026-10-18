@@ -98,12 +98,13 @@ function confirmerAnnulation(): void {
     <Head title="Mes ventes" />
 
     <EnTeteEcran
+        class="lg:hidden"
         titre="Mes ventes"
         :icone="ReceiptText"
         :retour-visible="false"
     />
 
-    <div class="grid gap-4 p-4">
+    <div class="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-0">
         <div class="flex items-center justify-between gap-2">
             <button
                 type="button"
@@ -153,7 +154,7 @@ function confirmerAnnulation(): void {
             Aucune vente ce jour-là.
         </p>
 
-        <ul v-else class="grid gap-2">
+        <ul v-else class="grid gap-2 lg:col-start-1">
             <li
                 v-for="vente in sales.filter(visible)"
                 :key="vente.id"
@@ -201,6 +202,17 @@ function confirmerAnnulation(): void {
                 </button>
             </li>
         </ul>
+
+        <aside
+            class="hidden rounded-[24px] border p-5 lg:block lg:col-start-2 lg:row-start-1 lg:row-span-4"
+            :style="{ backgroundColor: 'var(--s-surface)', borderColor: 'var(--s-bordure)' }"
+        >
+            <p class="text-[15px] font-bold" :style="{ color: 'var(--s-texte-doux)' }">Détail de la vente</p>
+            <p class="mt-3 text-[20px] font-extrabold">Sélectionnez une vente</p>
+            <p class="mt-2 text-[16px] leading-relaxed" :style="{ color: 'var(--s-texte-doux)' }">
+                Le ticket et les actions disponibles apparaîtront ici.
+            </p>
+        </aside>
     </div>
 
     <div

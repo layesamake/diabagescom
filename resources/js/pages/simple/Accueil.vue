@@ -83,9 +83,10 @@ function versModeExpert(): void {
 <template>
     <Head title="Accueil" />
 
-    <EnTeteEcran titre="Accueil" :retour-visible="false" />
+    <EnTeteEcran
+        class="lg:hidden" titre="Accueil" :retour-visible="false" />
 
-    <div class="grid gap-4 p-4">
+    <div class="grid max-w-[1080px] gap-5 p-4 pb-28 lg:grid-cols-2 lg:p-0 lg:pb-0">
         <CarteMontant
             libelle="Aujourd'hui"
             :montant="figures.today.total"
