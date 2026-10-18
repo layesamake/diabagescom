@@ -11,7 +11,7 @@ const caisse = readFileSync(
     'utf8',
 );
 
-test('Vendre expose le parcours article, panier, paiement et ticket', () => {
+void test('Vendre expose le parcours article, panier, paiement et ticket', () => {
     assert.match(vendre, /<CarteArticle/);
     assert.match(vendre, /function ajouterArticle/);
     assert.match(vendre, /function validerVente/);
@@ -21,7 +21,7 @@ test('Vendre expose le parcours article, panier, paiement et ticket', () => {
     assert.doesNotMatch(vendre, /en cours de construction/i);
 });
 
-test('Caisse utilise la route liée à la caisse et le contrat du résumé', () => {
+void test('Caisse utilise la route liée à la caisse et le contrat du résumé', () => {
     assert.match(
         caisse,
         /`\/simple\/caisse\/\$\{props\.register\.id\}\/ouvrir`/,
@@ -32,7 +32,7 @@ test('Caisse utilise la route liée à la caisse et le contrat du résumé', () 
     assert.doesNotMatch(caisse, /summary\.expense[^s]/);
 });
 
-test('Caisse accepte les grands montants et la justification des écarts', () => {
+void test('Caisse accepte les grands montants et la justification des écarts', () => {
     assert.match(caisse, /inputmode="numeric"/);
     assert.match(caisse, /v-model="closeForm\.note"/);
     assert.match(caisse, /ecartDeCaisse/);
