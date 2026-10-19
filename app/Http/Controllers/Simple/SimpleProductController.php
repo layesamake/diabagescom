@@ -9,6 +9,7 @@ use App\Models\ProductCategory;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -45,7 +46,7 @@ class SimpleProductController extends Controller
     {
         Gate::authorize('catalog.create');
 
-        /** @var array{name: string, sale_price: int, unit_id: string, category_id?: string|null, image?: \Illuminate\Http\UploadedFile|null} $data */
+        /** @var array{name: string, sale_price: int, unit_id: string, category_id?: string|null, image?: UploadedFile|null} $data */
         $data = $request->validated();
         /** @var User $user */
         $user = $request->user();

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Simple;
 
+use App\Domain\Tenancy\TenantContext;
 use App\Http\Middleware\ResolveTenantContext;
 use App\Models\Product;
 use App\Models\ProductCategory;
@@ -94,7 +95,7 @@ class SimpleProductCreateTest extends TestCase
         $this->enter($manager);
         $unit = Unit::query()->where('code', 'U')->firstOrFail();
         $other = TenantFactory::new()->create();
-        $otherCategory = app(\App\Domain\Tenancy\TenantContext::class)->runAs($other, fn () => ProductCategory::factory()->create());
+        $otherCategory = app(TenantContext::class)->runAs($other, fn () => ProductCategory::factory()->create());
 
         $this->act($manager)
             ->post('/simple/articles', [
