@@ -60,3 +60,9 @@ void test('chaque écran simple conserve un titre principal sur ordinateur', () 
         assert.match(page, /<h1[^>]*lg:/);
     }
 });
+
+void test('Stock laisse le shell simple commun gérer la navigation', () => {
+    assert.doesNotMatch(stock, /import SimpleLayout/);
+    assert.doesNotMatch(stock, /<SimpleLayout/);
+    assert.match(stock, /sr-only[^"']*lg:not-sr-only/);
+});
