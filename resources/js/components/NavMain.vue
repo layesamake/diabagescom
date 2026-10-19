@@ -41,10 +41,19 @@ const { isCurrentUrl } = useCurrentUrl();
                     size="lg"
                     class="h-10"
                     :is-active="isCurrentUrl(item.href)"
-                    :tooltip="item.title"
+                    :tooltip="item.tooltip ?? item.title"
                     :data-tour="item.tour"
                 >
-                    <Link :href="item.href">
+                    <a
+                        v-if="item.external"
+                        :href="String(item.href)"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <component :is="item.icon" />
+                        <span>{{ item.title }}</span>
+                    </a>
+                    <Link v-else :href="item.href">
                         <component :is="item.icon" />
                         <span>{{ item.title }}</span>
                     </Link>

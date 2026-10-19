@@ -88,7 +88,7 @@ const navGroups = computed<NavGroup[]>(() => {
         title: string,
         href: NavItem['href'],
         icon: NavItem['icon'],
-        extra: Pick<NavItem, 'badge' | 'tour'> = {},
+        extra: Pick<NavItem, 'badge' | 'tour' | 'external' | 'tooltip'> = {},
     ) => (show ? [{ title, href, icon, ...extra }] : []);
     const accounting = Boolean(
         (
@@ -241,6 +241,17 @@ const navGroups = computed<NavGroup[]>(() => {
                     t('nav.help_center'),
                     helpIndex(),
                     LifeBuoy,
+                ),
+                ...item(
+                    Boolean(page.props.context),
+                    'Idées & signalements',
+                    'https://forms.gle/U7MjCuVzzAiTsXQX6',
+                    LifeBuoy,
+                    {
+                        external: true,
+                        tooltip:
+                            'Signalez un problème ou partagez une idée pour améliorer Diaba Cloud.',
+                    },
                 ),
             ],
         },
