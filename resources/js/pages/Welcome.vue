@@ -3,6 +3,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import {
     ArrowRight,
     Check,
+    House,
     Menu,
     MessageCircle,
     Package,
@@ -12,7 +13,7 @@ import {
     X,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
-import AppLogo from '@/components/AppLogo.vue';
+
 import { dashboard, login, register } from '@/routes';
 import { privacy, terms } from '@/routes/legal';
 
@@ -192,17 +193,30 @@ function sendWhatsAppLead(): void {
     <div class="min-h-screen bg-[#f1f4f3] font-sans text-[#10201c]">
         <header class="sticky top-0 z-40 border-b border-[#d5dedb] bg-white">
             <div
-                class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 md:px-6"
+                class="mx-auto flex max-w-[1200px] items-center gap-4 px-4 py-3 md:px-6"
             >
                 <Link
                     :href="'/'"
-                    class="mr-auto flex items-center"
+                    data-landing="brand"
+                    class="mr-auto flex items-center gap-2.5"
                     aria-label="DIABA GESCOM, accueil"
                 >
-                    <AppLogo />
+                    <span
+                        class="grid size-11 place-items-center rounded-full bg-[#0a3f37] text-[#5be0b0]"
+                    >
+                        <House
+                            class="size-6"
+                            stroke-width="2.2"
+                            aria-hidden="true"
+                        />
+                    </span>
+                    <span
+                        class="text-[22px] font-extrabold tracking-wide text-[#0a3f37]"
+                        >DIABA <span class="text-[#1e9c80]">GESCOM</span></span
+                    >
                 </Link>
                 <nav
-                    class="hidden items-center gap-6 text-sm font-bold md:flex"
+                    class="hidden items-center gap-6 text-sm font-bold lg:flex"
                     aria-label="Sections"
                 >
                     <a href="#comment" class="hover:text-[#1e9c80]"
@@ -216,23 +230,23 @@ function sendWhatsAppLead(): void {
                 <Link
                     v-if="!signedIn"
                     :href="login()"
-                    class="hidden text-sm font-bold text-[#0a3f37] md:block"
+                    class="hidden text-sm font-bold text-[#0a3f37] lg:block"
                     >Se connecter</Link
                 >
                 <Link
                     v-else
                     :href="dashboard()"
-                    class="hidden text-sm font-bold text-[#0a3f37] md:block"
+                    class="hidden text-sm font-bold text-[#0a3f37] lg:block"
                     >Mon espace</Link
                 >
                 <Link
                     :href="ctaHref"
-                    class="hidden min-h-12 items-center rounded-2xl bg-[#34b89c] px-5 text-sm font-extrabold text-[#04201a] md:flex"
+                    class="hidden min-h-12 items-center rounded-2xl bg-[#34b89c] px-5 text-sm font-extrabold text-[#04201a] lg:flex"
                     >Essayer gratuitement</Link
                 >
                 <button
                     type="button"
-                    class="grid size-12 place-items-center rounded-xl border-2 border-[#d5dedb] md:hidden"
+                    class="grid size-12 place-items-center rounded-xl border-2 border-[#d5dedb] lg:hidden"
                     :aria-expanded="mobileMenuOpen"
                     aria-label="Ouvrir le menu"
                     @click="mobileMenuOpen = !mobileMenuOpen"
@@ -247,10 +261,10 @@ function sendWhatsAppLead(): void {
             </div>
             <nav
                 v-if="mobileMenuOpen"
-                class="border-t border-[#d5dedb] bg-white px-4 py-3 md:hidden"
+                class="border-t border-[#d5dedb] bg-white px-4 py-3 lg:hidden"
                 aria-label="Menu mobile"
             >
-                <div class="mx-auto flex max-w-6xl flex-col font-bold">
+                <div class="mx-auto flex max-w-[1200px] flex-col font-bold">
                     <a
                         href="#comment"
                         class="rounded-xl px-3 py-3 hover:bg-[#f1f4f3]"
@@ -280,18 +294,25 @@ function sendWhatsAppLead(): void {
         </header>
 
         <main>
-            <section id="haut" class="overflow-hidden bg-[#0a3f37] text-white">
+            <section
+                id="haut"
+                data-landing="hero"
+                class="overflow-hidden bg-[#0a3f37] text-white"
+            >
                 <div
-                    class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 md:py-18 lg:grid-cols-[1.05fr_.95fr] lg:py-20"
+                    class="mx-auto grid max-w-[1200px] items-center gap-10 px-4 py-12 sm:px-6 md:py-18 xl:grid-cols-[640px_1fr] xl:gap-14 xl:py-20"
                 >
-                    <div class="space-y-6">
+                    <div
+                        data-landing="hero-copy"
+                        class="max-w-[640px] space-y-6"
+                    >
                         <p
                             class="inline-flex rounded-full bg-[#0f5247] px-3 py-2 text-xs font-extrabold tracking-wider text-[#bfe6dc]"
                         >
                             POUR LES COMMERÇANTS DU SÉNÉGAL ET DE L’UEMOA
                         </p>
                         <h1
-                            class="max-w-2xl text-4xl leading-[1.05] font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
+                            class="max-w-[640px] text-4xl leading-[1.05] font-extrabold tracking-tight sm:text-5xl lg:text-[60px]"
                         >
                             Vendez en 3 gestes.<br /><span
                                 class="text-[#5be0b0]"
@@ -330,9 +351,12 @@ function sendWhatsAppLead(): void {
                         </div>
                     </div>
 
-                    <div class="relative mx-auto w-full max-w-md py-4">
+                    <div
+                        data-landing="phone"
+                        class="relative mx-auto w-full max-w-md py-4 xl:translate-x-4"
+                    >
                         <div
-                            class="mx-auto w-64 rounded-[38px] bg-[#10201c] p-2.5 shadow-2xl sm:w-72"
+                            class="mx-auto w-64 rounded-[38px] bg-[#10201c] p-2.5 shadow-2xl sm:w-[300px]"
                         >
                             <div
                                 class="overflow-hidden rounded-[29px] bg-[#f1f4f3] text-[#10201c]"
@@ -386,7 +410,7 @@ function sendWhatsAppLead(): void {
                             </div>
                         </div>
                         <div
-                            class="absolute top-20 right-0 flex items-center gap-2 rounded-2xl bg-white p-3 text-sm font-extrabold text-[#10201c] shadow-lg"
+                            class="absolute right-0 bottom-18 flex items-center gap-2 rounded-2xl bg-white p-3 text-sm font-extrabold text-[#10201c] shadow-lg"
                         >
                             <span
                                 class="grid size-9 place-items-center rounded-full bg-[#f2a93b]"
@@ -394,7 +418,7 @@ function sendWhatsAppLead(): void {
                             ><span>La voix parle<br />wolof, pulaar…</span>
                         </div>
                         <div
-                            class="absolute bottom-9 left-0 flex items-center gap-2 rounded-2xl bg-white p-3 text-sm font-extrabold text-[#10201c] shadow-lg"
+                            class="absolute top-20 left-0 flex items-center gap-2 rounded-2xl bg-white p-3 text-sm font-extrabold text-[#10201c] shadow-lg"
                         >
                             <span
                                 class="grid size-9 place-items-center rounded-full bg-[#5be0b0]"
