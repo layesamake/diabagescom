@@ -68,7 +68,7 @@ final class PermissionCatalog
         'warehouse_manager' => [
             'name' => 'Gestionnaire de dépôt',
             'permissions' => [
-                'organization.view', 'warehouse.view', 'catalog.view', 'supplier.view', 'sale.view',
+                'organization.view', 'warehouse.view', 'catalog.view', 'catalog.create', 'supplier.view', 'sale.view',
                 'purchase.view', 'purchase.receive', 'purchase_request.view', 'purchase_request.create',
                 'inventory.view', 'inventory.transfer_create', 'inventory.transfer_ship', 'inventory.transfer_receive',
                 'inventory.count_create', 'inventory.count_validate', 'inventory.adjust',

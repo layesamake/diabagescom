@@ -58,7 +58,9 @@ class SimpleProductCreateTest extends TestCase
         $manager = $this->member($tenant, 'warehouse_manager');
         $this->enter($manager);
         $unit = Unit::query()->where('code', 'U')->firstOrFail();
-        $category = ProductCategory::factory()->create();
+        $category = new ProductCategory;
+        $category->name = 'Épicerie';
+        $category->save();
 
         $this->act($manager)
             ->post('/simple/articles', [
@@ -97,7 +99,13 @@ class SimpleProductCreateTest extends TestCase
         $this->enter($manager);
         $unit = Unit::query()->where('code', 'U')->firstOrFail();
         $other = TenantFactory::new()->create();
-        $otherCategory = app(TenantContext::class)->runAs($other, fn () => ProductCategory::factory()->create());
+        $otherCategory = app(TenantContext::class)->runAs($other, function (): ProductCategory {
+            $category = new ProductCategory;
+            $category->name = 'Autre entreprise';
+            $category->save();
+
+            return $category;
+        });
 
         $this->act($manager)
             ->post('/simple/articles', [

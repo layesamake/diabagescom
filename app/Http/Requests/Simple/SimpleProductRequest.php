@@ -4,6 +4,7 @@ namespace App\Http\Requests\Simple;
 
 use App\Domain\Tenancy\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 /**
@@ -14,7 +15,7 @@ class SimpleProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return Gate::allows('catalog.create');
     }
 
     /**
