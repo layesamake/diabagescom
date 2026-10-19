@@ -80,7 +80,7 @@ const categoryId = ref(props.product?.category_id ?? '');
 const previousCategoryId = ref(categoryId.value);
 const categoryDialogOpen = ref(false);
 const newCategoryName = ref('');
-const categoryError = ref<string | null>(null);
+const categoryError = ref<string | undefined>(undefined);
 const categoryCreating = ref(false);
 
 const selectClass =
@@ -98,7 +98,7 @@ function selectCategory(): void {
     }
 
     categoryId.value = previousCategoryId.value;
-    categoryError.value = null;
+    categoryError.value = undefined;
     categoryDialogOpen.value = true;
 }
 
@@ -112,7 +112,7 @@ function createCategory(): void {
     }
 
     categoryCreating.value = true;
-    categoryError.value = null;
+    categoryError.value = undefined;
 
     router.post(
         categoryRoutes.save.url(),
@@ -133,7 +133,7 @@ function createCategory(): void {
                 categoryDialogOpen.value = false;
             },
             onError: (errors) => {
-                categoryError.value = errors.name ?? null;
+                categoryError.value = errors.name ?? undefined;
             },
             onFinish: () => {
                 categoryCreating.value = false;
