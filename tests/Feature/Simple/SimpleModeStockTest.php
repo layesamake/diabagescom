@@ -4,12 +4,12 @@ namespace Tests\Feature\Simple;
 
 use App\Http\Middleware\ResolveTenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Feature\Inventory\InventoryTestHelpers;
+use Tests\Feature\Sales\SalesTestHelpers;
 use Tests\TestCase;
 
 class SimpleModeStockTest extends TestCase
 {
-    use InventoryTestHelpers;
+    use SalesTestHelpers;
     use RefreshDatabase;
 
     protected function setUp(): void
