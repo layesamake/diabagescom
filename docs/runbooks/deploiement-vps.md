@@ -1,6 +1,6 @@
 # Runbook — Mise en service et déploiement VPS
 
-S'applique à `dev.diaba.cloud` et `diaba.cloud`, chacun sur son propre VPS Hostinger (ou, à défaut, dans des répertoires, bases, secrets et volumes strictement distincts).
+S'applique à `dev.diaba.cloud` et `diaba.cloud`, chacun avec ses propres répertoires, bases, secrets et volumes. Lorsque les deux environnements partagent un VPS, seul dev exécute Caddy ; production rejoint son réseau edge externe.
 
 ## Architecture d'un environnement
 
@@ -40,6 +40,8 @@ DIABA_ENV=dev                         # ou production
 DIABA_IMAGE=ghcr.io/layesamake/diabagescom
 DIABA_DOMAIN=dev.diaba.cloud
 ACME_EMAIL=<adresse technique>
+DIABA_EDGE_NETWORK=diaba-dev_edge     # réseau edge propre, ou partagé sur un même VPS
+DIABA_EDGE_EXTERNAL=false              # true pour production sur le VPS partagé
 
 APP_ENV=production                    # aussi sur dev : même image, même comportement
 APP_DEBUG=false
@@ -55,6 +57,8 @@ MAIL_*=<boîte de test (dev) / fournisseur transactionnel (prod)>
 ```
 
 Les secrets de dev et de production sont **tous différents**.
+
+Sur le VPS partagé : dev conserve `DIABA_EDGE_NETWORK=diaba-dev_edge` et `DIABA_EDGE_EXTERNAL=false`; production utilise le même nom avec `DIABA_EDGE_EXTERNAL=true`. Le service Caddy appartient au profil `edge`, activé automatiquement par `deploy.sh` uniquement pour dev. Installer alors `deploy/Caddyfile.shared` comme `/opt/diaba/dev/Caddyfile`, afin de router explicitement `dev-nginx` et `production-nginx`.
 
 ## 3. Clé de déploiement restreinte
 
