@@ -36,6 +36,7 @@ const actif = computed(() => {
                 'simple/Vendre': 'vendre',
                 'simple/Caisse': 'caisse',
                 'simple/Ventes': 'ventes',
+                'simple/Stock': 'stock',
             } as Record<string, string>
         )[page.component] ?? 'accueil'
     );
@@ -54,7 +55,7 @@ const entrees = computed(() => [
         icone: ShoppingCart,
         href: simpleSell().url,
     },
-    { cle: 'stock', libelle: 'Stock', icone: Boxes, href: accueil.value },
+    { cle: 'stock', libelle: 'Stock', icone: Boxes, href: '/simple/stock' },
     {
         cle: 'plus',
         libelle: 'Plus',
@@ -86,6 +87,12 @@ const navigationOrdinateur = computed(() => [
         icone: ReceiptText,
         href: simpleSales().url,
         actif: actif.value === 'ventes',
+    },
+    {
+        libelle: 'Stock',
+        icone: Boxes,
+        href: '/simple/stock',
+        actif: actif.value === 'stock',
     },
 ]);
 </script>
