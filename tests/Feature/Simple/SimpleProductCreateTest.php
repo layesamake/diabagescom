@@ -9,11 +9,13 @@ use App\Models\ProductCategory;
 use App\Models\Unit;
 use Database\Factories\TenantFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Feature\Sales\SalesTestHelpers;
 use Tests\TestCase;
 
 class SimpleProductCreateTest extends TestCase
 {
     use RefreshDatabase;
+    use SalesTestHelpers;
 
     protected function setUp(): void
     {

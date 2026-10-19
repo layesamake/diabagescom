@@ -158,6 +158,8 @@ export const fr = {
             "Vos articles. Ajoutez-les un par un avec « Nouvel article », ou importez votre liste depuis un fichier Excel (CSV).\nUn article archivé n'apparaît plus à la vente mais reste dans l'historique.",
         'catalog/ProductForm':
             "La fiche d'un article : nom, prix de vente, unité, taxe et photo. Le code-barres permet de le retrouver en le scannant.\nLe coût d'achat se calcule tout seul à partir de vos réceptions.",
+        'simple/NouvelArticle':
+            'Ajoutez un article en quelques informations : son nom, son prix, son unité et sa famille.\nLa référence et la taxe sont préparées automatiquement ; vous pourrez ajouter le stock à la réception ou depuis l’écran Stock.',
         'catalog/Parties':
             "Vos clients ou vos fournisseurs. Le plafond de crédit d'un client limite ce qu'il peut acheter sans payer tout de suite.",
         'catalog/ProductImport':
