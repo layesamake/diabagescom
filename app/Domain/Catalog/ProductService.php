@@ -68,6 +68,26 @@ final class ProductService
     }
 
     /**
+     * Création depuis le mode simple : la référence interne est attribuée dans
+     * la transaction, pour ne jamais exposer ni dupliquer un SKU à l'écran.
+     *
+     * @param  array{name: string, sale_price: int, unit_id: string, category_id?: string|null}  $data
+     */
+    public function createSimple(array $data, User $actor): Product
+    {
+        $this->access->assertCanWrite($this->context->tenant());
+
+        return DB::transaction(fn (): Product => $this->create([
+            'sku' => $this->sequences->formatted('simple_product_sku', 'ART'),
+            'name' => $data['name'],
+            'type' => 'stockable',
+            'category_id' => $data['category_id'] ?? null,
+            'unit_id' => $data['unit_id'],
+            'sale_price' => $data['sale_price'],
+        ], $actor));
+    }
+
+    /**
      * @param  array{sku: string, name: string, description?: string|null, type: string, category_id?: string|null, unit_id: string, tax_rate_id: string, sale_price: int, standard_cost?: int|null}  $data
      */
     public function update(Product $product, array $data, int $expectedVersion, User $actor): Product
