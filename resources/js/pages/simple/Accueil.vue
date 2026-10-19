@@ -88,6 +88,11 @@ function versModeExpert(): void {
     <div
         class="grid max-w-[1080px] gap-5 p-4 pb-28 lg:grid-cols-2 lg:p-0 lg:pb-0"
     >
+        <h1
+            class="sr-only lg:not-sr-only lg:col-span-2 lg:text-[32px] lg:font-extrabold"
+        >
+            Accueil
+        </h1>
         <CarteMontant
             libelle="Aujourd'hui"
             :montant="figures.today.total"

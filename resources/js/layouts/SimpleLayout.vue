@@ -7,10 +7,8 @@ import {
     Boxes,
     Home,
     MoreHorizontal,
-    Package,
     ReceiptText,
     ShoppingCart,
-    Users,
     Wallet,
 } from '@lucide/vue';
 import { computed } from 'vue';
@@ -89,9 +87,6 @@ const navigationOrdinateur = computed(() => [
         href: simpleSales().url,
         actif: actif.value === 'ventes',
     },
-    { libelle: 'Produits', icone: Package, href: accueil.value, actif: false },
-    { libelle: 'Stock', icone: Boxes, href: accueil.value, actif: false },
-    { libelle: 'Clients', icone: Users, href: accueil.value, actif: false },
 ]);
 </script>
 
@@ -122,6 +117,7 @@ const navigationOrdinateur = computed(() => [
                     v-for="entree in navigationOrdinateur"
                     :key="entree.libelle"
                     :href="entree.href"
+                    :aria-current="entree.actif ? 'page' : undefined"
                     class="flex min-h-12 items-center gap-3 rounded-[14px] px-3 text-[16px] font-bold transition-colors"
                     :style="
                         entree.actif

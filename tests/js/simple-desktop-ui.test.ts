@@ -6,8 +6,16 @@ const layout = readFileSync(
     new URL('../../resources/js/layouts/SimpleLayout.vue', import.meta.url),
     'utf8',
 );
+const accueil = readFileSync(
+    new URL('../../resources/js/pages/simple/Accueil.vue', import.meta.url),
+    'utf8',
+);
 const vendre = readFileSync(
     new URL('../../resources/js/pages/simple/Vendre.vue', import.meta.url),
+    'utf8',
+);
+const caisse = readFileSync(
+    new URL('../../resources/js/pages/simple/Caisse.vue', import.meta.url),
     'utf8',
 );
 const ventes = readFileSync(
@@ -30,4 +38,21 @@ void test('Vendre garde son catalogue et son panier côte à côte sur ordinateu
 void test('Mes ventes devient une liste avec détail latéral sur ordinateur', () => {
     assert.ok(ventes.includes('lg:grid-cols-[minmax(0,1fr)_360px]'));
     assert.match(ventes, /Détail de la vente/);
+});
+
+void test('la navigation ordinateur ne présente pas les modules non disponibles', () => {
+    const debut = layout.indexOf('const navigationOrdinateur');
+    const fin = layout.indexOf('</script>');
+    const navigationOrdinateur = layout.slice(debut, fin);
+
+    assert.doesNotMatch(navigationOrdinateur, /libelle: 'Produits'/);
+    assert.doesNotMatch(navigationOrdinateur, /libelle: 'Stock'/);
+    assert.doesNotMatch(navigationOrdinateur, /libelle: 'Clients'/);
+    assert.match(layout, /aria-current="entree\.actif \? 'page' : undefined"/);
+});
+
+void test('chaque écran simple conserve un titre principal sur ordinateur', () => {
+    for (const page of [accueil, vendre, caisse, ventes]) {
+        assert.match(page, /<h1[^>]*lg:/);
+    }
 });

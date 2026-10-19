@@ -83,6 +83,11 @@ function fermer(): void {
     <div
         class="grid max-w-[880px] gap-4 p-4 pb-28 lg:grid-cols-2 lg:p-0 lg:pb-0"
     >
+        <h1
+            class="sr-only lg:not-sr-only lg:col-span-2 lg:text-[32px] lg:font-extrabold"
+        >
+            Caisse
+        </h1>
         <p
             v-if="!register"
             class="rounded-[24px] p-4 text-center text-[17px] font-semibold"

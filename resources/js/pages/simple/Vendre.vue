@@ -212,6 +212,11 @@ function ouvrirTicket(): void {
         <div
             class="grid gap-5 p-4 pb-28 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:p-0 lg:pb-0"
         >
+            <h1
+                class="sr-only lg:not-sr-only lg:col-span-2 lg:text-[32px] lg:font-extrabold"
+            >
+                Vendre
+            </h1>
             <p
                 v-if="sessions.length === 0"
                 class="rounded-[24px] p-4 text-center text-[17px] font-semibold"
