@@ -15,4 +15,8 @@ export type NavItem = {
     badge?: string;
     /** Repère de la visite guidée (attribut data-tour). */
     tour?: string;
+    /** Lien hors de DIABA, ouvert dans un nouvel onglet. */
+    external?: boolean;
+    /** Texte explicatif affiché au survol dans le menu réduit. */
+    tooltip?: string;
 };
