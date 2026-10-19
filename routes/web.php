@@ -49,6 +49,7 @@ use App\Http\Controllers\Settings\NotificationController;
 use App\Http\Controllers\Simple\SimpleModeController;
 use App\Http\Controllers\Simple\SimpleSalesController;
 use App\Http\Controllers\Simple\SimpleSalesLedgerController;
+use App\Http\Controllers\Simple\SimpleStockController;
 use App\Http\Controllers\Simple\SimpleVoiceController;
 use App\Http\Controllers\Storefront\PublicStorefrontController;
 use App\Http\Controllers\Storefront\StorefrontController;
@@ -130,6 +131,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     // Mode simple — lot 3 : Mes ventes (chiffres du jour, liste, annulation).
     Route::get('simple/ventes', [SimpleSalesLedgerController::class, 'index'])->name('simple.sales');
     Route::post('simple/ventes/{document}/annuler', [SimpleSalesLedgerController::class, 'cancel'])->whereUuid('document')->name('simple.sales.cancel');
+
+    // Mode simple — lot 5 : stock visuel du dépôt autorisé.
+    Route::get('simple/stock', [SimpleStockController::class, 'index'])->name('simple.stock');
 
     // Mode simple — lot 4 : Messages audio, réservé à l'administrateur.
     Route::get('simple/voix', [SimpleVoiceController::class, 'index'])->name('simple.voice.index');

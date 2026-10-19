@@ -22,6 +22,10 @@ const ventes = readFileSync(
     new URL('../../resources/js/pages/simple/Ventes.vue', import.meta.url),
     'utf8',
 );
+const stock = readFileSync(
+    new URL('../../resources/js/pages/simple/Stock.vue', import.meta.url),
+    'utf8',
+);
 
 void test('le mode simple dispose d’un shell ordinateur à menu latéral', () => {
     assert.match(layout, /lg:grid-cols-\[248px_minmax\(0,1fr\)\]/);
@@ -40,19 +44,35 @@ void test('Mes ventes devient une liste avec détail latéral sur ordinateur', (
     assert.match(ventes, /Détail de la vente/);
 });
 
-void test('la navigation ordinateur ne présente pas les modules non disponibles', () => {
+void test('la navigation ordinateur présente seulement les modules disponibles', () => {
     const debut = layout.indexOf('const navigationOrdinateur');
     const fin = layout.indexOf('</script>');
     const navigationOrdinateur = layout.slice(debut, fin);
 
     assert.doesNotMatch(navigationOrdinateur, /libelle: 'Produits'/);
-    assert.doesNotMatch(navigationOrdinateur, /libelle: 'Stock'/);
+    assert.match(navigationOrdinateur, /libelle: 'Stock'/);
     assert.doesNotMatch(navigationOrdinateur, /libelle: 'Clients'/);
     assert.match(layout, /aria-current="entree\.actif \? 'page' : undefined"/);
 });
 
 void test('chaque écran simple conserve un titre principal sur ordinateur', () => {
-    for (const page of [accueil, vendre, caisse, ventes]) {
+    for (const page of [accueil, vendre, caisse, ventes, stock]) {
         assert.match(page, /<h1[^>]*lg:/);
     }
+});
+
+void test('Stock laisse le shell simple commun gérer la navigation', () => {
+    assert.doesNotMatch(stock, /import SimpleLayout/);
+    assert.doesNotMatch(stock, /<SimpleLayout/);
+    assert.match(stock, /sr-only[^"']*lg:not-sr-only/);
+});
+
+void test('la navigation mobile utilise l’écran simple actif', () => {
+    assert.match(layout, /<BarreNavBas[\s\S]*:actif="actif"/);
+    assert.doesNotMatch(layout, /<BarreNavBas[\s\S]*:actif="props\.actif"/);
+});
+
+void test('Stock est absent de la navigation sans le droit inventaire', () => {
+    assert.match(layout, /can\('inventory\.view'\)/);
+    assert.match(layout, /peutVoirStock\.value &&/);
 });
