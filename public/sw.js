@@ -22,7 +22,8 @@ importScripts('/sw-helpers.js');
 
 const Sw = self.SwHelpers;
 
-const VERSION = 'diaba-v3';
+// Invalide les anciens bundles hachés après le déploiement du 19 octobre 2026.
+const VERSION = 'diaba-v4';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const PAGE_CACHE = `${VERSION}-pages`;
