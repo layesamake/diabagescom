@@ -66,3 +66,8 @@ void test('Stock laisse le shell simple commun gérer la navigation', () => {
     assert.doesNotMatch(stock, /<SimpleLayout/);
     assert.match(stock, /sr-only[^"']*lg:not-sr-only/);
 });
+
+void test('la navigation mobile utilise l’écran simple actif', () => {
+    assert.match(layout, /<BarreNavBas[\s\S]*:actif="actif"/);
+    assert.doesNotMatch(layout, /<BarreNavBas[\s\S]*:actif="props\.actif"/);
+});

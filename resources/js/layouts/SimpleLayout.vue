@@ -167,10 +167,6 @@ const navigationOrdinateur = computed(() => [
             </div>
         </main>
 
-        <BarreNavBas
-            class="lg:hidden"
-            :actif="props.actif"
-            :entrees="entrees"
-        />
+        <BarreNavBas class="lg:hidden" :actif="actif" :entrees="entrees" />
     </div>
 </template>
