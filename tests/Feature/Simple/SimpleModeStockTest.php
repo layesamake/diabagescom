@@ -42,7 +42,7 @@ class SimpleModeStockTest extends TestCase
                 ->where('counters.low', 0)
                 ->where('counters.empty', 0)
                 ->where('products.0.id', $rice->id)
-                ->where('products.0.quantity', '12')
+                ->where('products.0.quantity', '12.000')
                 ->where('products.0.status', 'enough'));
     }
 }
