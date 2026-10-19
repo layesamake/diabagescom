@@ -71,3 +71,8 @@ void test('la navigation mobile utilise l’écran simple actif', () => {
     assert.match(layout, /<BarreNavBas[\s\S]*:actif="actif"/);
     assert.doesNotMatch(layout, /<BarreNavBas[\s\S]*:actif="props\.actif"/);
 });
+
+void test('Stock est absent de la navigation sans le droit inventaire', () => {
+    assert.match(layout, /can\('inventory\.view'\)/);
+    assert.match(layout, /peutVoirStock\.value &&/);
+});

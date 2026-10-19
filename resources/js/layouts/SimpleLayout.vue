@@ -24,7 +24,7 @@ import {
 const props = withDefaults(defineProps<{ actif?: string }>(), {
     actif: 'accueil',
 });
-const { context } = useAppContext();
+const { context, can } = useAppContext();
 const page = usePage();
 const accueil = computed(() => simpleHome().url);
 const actif = computed(() => {
@@ -41,60 +41,89 @@ const actif = computed(() => {
         )[page.component] ?? 'accueil'
     );
 });
-const entrees = computed(() => [
-    { cle: 'accueil', libelle: 'Accueil', icone: Home, href: accueil.value },
-    {
-        cle: 'ventes',
-        libelle: 'Ventes',
-        icone: ReceiptText,
-        href: simpleSales().url,
-    },
-    {
-        cle: 'vendre',
-        libelle: 'Vendre',
-        icone: ShoppingCart,
-        href: simpleSell().url,
-    },
-    { cle: 'stock', libelle: 'Stock', icone: Boxes, href: '/simple/stock' },
-    {
-        cle: 'plus',
-        libelle: 'Plus',
-        icone: MoreHorizontal,
-        href: accueil.value,
-    },
-]);
-const navigationOrdinateur = computed(() => [
-    {
-        libelle: 'Accueil',
-        icone: Home,
-        href: accueil.value,
-        actif: actif.value === 'accueil',
-    },
-    {
-        libelle: 'Vendre',
-        icone: ShoppingCart,
-        href: simpleSell().url,
-        actif: actif.value === 'vendre',
-    },
-    {
-        libelle: 'Caisse',
-        icone: Wallet,
-        href: '/simple/caisse',
-        actif: actif.value === 'caisse',
-    },
-    {
-        libelle: 'Mes ventes',
-        icone: ReceiptText,
-        href: simpleSales().url,
-        actif: actif.value === 'ventes',
-    },
-    {
-        libelle: 'Stock',
-        icone: Boxes,
-        href: '/simple/stock',
-        actif: actif.value === 'stock',
-    },
-]);
+const peutVoirStock = computed(() => can('inventory.view'));
+
+const entrees = computed(
+    () =>
+        [
+            {
+                cle: 'accueil',
+                libelle: 'Accueil',
+                icone: Home,
+                href: accueil.value,
+            },
+            {
+                cle: 'ventes',
+                libelle: 'Ventes',
+                icone: ReceiptText,
+                href: simpleSales().url,
+            },
+            {
+                cle: 'vendre',
+                libelle: 'Vendre',
+                icone: ShoppingCart,
+                href: simpleSell().url,
+            },
+            peutVoirStock.value && {
+                cle: 'stock',
+                libelle: 'Stock',
+                icone: Boxes,
+                href: '/simple/stock',
+            },
+            {
+                cle: 'plus',
+                libelle: 'Plus',
+                icone: MoreHorizontal,
+                href: accueil.value,
+            },
+        ].filter(Boolean) as {
+            cle: string;
+            libelle: string;
+            icone: typeof Home;
+            href: string;
+        }[],
+);
+
+const navigationOrdinateur = computed(
+    () =>
+        [
+            {
+                libelle: 'Accueil',
+                icone: Home,
+                href: accueil.value,
+                actif: actif.value === 'accueil',
+            },
+            {
+                libelle: 'Vendre',
+                icone: ShoppingCart,
+                href: simpleSell().url,
+                actif: actif.value === 'vendre',
+            },
+            {
+                libelle: 'Caisse',
+                icone: Wallet,
+                href: '/simple/caisse',
+                actif: actif.value === 'caisse',
+            },
+            {
+                libelle: 'Mes ventes',
+                icone: ReceiptText,
+                href: simpleSales().url,
+                actif: actif.value === 'ventes',
+            },
+            peutVoirStock.value && {
+                libelle: 'Stock',
+                icone: Boxes,
+                href: '/simple/stock',
+                actif: actif.value === 'stock',
+            },
+        ].filter(Boolean) as {
+            libelle: string;
+            icone: typeof Home;
+            href: string;
+            actif: boolean;
+        }[],
+);
 </script>
 
 <template>
