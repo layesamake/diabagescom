@@ -83,7 +83,7 @@ return [
      */
     'marketing' => [
         // Numéro WhatsApp au format international sans « + » (ex. 221771234567).
-        'whatsapp' => env('DIABA_SALES_WHATSAPP', '221767642727'),
+        'whatsapp' => env('DIABA_SALES_WHATSAPP', '221768645834'),
         'email' => env('DIABA_CONTACT_EMAIL', 'etiennesamake@gmail.com'),
 
         // Indexation par les moteurs de recherche : à activer en production
