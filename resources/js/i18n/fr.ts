@@ -1231,6 +1231,11 @@ export const fr = {
         },
         category: 'Catégorie',
         no_category: 'Sans catégorie',
+        add_category: 'Ajouter une catégorie…',
+        add_category_description:
+            'Créez une catégorie puis elle sera choisie pour cet article.',
+        category_name: 'Nom de la catégorie',
+        category_name_required: 'Saisissez un nom de catégorie.',
         unit: 'Unité',
         tax: 'Taxe',
         sale_price: 'Prix de vente (XOF, TTC)',
