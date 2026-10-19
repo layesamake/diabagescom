@@ -9,8 +9,8 @@ use Tests\TestCase;
 
 class SimpleModeStockTest extends TestCase
 {
-    use SalesTestHelpers;
     use RefreshDatabase;
+    use SalesTestHelpers;
 
     protected function setUp(): void
     {
