@@ -26,6 +26,8 @@ type Props = {
 };
 
 const props = defineProps<Props>();
+const page = usePage();
+const errors = computed(() => page.props.errors as Record<string, string>);
 const selectedId = ref(props.invoices[0]?.id ?? '');
 const selectedInvoice = computed(() =>
     props.invoices.find((invoice) => invoice.id === selectedId.value)!,
@@ -230,10 +232,10 @@ function pay(): void {
                 </label>
 
                 <span
-                    v-if="form.errors.amount"
+                    v-if="errors.business"
                     class="text-sm font-bold text-red-700"
                 >
-                    {{ form.errors.amount }}
+                    {{ errors.business }}
                 </span>
 
                 <button
