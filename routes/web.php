@@ -47,6 +47,7 @@ use App\Http\Controllers\Settings\GoogleDriveController;
 use App\Http\Controllers\Settings\MemberController;
 use App\Http\Controllers\Settings\NotificationController;
 use App\Http\Controllers\Simple\SimpleModeController;
+use App\Http\Controllers\Simple\SimpleProductController;
 use App\Http\Controllers\Simple\SimpleSalesController;
 use App\Http\Controllers\Simple\SimpleSalesLedgerController;
 use App\Http\Controllers\Simple\SimpleStockController;
@@ -134,6 +135,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
 
     // Mode simple — lot 5 : stock visuel du dépôt autorisé.
     Route::get('simple/stock', [SimpleStockController::class, 'index'])->name('simple.stock');
+
+    // Mode simple — lot 5 : ajout tactile d'un article.
+    Route::get('simple/articles/nouveau', [SimpleProductController::class, 'create'])->name('simple.products.create');
+    Route::post('simple/articles', [SimpleProductController::class, 'store'])->name('simple.products.store');
 
     // Mode simple — lot 4 : Messages audio, réservé à l'administrateur.
     Route::get('simple/voix', [SimpleVoiceController::class, 'index'])->name('simple.voice.index');

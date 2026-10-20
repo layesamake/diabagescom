@@ -64,7 +64,7 @@ class StartGuideTest extends TestCase
 
         $this->actingAs($warehouse['user'])->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page
             ->where('guide.track', 'warehouse')
-            ->where('guide.steps', $this->stepsAre(['stock', 'receipt', 'count', 'reports'])));
+            ->where('guide.steps', $this->stepsAre(['products', 'stock', 'receipt', 'count', 'reports'])));
     }
 
     public function test_a_non_admin_only_gets_credit_for_what_they_did_themselves(): void

@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import { AlertTriangle, Boxes, Check, PackageX } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import { useAppContext } from '@/composables/useAppContext';
 import CompteursFiltres, {
     type CaseFiltre,
 } from '@/components/simple/CompteursFiltres.vue';
@@ -46,6 +47,7 @@ const cases: CaseFiltre[] = [
     },
 ];
 
+const { can } = useAppContext();
 const filtre = ref<Statut | null>(null);
 const produitsVisibles = computed(() =>
     filtre.value === null
@@ -85,6 +87,17 @@ const details: Record<
             >
                 {{ warehouse.name }} · {{ warehouse.code }}
             </p>
+            <a
+                v-if="can('catalog.create')"
+                href="/simple/articles/nouveau"
+                class="mt-4 inline-flex min-h-12 items-center rounded-[18px] px-4 text-[17px] font-extrabold"
+                :style="{
+                    backgroundColor: 'var(--s-bleu-clair)',
+                    color: 'var(--s-sur-bleu-clair)',
+                }"
+            >
+                Ajouter un article
+            </a>
         </header>
 
         <CompteursFiltres
