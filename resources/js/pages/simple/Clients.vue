@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { Phone, UsersRound } from '@lucide/vue';
+import { ChevronRight, Phone, UsersRound } from '@lucide/vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 
 type Client = {
@@ -64,32 +64,44 @@ function money(amount: number): string {
                 class="flex min-h-20 items-center gap-4 border-b px-4 py-3 last:border-b-0"
                 :style="{ borderColor: 'var(--s-bordure)' }"
             >
-                <span
-                    class="grid size-12 shrink-0 place-items-center rounded-full bg-[var(--s-orange-clair)] text-[17px] font-extrabold text-[var(--s-sur-orange-clair)]"
+                <a
+                    :href="`/simple/clients/${customer.id}`"
+                    class="flex min-w-0 flex-1 items-center gap-4 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4"
+                    :style="{ outlineColor: 'var(--s-marque)' }"
                 >
-                    {{ customer.name.slice(0, 1).toUpperCase() }}
-                </span>
-                <span class="min-w-0 flex-1">
-                    <strong class="block truncate text-[17px]">{{
-                        customer.name
-                    }}</strong>
                     <span
-                        v-if="customer.phone"
-                        class="text-sm font-semibold"
-                        :style="{ color: 'var(--s-texte-doux)' }"
-                        >{{ customer.phone }}</span
+                        class="grid size-12 shrink-0 place-items-center rounded-full bg-[var(--s-orange-clair)] text-[17px] font-extrabold text-[var(--s-sur-orange-clair)]"
                     >
-                </span>
-                <span class="text-right">
-                    <strong class="block text-[19px] text-[var(--s-rouge)]">{{
-                        money(customer.due)
-                    }}</strong>
-                    <span
-                        class="text-sm font-bold"
+                        {{ customer.name.slice(0, 1).toUpperCase() }}
+                    </span>
+                    <span class="min-w-0 flex-1">
+                        <strong class="block truncate text-[17px]">{{
+                            customer.name
+                        }}</strong>
+                        <span
+                            v-if="customer.phone"
+                            class="text-sm font-semibold"
+                            :style="{ color: 'var(--s-texte-doux)' }"
+                            >{{ customer.phone }}</span
+                        >
+                    </span>
+                    <span class="text-right">
+                        <strong
+                            class="block text-[19px] text-[var(--s-rouge)]"
+                            >{{ money(customer.due) }}</strong
+                        >
+                        <span
+                            class="text-sm font-bold"
+                            :style="{ color: 'var(--s-texte-doux)' }"
+                            >à récupérer</span
+                        >
+                    </span>
+                    <ChevronRight
+                        class="size-5 shrink-0"
                         :style="{ color: 'var(--s-texte-doux)' }"
-                        >à récupérer</span
-                    >
-                </span>
+                        aria-hidden="true"
+                    />
+                </a>
                 <a
                     v-if="customer.phone"
                     :href="`tel:${customer.phone}`"
