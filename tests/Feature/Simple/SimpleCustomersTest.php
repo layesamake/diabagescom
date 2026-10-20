@@ -30,6 +30,27 @@ class SimpleCustomersTest extends TestCase
             ->withSession([ResolveTenantContext::SESSION_TENANT => $setup['tenant']->id]);
     }
 
+    public function test_the_simple_customers_page_hides_debts_from_unassigned_warehouses(): void
+    {
+        $admin = $this->createTenantWithMember();
+        $cashier = $this->member($admin, 'cashier');
+        $otherWarehouse = $this->createWarehouse($admin, 'AUTRE');
+        $otherSetup = [...$admin, 'warehouse' => $otherWarehouse];
+        $customer = $this->makeCustomer($admin, creditLimit: 100000);
+        $customer->forceFill(['name' => 'Dette autre dépôt'])->save();
+        $product = $this->makeProduct($admin, 'MIL', 'U', 1000);
+        $this->move($otherSetup, 'initial', [[$otherWarehouse->id, $product->id, '5', 1000]]);
+        $session = $this->openSession($otherSetup, 0);
+        $this->sell($otherSetup, $session, [[$product->id, '1']], [], $customer->id);
+
+        $this->act($cashier)
+            ->get('/simple/clients')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('total_due', 0)
+                ->has('customers', 0));
+    }
+
     public function test_the_simple_customers_page_lists_debtors_by_descending_amount(): void
     {
         $setup = $this->member($this->createTenantWithMember(), 'cashier');
