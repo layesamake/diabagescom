@@ -230,10 +230,10 @@ function pay(): void {
                 </label>
 
                 <span
-                    v-if="form.errors.business"
+                    v-if="form.errors.amount"
                     class="text-sm font-bold text-red-700"
                 >
-                    {{ form.errors.business }}
+                    {{ form.errors.amount }}
                 </span>
 
                 <button
