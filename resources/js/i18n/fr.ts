@@ -160,6 +160,8 @@ export const fr = {
             "La fiche d'un article : nom, prix de vente, unité, taxe et photo. Le code-barres permet de le retrouver en le scannant.\nLe coût d'achat se calcule tout seul à partir de vos réceptions.",
         'simple/NouvelArticle':
             'Ajoutez un article en quelques informations : son nom, son prix, son unité et sa famille.\nLa référence et la taxe sont préparées automatiquement ; vous pourrez ajouter le stock à la réception ou depuis l’écran Stock.',
+        'simple/Clients':
+            'Les clients qui ont une dette, du montant le plus élevé au plus faible.\nLe total dû indique ce que vous devez encore récupérer ; ouvrez ensuite une fiche client pour enregistrer son paiement.',
         'catalog/Parties':
             "Vos clients ou vos fournisseurs. Le plafond de crédit d'un client limite ce qu'il peut acheter sans payer tout de suite.",
         'catalog/ProductImport':
