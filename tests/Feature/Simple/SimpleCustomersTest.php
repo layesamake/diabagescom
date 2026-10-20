@@ -3,7 +3,9 @@
 namespace Tests\Feature\Simple;
 
 use App\Http\Middleware\ResolveTenantContext;
+use App\Models\Payment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\Feature\Sales\SalesTestHelpers;
 use Tests\TestCase;
 
@@ -28,6 +30,51 @@ class SimpleCustomersTest extends TestCase
     {
         return $this->actingAs($setup['user'])
             ->withSession([ResolveTenantContext::SESSION_TENANT => $setup['tenant']->id]);
+    }
+
+    public function test_the_simple_customer_sheet_shows_accessible_unpaid_invoices(): void
+    {
+        $setup = $this->member($this->createTenantWithMember(), 'cashier');
+        $customer = $this->makeCustomer($setup, creditLimit: 100000);
+        $customer->forceFill(['name' => 'Aminata Diallo'])->save();
+        $product = $this->makeProduct($setup, 'RIZ', 'U', 1000);
+        $this->move($setup, 'initial', [[$setup['warehouse']->id, $product->id, '5', 1000]]);
+        $session = $this->openSession($setup, 0);
+        $invoice = $this->sell($setup, $session, [[$product->id, '2']], [], $customer->id);
+
+        $this->act($setup)
+            ->get("/simple/clients/{$customer->id}")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('simple/Client')
+                ->where('customer.id', $customer->id)
+                ->where('total_due', 4000)
+                ->has('invoices', 1)
+                ->where('invoices.0.id', $invoice->id)
+                ->where('invoices.0.balance', 4000)
+                ->has('invoices.0.sessions', 1));
+    }
+
+    public function test_a_cashier_can_record_a_partial_payment_from_the_simple_customer_sheet(): void
+    {
+        $setup = $this->member($this->createTenantWithMember(), 'cashier');
+        $customer = $this->makeCustomer($setup, creditLimit: 100000);
+        $product = $this->makeProduct($setup, 'RIZ', 'U', 1000);
+        $this->move($setup, 'initial', [[$setup['warehouse']->id, $product->id, '5', 1000]]);
+        $session = $this->openSession($setup, 0);
+        $invoice = $this->sell($setup, $session, [[$product->id, '2']], [], $customer->id);
+
+        $this->act($setup)
+            ->post("/simple/clients/{$customer->id}/factures/{$invoice->id}/paiement", [
+                'idempotency_key' => (string) Str::uuid7(),
+                'cash_session_id' => $session->id,
+                'method' => 'cash',
+                'amount' => 1000,
+            ])
+            ->assertRedirect("/simple/clients/{$customer->id}");
+
+        $this->assertSame(1000, $invoice->fresh()->amount_paid);
+        $this->assertTrue(Payment::query()->where('sales_document_id', $invoice->id)->where('amount', 1000)->exists());
     }
 
     public function test_the_simple_customers_page_hides_debts_from_unassigned_warehouses(): void
