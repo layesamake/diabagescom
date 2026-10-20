@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Simple;
 
+use App\Domain\Inventory\StockAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\SalesDocument;
@@ -21,7 +22,7 @@ class SimpleCustomerController extends Controller
         abort_unless((bool) config('diaba.simple_mode.enabled'), 404);
     }
 
-    public function index(): Response
+    public function index(StockAccess $access): Response
     {
         Gate::authorize('customer.view');
 
@@ -31,6 +32,7 @@ class SimpleCustomerController extends Controller
             ->select('customers.id', 'customers.name', 'customers.phone')
             ->selectRaw("{$due} AS due")
             ->join('sales_documents', 'sales_documents.customer_id', '=', 'customers.id')
+            ->whereIn('sales_documents.warehouse_id', $access->accessibleIds())
             ->where('sales_documents.type', SalesDocument::INVOICE)
             ->where('sales_documents.status', SalesDocument::VALIDATED)
             ->groupBy('customers.id', 'customers.name', 'customers.phone')

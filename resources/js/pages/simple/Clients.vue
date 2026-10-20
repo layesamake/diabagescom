@@ -90,12 +90,15 @@ function money(amount: number): string {
                         >à récupérer</span
                     >
                 </span>
-                <Phone
+                <a
                     v-if="customer.phone"
-                    :size="22"
-                    :stroke-width="2"
-                    aria-label="Appeler le client"
-                />
+                    :href="`tel:${customer.phone}`"
+                    class="inline-flex size-12 shrink-0 items-center justify-center rounded-full"
+                    :style="{ color: 'var(--s-marque)' }"
+                    :aria-label="`Appeler ${customer.name}`"
+                >
+                    <Phone :size="22" :stroke-width="2" aria-hidden="true" />
+                </a>
             </div>
 
             <div
