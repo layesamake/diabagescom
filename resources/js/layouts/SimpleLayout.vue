@@ -9,6 +9,7 @@ import {
     MoreHorizontal,
     ReceiptText,
     ShoppingCart,
+    UsersRound,
     Wallet,
 } from '@lucide/vue';
 import { computed } from 'vue';
@@ -37,11 +38,13 @@ const actif = computed(() => {
                 'simple/Caisse': 'caisse',
                 'simple/Ventes': 'ventes',
                 'simple/Stock': 'stock',
+                'simple/Clients': 'clients',
             } as Record<string, string>
         )[page.component] ?? 'accueil'
     );
 });
 const peutVoirStock = computed(() => can('inventory.view'));
+const peutVoirClients = computed(() => can('customer.view'));
 
 const entrees = computed(
     () =>
@@ -70,12 +73,19 @@ const entrees = computed(
                 icone: Boxes,
                 href: '/simple/stock',
             },
-            {
-                cle: 'plus',
-                libelle: 'Plus',
-                icone: MoreHorizontal,
-                href: accueil.value,
-            },
+            peutVoirClients.value
+                ? {
+                      cle: 'clients',
+                      libelle: 'Clients',
+                      icone: UsersRound,
+                      href: '/simple/clients',
+                  }
+                : {
+                      cle: 'plus',
+                      libelle: 'Plus',
+                      icone: MoreHorizontal,
+                      href: accueil.value,
+                  },
         ].filter(Boolean) as {
             cle: string;
             libelle: string;
@@ -110,6 +120,12 @@ const navigationOrdinateur = computed(
                 icone: ReceiptText,
                 href: simpleSales().url,
                 actif: actif.value === 'ventes',
+            },
+            peutVoirClients.value && {
+                libelle: 'Clients',
+                icone: UsersRound,
+                href: '/simple/clients',
+                actif: actif.value === 'clients',
             },
             peutVoirStock.value && {
                 libelle: 'Stock',

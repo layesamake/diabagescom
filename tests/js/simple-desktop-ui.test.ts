@@ -51,7 +51,9 @@ void test('la navigation ordinateur présente seulement les modules disponibles'
 
     assert.doesNotMatch(navigationOrdinateur, /libelle: 'Produits'/);
     assert.match(navigationOrdinateur, /libelle: 'Stock'/);
-    assert.doesNotMatch(navigationOrdinateur, /libelle: 'Clients'/);
+    assert.match(navigationOrdinateur, /libelle: 'Clients'/);
+    assert.match(navigationOrdinateur, /href: '\/simple\/clients'/);
+    assert.match(layout, /'simple\/Clients': 'clients'/);
     assert.match(layout, /aria-current="entree\.actif \? 'page' : undefined"/);
 });
 
