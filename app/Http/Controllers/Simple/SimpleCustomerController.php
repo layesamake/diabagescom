@@ -110,7 +110,7 @@ class SimpleCustomerController extends Controller
             ->whereIn('warehouse_id', $access->accessibleIds())
             ->where('type', SalesDocument::INVOICE)
             ->where('status', SalesDocument::VALIDATED)
-            ->orderBy('issued_at')
+            ->orderBy('issue_date')
             ->get()
             ->map(fn (SalesDocument $invoice): array => [
                 'id' => $invoice->id,
