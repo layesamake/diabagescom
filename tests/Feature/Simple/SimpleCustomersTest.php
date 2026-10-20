@@ -34,7 +34,7 @@ class SimpleCustomersTest extends TestCase
     {
         $admin = $this->createTenantWithMember();
         $cashier = $this->member($admin, 'cashier');
-        $otherWarehouse = $this->createWarehouse($admin, 'AUTRE');
+        $otherWarehouse = $this->makeWarehouse($admin, 'AUTRE');
         $otherSetup = [...$admin, 'warehouse' => $otherWarehouse];
         $customer = $this->makeCustomer($admin, creditLimit: 100000);
         $customer->forceFill(['name' => 'Dette autre dépôt'])->save();
