@@ -219,10 +219,12 @@ const entrees = computed<EntreeNav[]>(() =>
 );
 
 const nomUtilisateur = computed(
-    () => (auth?.user as { name?: string } | undefined)?.name ?? 'Utilisateur',
+    () =>
+        (auth.value?.user as { name?: string } | undefined)?.name ??
+        'Utilisateur',
 );
 const roleUtilisateur = computed(
-    () => (auth?.user as { role?: string } | undefined)?.role ?? 'Membre',
+    () => (auth.value?.user as { role?: string } | undefined)?.role ?? 'Membre',
 );
 const initialesUtilisateur = computed(() => {
     const parts = nomUtilisateur.value.split(/\s+/u).filter(Boolean);
