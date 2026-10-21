@@ -7,13 +7,7 @@
  * vers l'accueil du mode simple plutôt que vers une page absente.
  */
 import { Link } from '@inertiajs/vue3';
-import {
-    Boxes,
-    Home,
-    MoreHorizontal,
-    ReceiptText,
-    ShoppingCart,
-} from '@lucide/vue';
+import { Home, Menu, ReceiptText, ShoppingCart } from '@lucide/vue';
 import type { Component } from 'vue';
 
 type Entree = {
@@ -35,7 +29,7 @@ withDefaults(
 
 <template>
     <nav
-        class="fixed inset-x-0 bottom-0 z-40 mx-auto flex w-full max-w-[430px] items-end justify-between px-2 pb-2"
+        class="fixed inset-x-0 bottom-0 z-40 flex w-full items-end justify-between px-2 pb-2"
         :style="{
             height: 'var(--s-barre-bas)',
             backgroundColor: 'var(--s-surface)',
@@ -73,7 +67,7 @@ withDefaults(
                 :style="{
                     color:
                         actif === entree.cle
-                            ? 'var(--s-marque)'
+                            ? 'var(--s-vert)'
                             : 'var(--s-texte-doux)',
                 }"
                 :aria-current="actif === entree.cle ? 'page' : undefined"

@@ -483,48 +483,39 @@ function checkout(): void {
                         v-for="product in frequent"
                         :key="product.id"
                         type="button"
-                        class="flex min-h-20 flex-col justify-between rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/60 hover:bg-accent active:scale-[0.98]"
+                        class="flex min-h-20 flex-col items-start gap-1 rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/60 hover:bg-accent active:scale-[0.98]"
                         @click="addProduct(product)"
                     >
-                        <div class="flex items-start gap-3">
-                            <img
-                                v-if="product.image_url"
-                                :src="product.image_url"
-                                :alt="''"
-                                class="size-12 shrink-0 rounded-md object-cover"
-                            />
-                            <span
-                                v-else
-                                class="grid size-12 shrink-0 place-items-center rounded-md bg-muted text-base font-bold text-muted-foreground"
-                                aria-hidden="true"
-                                >{{
-                                    product.name.slice(0, 1).toUpperCase()
-                                }}</span
-                            >
-                            <span class="line-clamp-2 text-sm font-medium">{{
-                                product.name
-                            }}</span>
-                        </div>
+                        <img
+                            v-if="product.image_url"
+                            :src="product.image_url"
+                            :alt="''"
+                            class="size-12 shrink-0 rounded-md object-cover"
+                        />
                         <span
-                            class="mt-1 flex items-baseline justify-between gap-2"
+                            v-else
+                            class="grid size-12 shrink-0 place-items-center rounded-md bg-muted text-base font-bold text-muted-foreground"
+                            aria-hidden="true"
+                            >{{ product.name.slice(0, 1).toUpperCase() }}</span
                         >
-                            <span
-                                class="font-semibold text-primary tabular-nums"
-                                >{{ formatXof(product.sale_price ?? 0) }}</span
-                            >
-                            <span
-                                v-if="
-                                    product.available !== null &&
-                                    product.available !== undefined
-                                "
-                                class="text-xs text-muted-foreground"
-                                >{{
-                                    t('pos.tile_stock', {
-                                        quantity: product.available,
-                                    })
-                                }}</span
-                            >
-                        </span>
+                        <span class="line-clamp-2 text-sm font-medium">{{
+                            product.name
+                        }}</span>
+                        <span class="font-semibold text-primary tabular-nums">{{
+                            formatXof(product.sale_price ?? 0)
+                        }}</span>
+                        <span
+                            v-if="
+                                product.available !== null &&
+                                product.available !== undefined
+                            "
+                            class="text-xs text-muted-foreground"
+                            >{{
+                                t('pos.tile_stock', {
+                                    quantity: product.available,
+                                })
+                            }}</span
+                        >
                     </button>
                 </div>
             </section>

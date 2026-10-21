@@ -3,6 +3,7 @@ import { Form, Head, Link } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
+import { formatXof } from '@/lib/money';
 import { show as showSale } from '@/routes/sales';
 import {
     index as storefrontIndex,
@@ -68,7 +69,7 @@ defineOptions({
                     <p class="text-sm text-muted-foreground">
                         {{ order.customer_phone }} ·
                         {{ order.items_count }} article(s) ·
-                        {{ order.total }} XOF
+                        {{ formatXof(order.total) }}
                     </p>
                     <Link
                         v-if="order.sales_document_id"

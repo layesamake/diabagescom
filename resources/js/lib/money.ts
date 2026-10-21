@@ -1,19 +1,22 @@
-const xof = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+const montants = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
 
 /**
- * Affiche un montant XOF stocké en entier (ex. 12500 → « 12 500 XOF »).
- * Le formatage n'a lieu qu'à l'affichage ; les calculs restent en entiers.
+ * Affiche un montant stocké en entier (ex. 12500 → « 12 500 F »).
+ * Unité « F » et non « XOF » : règle 4 du cahier des charges. Espace pour les
+ * milliers, pas de décimale. Le formatage n'a lieu qu'à l'affichage ; les
+ * calculs restent en entiers.
  */
 export function formatXof(amount: number): string {
-    return `${xof.format(amount)} XOF`;
+    return `${montants.format(amount)} F`;
 }
 
 /**
  * Montant du mode simple : « 45 000 F », jamais « XOF », jamais de décimale
- * (règle 4 du cahier des charges du mode simple).
+ * (règle 4 du cahier des charges du mode simple). Même rendu que formatXof,
+ * nom conservé pour la lisibilité des écrans du mode simple.
  */
 export function formatFranc(amount: number): string {
-    return `${xof.format(amount)} F`;
+    return formatXof(amount);
 }
 
 /** Montant saisi (« 12 500 », « 12500 ») → entier XOF ; 0 si vide ou invalide. */

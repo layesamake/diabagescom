@@ -207,7 +207,7 @@ const nonCash = computed(() =>
                         class="flex items-center gap-2"
                     >
                         <span class="w-20 shrink-0 font-medium tabular-nums">{{
-                            formatXof(value).replace(' XOF', ' F')
+                            formatXof(value)
                         }}</span>
                         <Button
                             type="button"
