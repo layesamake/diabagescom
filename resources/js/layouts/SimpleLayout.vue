@@ -2,13 +2,23 @@
 /**
  * Cadre adaptatif du mode simple : navigation tactile en bas sur mobile,
  * espace de travail ordinateur avec menu latéral dès 1024 px.
+ *
+ * L'apparence de la barre latérale suit les maquettes D1..D7 :
+ * - fond vert foncé (--s-marque), texte blanc ;
+ * - Vendre en première position, mis en valeur par une pillule vert clair
+ *   tant qu'il n'est pas l'écran actif ;
+ * - écran actif signalé par une pillule blanche ;
+ * - icônes colorées par fonction (règle 2 du cahier des charges) ;
+ * - pied de page « En ligne » + initiales + nom utilisateur.
  */
 import {
+    BarChart3,
     Boxes,
     Home,
     MoreHorizontal,
     ReceiptText,
     ShoppingCart,
+    Truck,
     UsersRound,
     Wallet,
 } from '@lucide/vue';
@@ -25,7 +35,7 @@ import {
 const props = withDefaults(defineProps<{ actif?: string }>(), {
     actif: 'accueil',
 });
-const { context, can } = useAppContext();
+const { context, auth, can } = useAppContext();
 const page = usePage();
 const accueil = computed(() => simpleHome().url);
 const actif = computed(() => {
@@ -39,6 +49,8 @@ const actif = computed(() => {
                 'simple/Ventes': 'ventes',
                 'simple/Stock': 'stock',
                 'simple/Clients': 'clients',
+                'simple/Achats': 'achats',
+                'simple/Resultats': 'resultats',
             } as Record<string, string>
         )[page.component] ?? 'accueil'
     );
@@ -46,100 +58,176 @@ const actif = computed(() => {
 const peutVoirStock = computed(() => can('inventory.view'));
 const peutVoirClients = computed(() => can('customer.view'));
 
-const entrees = computed(
-    () =>
-        [
-            {
-                cle: 'accueil',
-                libelle: 'Accueil',
-                icone: Home,
-                href: accueil.value,
-            },
-            {
-                cle: 'ventes',
-                libelle: 'Ventes',
-                icone: ReceiptText,
-                href: simpleSales().url,
-            },
-            {
-                cle: 'vendre',
-                libelle: 'Vendre',
-                icone: ShoppingCart,
-                href: simpleSell().url,
-            },
-            peutVoirStock.value && {
-                cle: 'stock',
-                libelle: 'Stock',
-                icone: Boxes,
-                href: '/simple/stock',
-            },
-            peutVoirClients.value
-                ? {
-                      cle: 'clients',
-                      libelle: 'Clients',
-                      icone: UsersRound,
-                      href: '/simple/clients',
-                  }
-                : {
-                      cle: 'plus',
-                      libelle: 'Plus',
-                      icone: MoreHorizontal,
-                      href: accueil.value,
-                  },
-        ].filter(Boolean) as {
-            cle: string;
-            libelle: string;
-            icone: typeof Home;
-            href: string;
-        }[],
+type EntreeNav = {
+    cle: string;
+    libelle: string;
+    icone: typeof Home;
+    href: string;
+    couleur: string;
+    primaire: boolean;
+    visible: boolean;
+    actif?: boolean;
+};
+
+const COULEUR_VERT = 'var(--s-vert)';
+const COULEUR_BLEU = 'var(--s-bleu)';
+const COULEUR_ORANGE = 'var(--s-orange)';
+const COULEUR_VIOLET = 'var(--s-violet)';
+
+const navigationOrdinateur = computed<EntreeNav[]>(() =>
+    [
+        {
+            cle: 'vendre',
+            libelle: 'Vendre',
+            icone: ShoppingCart,
+            href: simpleSell().url,
+            couleur: COULEUR_VERT,
+            primaire: true,
+            visible: true,
+        },
+        {
+            cle: 'accueil',
+            libelle: 'Accueil',
+            icone: Home,
+            href: accueil.value,
+            couleur: 'var(--s-sur-marque)',
+            primaire: false,
+            visible: true,
+        },
+        {
+            cle: 'ventes',
+            libelle: 'Mes ventes',
+            icone: ReceiptText,
+            href: simpleSales().url,
+            couleur: COULEUR_BLEU,
+            primaire: false,
+            visible: true,
+        },
+        {
+            cle: 'caisse',
+            libelle: 'Caisse',
+            icone: Wallet,
+            href: '/simple/caisse',
+            couleur: COULEUR_ORANGE,
+            primaire: false,
+            visible: true,
+        },
+        {
+            cle: 'stock',
+            libelle: 'Stock',
+            icone: Boxes,
+            href: '/simple/stock',
+            couleur: COULEUR_BLEU,
+            primaire: false,
+            visible: peutVoirStock.value,
+        },
+        {
+            cle: 'clients',
+            libelle: 'Clients',
+            icone: UsersRound,
+            href: '/simple/clients',
+            couleur: COULEUR_VIOLET,
+            primaire: false,
+            visible: peutVoirClients.value,
+        },
+        {
+            cle: 'achats',
+            libelle: 'Achats',
+            icone: Truck,
+            href: '/simple/achats',
+            couleur: COULEUR_VERT,
+            primaire: false,
+            visible: true,
+        },
+        {
+            cle: 'resultats',
+            libelle: 'Mes résultats',
+            icone: BarChart3,
+            href: '/simple/resultats',
+            couleur: COULEUR_VERT,
+            primaire: false,
+            visible: true,
+        },
+    ]
+        .filter((entree): entree is EntreeNav => entree.visible)
+        .map((entree) => ({
+            ...entree,
+            actif: actif.value === entree.cle,
+        })),
 );
 
-const navigationOrdinateur = computed(
-    () =>
-        [
-            {
-                libelle: 'Accueil',
-                icone: Home,
-                href: accueil.value,
-                actif: actif.value === 'accueil',
-            },
-            {
-                libelle: 'Vendre',
-                icone: ShoppingCart,
-                href: simpleSell().url,
-                actif: actif.value === 'vendre',
-            },
-            {
-                libelle: 'Caisse',
-                icone: Wallet,
-                href: '/simple/caisse',
-                actif: actif.value === 'caisse',
-            },
-            {
-                libelle: 'Mes ventes',
-                icone: ReceiptText,
-                href: simpleSales().url,
-                actif: actif.value === 'ventes',
-            },
-            peutVoirClients.value && {
-                libelle: 'Clients',
-                icone: UsersRound,
-                href: '/simple/clients',
-                actif: actif.value === 'clients',
-            },
-            peutVoirStock.value && {
-                libelle: 'Stock',
-                icone: Boxes,
-                href: '/simple/stock',
-                actif: actif.value === 'stock',
-            },
-        ].filter(Boolean) as {
-            libelle: string;
-            icone: typeof Home;
-            href: string;
-            actif: boolean;
-        }[],
+const entrees = computed<EntreeNav[]>(() =>
+    [
+        {
+            cle: 'accueil',
+            libelle: 'Accueil',
+            icone: Home,
+            href: accueil.value,
+            couleur: 'var(--s-sur-marque)',
+            primaire: false,
+            visible: true,
+        },
+        {
+            cle: 'ventes',
+            libelle: 'Ventes',
+            icone: ReceiptText,
+            href: simpleSales().url,
+            couleur: COULEUR_BLEU,
+            primaire: false,
+            visible: true,
+        },
+        {
+            cle: 'vendre',
+            libelle: 'Vendre',
+            icone: ShoppingCart,
+            href: simpleSell().url,
+            couleur: COULEUR_VERT,
+            primaire: true,
+            visible: true,
+        },
+        {
+            cle: 'stock',
+            libelle: 'Stock',
+            icone: Boxes,
+            href: '/simple/stock',
+            couleur: COULEUR_BLEU,
+            primaire: false,
+            visible: peutVoirStock.value,
+        },
+        {
+            cle: 'clients',
+            libelle: 'Clients',
+            icone: UsersRound,
+            href: '/simple/clients',
+            couleur: COULEUR_VIOLET,
+            primaire: false,
+            visible: peutVoirClients.value,
+        },
+        {
+            cle: 'plus',
+            libelle: 'Plus',
+            icone: MoreHorizontal,
+            href: accueil.value,
+            couleur: 'var(--s-sur-marque)',
+            primaire: false,
+            visible: !peutVoirClients.value,
+        },
+    ].filter((entree): entree is EntreeNav => entree.visible),
 );
+
+const nomUtilisateur = computed(
+    () => (auth?.user as { name?: string } | undefined)?.name ?? 'Utilisateur',
+);
+const roleUtilisateur = computed(
+    () => (auth?.user as { role?: string } | undefined)?.role ?? 'Membre',
+);
+const initialesUtilisateur = computed(() => {
+    const parts = nomUtilisateur.value.split(/\s+/u).filter(Boolean);
+    return parts
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join('');
+});
 </script>
 
 <template>
@@ -147,60 +235,100 @@ const navigationOrdinateur = computed(
         class="mode-simple min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]"
     >
         <aside
-            class="hidden min-h-dvh flex-col border-r p-4 lg:flex"
+            class="hidden min-h-dvh flex-col gap-6 border-r p-5 lg:flex"
             :style="{
-                backgroundColor: 'var(--s-surface)',
-                borderColor: 'var(--s-bordure)',
+                backgroundColor: 'var(--s-marque)',
+                borderColor: 'var(--s-marque)',
+                color: 'var(--s-sur-marque)',
             }"
         >
-            <a :href="accueil" class="mb-8 flex items-center gap-3 px-3">
+            <a :href="accueil" class="flex items-center gap-3">
                 <span
-                    class="grid size-10 place-items-center rounded-[14px] text-xl font-black"
+                    class="grid size-11 shrink-0 place-items-center rounded-[14px] text-xl font-black"
                     :style="{
-                        backgroundColor: 'var(--s-marque)',
-                        color: 'var(--s-sur-marque)',
+                        backgroundColor: 'var(--s-sur-marque)',
+                        color: 'var(--s-marque)',
                     }"
                     >D</span
                 >
-                <span class="text-lg font-extrabold tracking-tight">DIABA</span>
+                <span class="min-w-0">
+                    <strong class="block truncate text-[15px] font-extrabold">{{
+                        context?.tenant?.name ?? 'Mon entreprise'
+                    }}</strong>
+                    <span class="block text-[12px] font-semibold opacity-80"
+                        >Mode simple</span
+                    >
+                </span>
             </a>
             <nav aria-label="Navigation principale" class="grid gap-1">
                 <a
                     v-for="entree in navigationOrdinateur"
-                    :key="entree.libelle"
+                    :key="entree.cle"
                     :href="entree.href"
                     :aria-current="entree.actif ? 'page' : undefined"
-                    class="flex min-h-12 items-center gap-3 rounded-[14px] px-3 text-[16px] font-bold transition-colors"
+                    class="flex min-h-12 items-center gap-3 rounded-[14px] px-4 text-[16px] font-bold transition-colors"
                     :style="
                         entree.actif
                             ? {
-                                  backgroundColor: 'var(--s-vert-clair)',
-                                  color: 'var(--s-sur-vert-clair)',
+                                  backgroundColor: 'var(--s-surface)',
+                                  color: 'var(--s-texte)',
                               }
-                            : { color: 'var(--s-texte-doux)' }
+                            : entree.primaire
+                              ? {
+                                    backgroundColor: 'var(--s-vert-clair)',
+                                    color: 'var(--s-sur-vert-clair)',
+                                }
+                              : {
+                                    backgroundColor: 'transparent',
+                                    color: 'var(--s-sur-marque)',
+                                }
                     "
                 >
                     <component
                         :is="entree.icone"
-                        :size="21"
+                        :size="22"
+                        :stroke-width="2"
+                        :style="{
+                            color: entree.actif
+                                ? 'var(--s-texte)'
+                                : entree.couleur,
+                        }"
                         aria-hidden="true"
                     />
-                    {{ entree.libelle }}
+                    <span>{{ entree.libelle }}</span>
                 </a>
             </nav>
-            <div
-                class="mt-auto rounded-[18px] p-3"
-                :style="{ backgroundColor: 'var(--s-fond)' }"
-            >
-                <p class="truncate text-sm font-extrabold">
-                    {{ context?.tenant?.name ?? 'Mon entreprise' }}
-                </p>
-                <p
-                    class="mt-1 text-xs font-semibold"
-                    :style="{ color: 'var(--s-texte-doux)' }"
-                >
-                    Mode simple
-                </p>
+            <div class="mt-auto grid gap-3">
+                <div class="flex items-center gap-2 text-[13px] font-semibold">
+                    <span
+                        class="inline-block size-2 rounded-full"
+                        :style="{
+                            backgroundColor: 'var(--s-vert-clair)',
+                        }"
+                        aria-hidden="true"
+                    ></span>
+                    En ligne
+                </div>
+                <div class="flex items-center gap-3">
+                    <span
+                        class="grid size-10 shrink-0 place-items-center rounded-full text-[14px] font-extrabold"
+                        :style="{
+                            backgroundColor: 'var(--s-orange-clair)',
+                            color: 'var(--s-texte)',
+                        }"
+                        >{{ initialesUtilisateur || '?' }}</span
+                    >
+                    <span class="min-w-0">
+                        <strong
+                            class="block truncate text-[14px] font-extrabold"
+                            >{{ nomUtilisateur }}</strong
+                        >
+                        <span
+                            class="block text-[12px] font-semibold opacity-80"
+                            >{{ roleUtilisateur }}</span
+                        >
+                    </span>
+                </div>
             </div>
         </aside>
 
