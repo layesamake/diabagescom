@@ -84,7 +84,7 @@ void test('la navigation mobile utilise l’écran simple actif', () => {
 
 void test('Stock est absent de la navigation sans le droit inventaire', () => {
     assert.match(layout, /can\('inventory\.view'\)/);
-    assert.match(layout, /peutVoirStock\.value &&/);
+    assert.match(layout, /visible: peutVoirStock\.value/);
 });
 
 void test('la liste des dettes ouvre une fiche client encaissable', () => {
