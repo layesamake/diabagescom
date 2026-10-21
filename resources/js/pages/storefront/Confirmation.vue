@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { t } from '@/i18n';
+import { formatXof } from '@/lib/money';
 import { show } from '@/routes/storefront';
 const props = defineProps<{
     storefront: { slug: string };
@@ -25,7 +26,7 @@ const props = defineProps<{
                 }}
             </p>
             <p class="mt-5 font-semibold">
-                {{ order.number }} · {{ order.total }} XOF
+                {{ order.number }} · {{ formatXof(order.total) }}
             </p>
             <Link
                 :href="show(storefront.slug)"

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { t } from '@/i18n';
+import { formatXof } from '@/lib/money';
 import { store as order } from '@/routes/storefront/orders';
 
 type Product = {
@@ -392,7 +393,7 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                             {{ product.description }}
                         </p>
                         <p class="font-medium">
-                            {{ format(product.price) }} XOF / {{ product.unit }}
+                            {{ formatXof(product.price) }} / {{ product.unit }}
                         </p>
                         <p
                             v-if="product.max_quantity === 0"
@@ -452,7 +453,7 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                     {{ selected.description }}
                 </p>
                 <p class="text-lg font-semibold">
-                    {{ format(selected.price) }} XOF / {{ selected.unit }}
+                    {{ formatXof(selected.price) }} / {{ selected.unit }}
                 </p>
 
                 <div class="grid gap-2">
@@ -600,7 +601,7 @@ const format = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
                     {{ message }}
                 </p>
                 <p class="border-t pt-3 text-lg font-semibold">
-                    {{ t('storefront.total') }} : {{ format(total) }} XOF
+                    {{ t('storefront.total') }} : {{ formatXof(total) }}
                 </p>
                 <Button
                     type="submit"

@@ -223,7 +223,7 @@ export const fr = {
         'platform/Dashboard':
             'Le tableau de bord de la plateforme : abonnements, essais qui se terminent bientôt, factures en retard et encaissements.\nCliquez sur une entreprise pour ouvrir sa fiche. Les données métier des entreprises (ventes, clients…) ne sont jamais visibles ici.',
         'platform/Plans':
-            "Les formules proposées aux entreprises : limites (utilisateurs, dépôts) et tarifs en XOF.\nUn tarif vide signifie « non encore validé » : la formule ne peut pas être achetée tant qu'il n'est pas fixé.",
+            "Les formules proposées aux entreprises : limites (utilisateurs, dépôts) et tarifs en F.\nUn tarif vide signifie « non encore validé » : la formule ne peut pas être achetée tant qu'il n'est pas fixé.",
         'platform/Support':
             "L'assistance d'une entreprise cliente : consultation de sa fiche (logo, devanture, régime de TVA, lien Maps) avec un motif obligatoire.\nChaque consultation ou modification est enregistrée dans le journal de l'entreprise. Le cachet n'est jamais affiché.",
         'platform/TenantCreate':
@@ -1244,8 +1244,8 @@ export const fr = {
         category_name_required: 'Saisissez un nom de catégorie.',
         unit: 'Unité',
         tax: 'Taxe',
-        sale_price: 'Prix de vente (XOF, TTC)',
-        standard_cost: "Coût d'achat (XOF)",
+        sale_price: 'Prix de vente (F, TTC)',
+        standard_cost: "Coût d'achat (F)",
         description_label: 'Description',
         price_locked:
             "Vous n'avez pas l'autorisation de modifier les prix de cet article.",
@@ -1312,7 +1312,7 @@ export const fr = {
             'Quantités présentes au démarrage, valorisées au coût indiqué.',
         reason: 'Motif',
         reason_placeholder: 'Ex. casse, vol, erreur de saisie…',
-        unit_cost: 'Coût unitaire (XOF)',
+        unit_cost: 'Coût unitaire (F)',
         lines: 'Articles',
         add_line: 'Ajouter un article',
         remove_line: 'Retirer {name}',
@@ -1464,7 +1464,7 @@ export const fr = {
         city: 'Ville',
         tax_number: 'NINEA',
         terms: 'Délai de paiement (jours)',
-        credit_limit: 'Plafond de crédit (XOF)',
+        credit_limit: 'Plafond de crédit (F)',
         credit_hint: 'Vide : aucune vente à crédit autorisée.',
         no_credit: 'Pas de crédit',
         notes: 'Notes',
@@ -1483,7 +1483,7 @@ export const fr = {
         description:
             'Ajoutez ou mettez à jour vos contacts à partir d’un fichier CSV (Excel : « Enregistrer sous… CSV »).',
         format_customers:
-            'Première ligne : les noms de colonnes. Obligatoire : nom. Facultatives : code, telephone, email, adresse, ville, ninea, delai_paiement (jours), notes, plafond_credit (XOF).',
+            'Première ligne : les noms de colonnes. Obligatoire : nom. Facultatives : code, telephone, email, adresse, ville, ninea, delai_paiement (jours), notes, plafond_credit (F).',
         format_suppliers:
             'Première ligne : les noms de colonnes. Obligatoire : nom. Facultatives : code, telephone, email, adresse, ville, ninea, delai_paiement (jours), notes.',
         matching:
@@ -1615,7 +1615,7 @@ export const fr = {
         },
         plans_title: 'Formules',
         plans_description:
-            'Limites et tarifs (XOF). Un tarif vide signifie « non encore validé ».',
+            'Limites et tarifs (F). Un tarif vide signifie « non encore validé ».',
         search: 'Rechercher une entreprise',
         company: 'Entreprise',
         members: '{count} membre(s)',
@@ -1689,8 +1689,8 @@ export const fr = {
         included_users: 'Utilisateurs inclus',
         accounting: 'Comptabilité',
         online_store: 'Boutique en ligne',
-        price_monthly: 'Prix mensuel (XOF)',
-        price_yearly: 'Prix annuel (XOF)',
+        price_monthly: 'Prix mensuel (F)',
+        price_yearly: 'Prix annuel (F)',
         active: 'Proposée aux clients',
         save_plan: 'Enregistrer',
     },
@@ -1726,7 +1726,7 @@ export const fr = {
         filter_all: 'Tous',
         public_name: 'Nom public',
         public_description: 'Description publique',
-        public_price: 'Prix public (XOF)',
+        public_price: 'Prix public (F)',
         save_product: 'Enregistrer le produit',
         no_products:
             'Aucun article pour le moment. Les articles que vous achetez arrivent ici automatiquement en brouillon.',
@@ -1938,7 +1938,7 @@ export const fr = {
         },
     },
     money: {
-        xof: 'XOF',
+        xof: 'F',
         total: 'Total',
         total_excl_tax: 'Total HT',
         total_tax: 'TVA',
@@ -2036,7 +2036,7 @@ export const fr = {
         lines: 'Articles',
         quantity: 'Quantité',
         unit_price: 'Prix TTC',
-        discount: 'Remise (XOF)',
+        discount: 'Remise (F)',
         line_total: 'Total ligne',
         remove_line: 'Retirer {name}',
         save_draft: 'Enregistrer le brouillon',
@@ -2127,7 +2127,7 @@ export const fr = {
         closed: 'Fermée',
         opened_by: 'Ouverte par {name} le {date}',
         open_action: 'Ouvrir',
-        opening_amount: 'Fond de caisse (XOF)',
+        opening_amount: 'Fond de caisse (F)',
         open_title: 'Ouvrir « {name} »',
         view_session: 'Voir la session',
         history: 'Historique des sessions',
@@ -2153,7 +2153,7 @@ export const fr = {
         add_income: 'Enregistrer une recette',
         label: 'Libellé',
         reason: 'Motif / justificatif',
-        amount: 'Montant (XOF)',
+        amount: 'Montant (F)',
         close_title: 'Fermer la caisse',
         wizard: {
             steps: 'Étapes de la fermeture',
@@ -2186,7 +2186,7 @@ export const fr = {
             breakdown: 'Comptage',
         },
         expected: 'Montant attendu',
-        counted: 'Montant compté (XOF)',
+        counted: 'Montant compté (F)',
         difference: 'Écart',
         closing_note: 'Explication de l’écart',
         close: 'Fermer la caisse',
@@ -2408,7 +2408,7 @@ export const fr = {
         reject_title: 'Rejeter ce paiement ?',
         reject_reason: 'Motif du rejet :',
         credit_note: 'Émettre un avoir',
-        credit_amount: 'Montant (XOF)',
+        credit_amount: 'Montant (F)',
         credit_reason: 'Motif de l’avoir',
         credit_submit: 'Émettre l’avoir',
         credited: 'Avoirs : {amount}',
@@ -2574,7 +2574,7 @@ export const fr = {
             unbalanced:
                 'Le bilan présente un écart de {amount} : vérifiez les écritures.',
             accounts: 'Comptes',
-            amount: 'Montant (XOF)',
+            amount: 'Montant (F)',
             disclaimer:
                 'Présentation simplifiée du système normal SYSCOHADA, calculée sur les écritures validées. Le bilan est arrêté à la date « au » ; le compte de résultat couvre la période choisie. À valider avec votre expert-comptable avant tout usage officiel.',
         },
@@ -2595,7 +2595,7 @@ export const fr = {
         export_pdf: 'PDF',
         no_data: 'Aucune écriture validée sur la période.',
         statement_date: 'Date du relevé',
-        statement_balance: 'Solde du relevé (XOF)',
+        statement_balance: 'Solde du relevé (F)',
         reference: 'Référence du relevé',
         start_reconciliation: 'Démarrer le rapprochement',
         book_balance: 'Solde comptable : {amount}',
