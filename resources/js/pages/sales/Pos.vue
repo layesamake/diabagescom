@@ -486,9 +486,25 @@ function checkout(): void {
                         class="flex min-h-20 flex-col justify-between rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/60 hover:bg-accent active:scale-[0.98]"
                         @click="addProduct(product)"
                     >
-                        <span class="line-clamp-2 text-sm font-medium">{{
-                            product.name
-                        }}</span>
+                        <div class="flex items-start gap-3">
+                            <img
+                                v-if="product.image_url"
+                                :src="product.image_url"
+                                :alt="''"
+                                class="size-12 shrink-0 rounded-md object-cover"
+                            />
+                            <span
+                                v-else
+                                class="grid size-12 shrink-0 place-items-center rounded-md bg-muted text-base font-bold text-muted-foreground"
+                                aria-hidden="true"
+                                >{{
+                                    product.name.slice(0, 1).toUpperCase()
+                                }}</span
+                            >
+                            <span class="line-clamp-2 text-sm font-medium">{{
+                                product.name
+                            }}</span>
+                        </div>
                         <span
                             class="mt-1 flex items-baseline justify-between gap-2"
                         >

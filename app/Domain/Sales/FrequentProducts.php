@@ -3,6 +3,7 @@
 namespace App\Domain\Sales;
 
 use App\Domain\Inventory\Quantity;
+use App\Http\Controllers\Catalog\CatalogImages;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 
@@ -44,7 +45,7 @@ final class FrequentProducts
             'sale_price' => $product->sale_price,
             'tax_rate_basis_points' => $product->taxRate->rate_basis_points,
             'available' => $product->type !== 'service' ? Quantity::of((string) ($available[$product->id] ?? '0'))->format() : null,
-            'image_url' => null,
+            'image_url' => CatalogImages::url('products.image', $product->image_path, ['product' => $product->id], $product->version),
         ])->all());
     }
 }

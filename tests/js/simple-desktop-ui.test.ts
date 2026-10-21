@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const layout = readFileSync(
@@ -26,6 +26,14 @@ const stock = readFileSync(
     new URL('../../resources/js/pages/simple/Stock.vue', import.meta.url),
     'utf8',
 );
+const clients = readFileSync(
+    new URL('../../resources/js/pages/simple/Clients.vue', import.meta.url),
+    'utf8',
+);
+const clientUrl = new URL(
+    '../../resources/js/pages/simple/Client.vue',
+    import.meta.url,
+);
 
 void test('le mode simple dispose d’un shell ordinateur à menu latéral', () => {
     assert.match(layout, /lg:grid-cols-\[248px_minmax\(0,1fr\)\]/);
@@ -51,7 +59,9 @@ void test('la navigation ordinateur présente seulement les modules disponibles'
 
     assert.doesNotMatch(navigationOrdinateur, /libelle: 'Produits'/);
     assert.match(navigationOrdinateur, /libelle: 'Stock'/);
-    assert.doesNotMatch(navigationOrdinateur, /libelle: 'Clients'/);
+    assert.match(navigationOrdinateur, /libelle: 'Clients'/);
+    assert.match(navigationOrdinateur, /href: '\/simple\/clients'/);
+    assert.match(layout, /'simple\/Clients': 'clients'/);
     assert.match(layout, /aria-current="entree\.actif \? 'page' : undefined"/);
 });
 
@@ -75,4 +85,15 @@ void test('la navigation mobile utilise l’écran simple actif', () => {
 void test('Stock est absent de la navigation sans le droit inventaire', () => {
     assert.match(layout, /can\('inventory\.view'\)/);
     assert.match(layout, /peutVoirStock\.value &&/);
+});
+
+void test('la liste des dettes ouvre une fiche client encaissable', () => {
+    assert.match(clients, /`\/simple\/clients\/\$\{customer\.id\}`/);
+    assert.equal(existsSync(clientUrl), true);
+
+    const client = readFileSync(clientUrl, 'utf8');
+    assert.match(client, /Enregistrer un paiement/);
+    assert.match(client, /idempotency_key/);
+    assert.match(client, /cash_session_id/);
+    assert.match(client, /\/paiement`/);
 });
