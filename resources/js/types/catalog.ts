@@ -67,4 +67,5 @@ export type PickedProduct = {
     sale_price?: number;
     tax_rate_basis_points?: number;
     available?: string | null;
+    image_url?: string | null;
 };
