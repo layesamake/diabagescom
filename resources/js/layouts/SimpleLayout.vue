@@ -35,8 +35,11 @@ import {
 const props = withDefaults(defineProps<{ actif?: string }>(), {
     actif: 'accueil',
 });
-const { context, auth, can } = useAppContext();
+const { context, can } = useAppContext();
 const page = usePage();
+const auth = computed(
+    () => page.props.auth as { user?: { name?: string; role?: string } } | null,
+);
 const accueil = computed(() => simpleHome().url);
 const actif = computed(() => {
     if (props.actif !== 'accueil') return props.actif;
