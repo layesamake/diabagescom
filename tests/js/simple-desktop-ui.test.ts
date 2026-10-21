@@ -97,14 +97,3 @@ void test('la liste des dettes ouvre une fiche client encaissable', () => {
     assert.match(client, /cash_session_id/);
     assert.match(client, /\/paiement`/);
 });
-
-void test('la liste des dettes ouvre une fiche client encaissable', () => {
-    assert.match(clients, /`\/simple\/clients\/\$\{customer\.id\}`/);
-    assert.equal(existsSync(clientUrl), true);
-
-    const client = readFileSync(clientUrl, 'utf8');
-    assert.match(client, /Enregistrer un paiement/);
-    assert.match(client, /idempotency_key/);
-    assert.match(client, /cash_session_id/);
-    assert.match(client, /\/paiement`/);
-});

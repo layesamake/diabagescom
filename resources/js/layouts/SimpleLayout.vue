@@ -15,7 +15,7 @@ import {
     BarChart3,
     Boxes,
     Home,
-    MoreHorizontal,
+    Menu,
     ReceiptText,
     ShoppingCart,
     Truck,
@@ -209,7 +209,7 @@ const entrees = computed<EntreeNav[]>(() =>
         {
             cle: 'plus',
             libelle: 'Plus',
-            icone: MoreHorizontal,
+            icone: Menu,
             href: accueil.value,
             couleur: 'var(--s-sur-marque)',
             primaire: false,
