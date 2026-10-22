@@ -33,7 +33,7 @@ class SimpleStockMaquetteTest extends TestCase
     {
         $setup = $this->createTenantWithMember();
 
-        return $this->member($setup, 'cashier');
+        return $this->member($setup, 'warehouse_manager');
     }
 
     private function act(array $setup): self
