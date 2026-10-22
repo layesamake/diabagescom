@@ -136,7 +136,7 @@ class SimpleStockController extends Controller
             ]);
         }
 
-        $warehouseId = $context->warehouse()?->id ?? $request->user()?->warehouse_id ?? null;
+        $warehouseId = $context->warehouse()?->id;
         abort_if($warehouseId === null, 422, 'Aucun dépôt actif.');
 
         $service->adjust(
