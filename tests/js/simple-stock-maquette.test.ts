@@ -2,19 +2,18 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
-const raw = readFileSync(
+const stock = readFileSync(
     new URL('../../resources/js/pages/simple/Stock.vue', import.meta.url),
     'utf8',
 );
 // Le formateur coupe les textes longs : on aplatit pour que les assertions
 // portent sur le contenu rendu et non sur la mise en forme du fichier.
-const source = raw.replace(/\s+/g, ' ').replace(/’/g, "'");
+const source = stock.replace(/\s+/g, ' ').replace(/’/g, "'");
 
-void test('Stock annonce le titre sur fond vert avec un haut-parleur', () => {
-    assert.match(raw, /EnTeteEcran/);
-    // L'écran Stock lit un message audio (icône haut-parleur dans l'en-tête).
-    assert.match(source, /Volume2/);
-    assert.match(source, /Speaker|BoutonHautParleur|codeAudio|haut-parleur/);
+void test('Stock utilise EnTeteEcran et lui passe le code audio « Vous êtes sur Stock »', () => {
+    assert.match(stock, /EnTeteEcran/);
+    assert.match(source, /code-audio="audio_code"/);
+    assert.match(source, /audio-disponible="true"/);
 });
 
 void test('Stock affiche trois cartes compteur toujours en fond plein coloré', () => {
@@ -25,23 +24,25 @@ void test('Stock affiche trois cartes compteur toujours en fond plein coloré', 
     assert.match(source, /Bientôt fini/);
     assert.match(source, /Presque fini/);
     assert.match(source, /fondPlein/);
+    assert.match(source, /fondClair/);
 });
 
 void test('Stock affiche une ligne par article avec photo, nom, barre, quantité et boutons +/−', () => {
     assert.match(source, /progress/);
-    assert.match(source, /role="progressbar"|role="meter"/);
-    assert.match(source, /Refaire|Ajouter|ajouter au stock|\+/);
-    assert.match(source, /Retirer|retirer du stock|−|-/);
-    // Couleurs de la photo placeholder selon le statut
-    assert.match(source, /var\(--s-vert/);
-    assert.match(source, /var\(--s-orange/);
-    assert.match(source, /var\(--s-rouge/);
+    assert.match(source, /role="progressbar"/);
+    assert.match(source, /Ajouter au stock/);
+    assert.match(source, /Retirer du stock/);
+    // Couleurs de la barre et des boutons via la palette partagée
+    assert.match(source, /fondClair\.vert/);
+    assert.match(source, /fondClair\.rouge/);
 });
 
 void test('Stock ouvre une feuille « Pourquoi ? » pour motif de retrait (07b)', () => {
     assert.match(source, /Pourquoi/);
-    assert.match(source, /Abîmé/);
-    assert.match(source, /Mort/);
-    assert.match(source, /Perdu/);
+    assert.match(source, /abîmé/);
+    assert.match(source, /mort/);
+    assert.match(source, /perdu/);
+    // La maquette affiche les motifs avec une capitale : le code capitalise.
+    assert.match(source, /capitaliser\(motif\)/);
     assert.match(source, /Retour/);
 });

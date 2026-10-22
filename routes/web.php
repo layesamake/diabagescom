@@ -142,6 +142,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
 
     // Mode simple — lot 5 : stock visuel du dépôt autorisé.
     Route::get('simple/stock', [SimpleStockController::class, 'index'])->name('simple.stock');
+    Route::post('simple/stock/ajuster', [SimpleStockController::class, 'adjust'])->name('simple.stock.adjust');
 
     // Mode simple — lot 5 : ajout tactile d'un article.
     Route::get('simple/articles/nouveau', [SimpleProductController::class, 'create'])->name('simple.products.create');
