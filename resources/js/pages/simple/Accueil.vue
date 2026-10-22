@@ -6,7 +6,15 @@
  * de bord expert.
  */
 import { Head, Link, router } from '@inertiajs/vue3';
-import { PackageX, Settings2, ShoppingCart, Wallet, Wrench } from '@lucide/vue';
+import {
+    Boxes,
+    PackageX,
+    Settings2,
+    ShoppingCart,
+    Users,
+    Wallet,
+    Wrench,
+} from '@lucide/vue';
 import { computed } from 'vue';
 import CarteMontant from '@/components/simple/CarteMontant.vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
@@ -15,13 +23,15 @@ import TuileAction from '@/components/simple/TuileAction.vue';
 import { useAppContext } from '@/composables/useAppContext';
 import {
     cash as simpleCash,
+    customers as simpleCustomers,
     demo as simpleDemo,
     mode as simpleMode,
     sell as simpleSell,
+    stock as simpleStock,
 } from '@/routes/simple';
 
 type Jour = { total: number; count: number };
-type Tile = 'sell' | 'cash';
+type Tile = 'sell' | 'cash' | 'stock' | 'customers';
 
 const props = defineProps<{
     figures: { today: Jour; yesterday: Jour };
@@ -61,11 +71,25 @@ const tuiles = computed(() =>
                 couleur: 'orange' as const,
                 href: simpleCash().url,
             },
+            {
+                cle: 'stock' as const,
+                libelle: 'Stock',
+                icone: Boxes,
+                couleur: 'bleu' as const,
+                href: simpleStock().url,
+            },
+            {
+                cle: 'customers' as const,
+                libelle: 'Clients',
+                icone: Users,
+                couleur: 'violet' as const,
+                href: simpleCustomers().url,
+            },
         ] satisfies {
             cle: Tile;
             libelle: string;
             icone: typeof ShoppingCart;
-            couleur: 'vert' | 'orange';
+            couleur: 'vert' | 'orange' | 'bleu' | 'violet';
             href: string;
         }[]
     ).filter((tuile) => props.tiles.includes(tuile.cle)),
