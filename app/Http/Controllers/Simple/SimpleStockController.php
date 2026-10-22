@@ -143,7 +143,7 @@ class SimpleStockController extends Controller
             (string) $warehouseId,
             [[
                 'product_id' => (string) $data['product_id'],
-                'quantity' => '1.000',
+                'quantity' => $isRemoval ? '-1.000' : '1.000',
                 'unit_cost' => null,
             ]],
             (string) $reason,
