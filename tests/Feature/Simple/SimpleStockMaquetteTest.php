@@ -3,10 +3,6 @@
 namespace Tests\Feature\Simple;
 
 use App\Http\Middleware\ResolveTenantContext;
-use App\Models\Product;
-use App\Models\StockMovement;
-use App\Models\Unit;
-use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Sales\SalesTestHelpers;
 use Tests\TestCase;
@@ -31,17 +27,13 @@ class SimpleStockMaquetteTest extends TestCase
     }
 
     /**
-     * @return array{tenant: mixed, user: mixed, warehouse: Warehouse, unit: Unit}
+     * @return array<string, mixed>
      */
     private function bootstrapStock(): array
     {
         $setup = $this->createTenantWithMember();
 
-        $v = $this->member($setup, 'cashier');
-        $warehouse = $v['warehouse'];
-        $unit = Unit::query()->firstOrCreate(['code' => 'kg'], ['name' => 'Kilogramme']);
-
-        return $setup + ['warehouse' => $warehouse, 'unit' => $unit];
+        return $this->member($setup, 'cashier');
     }
 
     private function act(array $setup): self
@@ -53,20 +45,8 @@ class SimpleStockMaquetteTest extends TestCase
     public function test_products_carry_a_progress_ratio_and_a_status_label(): void
     {
         $s = $this->bootstrapStock();
-        $product = Product::create([
-            'tenant_id' => $s['tenant']->id,
-            'name' => 'Riz parfumé',
-            'sku' => 'RIZ',
-            'unit_id' => $s['unit']->id,
-            'type' => 'stockable',
-        ]);
-        StockMovement::create([
-            'tenant_id' => $s['tenant']->id,
-            'warehouse_id' => $s['warehouse']->id,
-            'product_id' => $product->id,
-            'quantity' => '4.000',
-            'reason' => 'initial',
-        ]);
+        $product = $this->makeProduct($s, 'RIZ', 'U');
+        $this->move($s, 'initial', [[$s['warehouse']->id, $product->id, '4.000', '1000']]);
 
         $this->act($s)
             ->get('/simple/stock')
@@ -74,7 +54,7 @@ class SimpleStockMaquetteTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('simple/Stock')
                 ->where('products.0.id', $product->id)
-                ->where('products.0.name', 'Riz parfumé')
+                ->where('products.0.name', 'Article RIZ')
                 ->where('products.0.status', 'low')
                 // ratio entre 0 et 1 (utilisé par la barre de progression 07a)
                 ->where('products.0.progress', 0.4)
@@ -87,20 +67,8 @@ class SimpleStockMaquetteTest extends TestCase
     public function test_withdrawal_reason_is_required_for_a_minus_action(): void
     {
         $s = $this->bootstrapStock();
-        $product = Product::create([
-            'tenant_id' => $s['tenant']->id,
-            'name' => 'Œufs',
-            'sku' => 'OEU',
-            'unit_id' => $s['unit']->id,
-            'type' => 'stockable',
-        ]);
-        StockMovement::create([
-            'tenant_id' => $s['tenant']->id,
-            'warehouse_id' => $s['warehouse']->id,
-            'product_id' => $product->id,
-            'quantity' => '10.000',
-            'reason' => 'initial',
-        ]);
+        $product = $this->makeProduct($s, 'OEU', 'U');
+        $this->move($s, 'initial', [[$s['warehouse']->id, $product->id, '10.000', '1000']]);
 
         // Action « − » sans motif : 422
         $this->act($s)
@@ -119,10 +87,8 @@ class SimpleStockMaquetteTest extends TestCase
             ])
             ->assertRedirect();
 
-        $balance = StockMovement::query()
-            ->where('product_id', $product->id)
-            ->sum('quantity');
-        $this->assertEquals(9.0, (float) $balance);
+        $balance = $this->balance((string) $s['warehouse']->id, (string) $product->id);
+        $this->assertEquals(9.0, (float) $balance['quantity']);
     }
 
     public function test_supported_withdrawal_reasons_match_the_maquette(): void
