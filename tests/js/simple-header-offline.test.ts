@@ -8,8 +8,16 @@ void test('EnTeteEcran reflète immédiatement les événements navigateur hors 
         'utf8',
     );
 
-    assert.match(src, /\bonMounted\b/, 'le composant doit écouter le navigateur');
-    assert.match(src, /\bonBeforeUnmount\b/, 'les écouteurs doivent être retirés');
+    assert.match(
+        src,
+        /\bonMounted\b/,
+        'le composant doit écouter le navigateur',
+    );
+    assert.match(
+        src,
+        /\bonBeforeUnmount\b/,
+        'les écouteurs doivent être retirés',
+    );
     assert.match(src, /window\.addEventListener\('online'/);
     assert.match(src, /window\.addEventListener\('offline'/);
     assert.match(src, /window\.removeEventListener\('online'/);
