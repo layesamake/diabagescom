@@ -41,6 +41,22 @@ final class PhraseCatalog
     public const array CORE_GROUPS = ['Communs', 'Chiffres', 'Vendre', 'Caisse'];
 
     /**
+     * Langues proposées à l'administrateur (maquette 05c). Le nom affiché est
+     * en français ; « Autre langue » laisse la place à une saisie libre.
+     *
+     * @var list<array{code: string, name: string}>
+     */
+    public const array LANGUAGES = [
+        ['code' => 'wo', 'name' => 'Wolof'],
+        ['code' => 'ff', 'name' => 'Pulaar (peul)'],
+        ['code' => 'bm', 'name' => 'Bambara'],
+        ['code' => 'srr', 'name' => 'Sérère'],
+        ['code' => 'dyo', 'name' => 'Diola'],
+        ['code' => 'snk', 'name' => 'Soninké'],
+        ['code' => 'autre', 'name' => 'Autre langue'],
+    ];
+
+    /**
      * @var array<string, array{group: string, text: string, tokens: list<string>}>
      */
     private const array PHRASES = [

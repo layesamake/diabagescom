@@ -47,9 +47,16 @@ class SimpleVoiceController extends Controller
 
         foreach (PhraseCatalog::GROUPS as $group) {
             $groupCodes = PhraseCatalog::codesInGroup($group);
+            $groupAvailability = $library->availability($groupCodes);
+            $restants = count(array_filter($groupAvailability, fn (bool $ok): bool => ! $ok));
+
             $groups[] = [
                 'name' => $group,
                 'core' => in_array($group, PhraseCatalog::CORE_GROUPS, true),
+                // Maquette 05a : chaque onglet affiche le nombre de phrases
+                // restant à enregistrer dans ce groupe.
+                'restants' => $restants,
+                'total' => count($groupCodes),
                 'phrases' => array_map(function (string $code) use ($availability, $recorded) {
                     $clips = $recorded->get($code, collect())->keyBy('segment_index');
 
@@ -69,9 +76,34 @@ class SimpleVoiceController extends Controller
 
         return Inertia::render('simple/Voix', [
             'language' => $tenant->voice_language,
+            'language_name' => $this->languageName($tenant->voice_language),
+            'voices_available' => $tenant->voice_language !== null,
             'groups' => $groups,
             'progress' => $library->coreProgress(),
+            // Maquette 05c : feuille de choix de la langue de la voix.
+            'languages' => PhraseCatalog::LANGUAGES,
+            // Maquette 05a : sous-titre cadenas sous le titre de l'écran.
+            'role' => 'Administrateur',
+            'acces_administrateur' => true,
         ]);
+    }
+
+    /**
+     * Nom lisible de la langue choisie, tel qu'affiché en gros sur l'écran.
+     */
+    private function languageName(?string $code): ?string
+    {
+        if ($code === null) {
+            return null;
+        }
+
+        foreach (PhraseCatalog::LANGUAGES as $language) {
+            if ($language['code'] === $code) {
+                return $language['name'];
+            }
+        }
+
+        return $code;
     }
 
     public function updateLanguage(Request $request, TenantContext $context): RedirectResponse
