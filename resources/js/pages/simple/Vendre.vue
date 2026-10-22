@@ -7,6 +7,9 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     Banknote,
     CreditCard,
+    Hand,
+    Mic,
+    Search,
     Smartphone,
     ShoppingCart,
     Trash2,
@@ -71,6 +74,17 @@ const client = ref<PickedCustomer | null>(null);
 const montantRecu = ref(0);
 const traitement = ref(false);
 const cleVente = ref('');
+const recherche = ref('');
+
+const articlesFiltres = computed<Product[]>(() => {
+    const terme = recherche.value.trim().toLocaleLowerCase('fr-FR');
+    if (terme === '') {
+        return props.frequent;
+    }
+    return props.frequent.filter((article) =>
+        article.name.toLocaleLowerCase('fr-FR').includes(terme),
+    );
+});
 
 const total = computed(() =>
     panier.value.reduce(
@@ -230,16 +244,54 @@ function ouvrirTicket(): void {
 
             <template v-else>
                 <section class="lg:col-start-1">
-                    <h2 class="mb-3 text-[20px] font-extrabold">Articles</h2>
+                    <label for="simple-vendre-search" class="relative block">
+                        <span
+                            class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[var(--s-texte-doux)]"
+                            aria-hidden="true"
+                        >
+                            <Search :size="22" :stroke-width="2" />
+                        </span>
+                        <input
+                            id="simple-vendre-search"
+                            v-model="recherche"
+                            type="search"
+                            inputmode="search"
+                            placeholder="Chercher un article"
+                            aria-label="Chercher un article"
+                            class="h-14 w-full rounded-[20px] border border-[var(--s-bordure)] pr-14 pl-12 text-[17px] font-semibold"
+                            :style="{
+                                backgroundColor: 'var(--s-surface)',
+                                color: 'var(--s-texte)',
+                            }"
+                        />
+                        <span
+                            class="pointer-events-none absolute inset-y-2 right-2 inline-flex items-center justify-center rounded-full px-2"
+                            :style="{
+                                backgroundColor: 'var(--s-vert-clair)',
+                                color: 'var(--s-sur-vert-clair)',
+                            }"
+                            aria-hidden="true"
+                        >
+                            <Mic :size="22" :stroke-width="2" />
+                        </span>
+                    </label>
+
+                    <h2 class="mt-4 mb-3 text-[20px] font-extrabold">
+                        Articles
+                    </h2>
                     <p
-                        v-if="frequent.length === 0"
+                        v-if="articlesFiltres.length === 0"
                         class="text-center text-[17px] font-semibold"
                     >
-                        Aucun article actif.
+                        {{
+                            recherche.trim() === ''
+                                ? 'Aucun article actif.'
+                                : `Aucun article ne correspond à « ${recherche} ».`
+                        }}
                     </p>
                     <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         <CarteArticle
-                            v-for="article in frequent"
+                            v-for="article in articlesFiltres"
                             :key="article.id"
                             :nom="article.name"
                             :prix="article.sale_price"
@@ -248,6 +300,29 @@ function ouvrirTicket(): void {
                             @ajouter="ajouterArticle(article)"
                         />
                     </div>
+                </section>
+
+                <section
+                    v-if="panier.length === 0"
+                    class="flex items-center gap-3 rounded-[20px] px-4 py-3 lg:col-span-2"
+                    :style="{
+                        backgroundColor: 'var(--s-vert-clair)',
+                        color: 'var(--s-sur-vert-clair)',
+                    }"
+                >
+                    <span
+                        class="inline-flex size-12 shrink-0 items-center justify-center rounded-full"
+                        :style="{
+                            backgroundColor: 'var(--s-surface)',
+                            color: 'var(--s-vert-fonce)',
+                        }"
+                        aria-hidden="true"
+                    >
+                        <Hand :size="24" :stroke-width="2" />
+                    </span>
+                    <p class="text-[17px] font-extrabold">
+                        Touchez un article pour l'ajouter
+                    </p>
                 </section>
 
                 <section
