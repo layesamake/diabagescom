@@ -32,6 +32,14 @@ class SimpleCustomersTest extends TestCase
             ->withSession([ResolveTenantContext::SESSION_TENANT => $setup['tenant']->id]);
     }
 
+    public function test_the_simple_customers_page_returns_404_when_simple_mode_is_disabled(): void
+    {
+        config()->set('diaba.simple_mode.enabled', false);
+        $setup = $this->member($this->createTenantWithMember(), 'cashier');
+
+        $this->act($setup)->get('/simple/clients')->assertNotFound();
+    }
+
     public function test_the_simple_customer_sheet_shows_accessible_unpaid_invoices(): void
     {
         $setup = $this->member($this->createTenantWithMember(), 'cashier');

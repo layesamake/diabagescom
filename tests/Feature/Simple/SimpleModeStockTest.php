@@ -24,6 +24,15 @@ class SimpleModeStockTest extends TestCase
             ->withSession([ResolveTenantContext::SESSION_TENANT => $setup['tenant']->id]);
     }
 
+    public function test_the_simple_stock_page_returns_404_when_simple_mode_is_disabled(): void
+    {
+        config()->set('diaba.simple_mode.enabled', false);
+        $tenant = $this->createTenantWithMember();
+        $manager = $this->member($tenant, 'warehouse_manager');
+
+        $this->act($manager)->get('/simple/stock')->assertNotFound();
+    }
+
     public function test_simple_stock_shows_balances_and_availability_counters(): void
     {
         $tenant = $this->createTenantWithMember();
