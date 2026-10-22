@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Simple;
 
-use App\Domain\Cash\CashService;
 use App\Http\Middleware\ResolveTenantContext;
+use App\Models\SalesDocument;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -29,9 +29,9 @@ use Tests\TestCase;
  */
 class SimpleAccueilMaquetteTest extends TestCase
 {
+    use InventoryTestHelpers;
     use RefreshDatabase;
     use SalesTestHelpers;
-    use InventoryTestHelpers;
 
     protected function setUp(): void
     {
@@ -76,7 +76,7 @@ class SimpleAccueilMaquetteTest extends TestCase
         // Vente à crédit « Awa » : 5 × 2 000 = 10 000 F, mais échéance au
         // 2026-09-30 (avant aujourd'hui) et paiement partiel de 0 F.
         $this->sell($setup, $session, [[$rice->id, '5']], [], customerId: $awa->id);
-        $sale = \App\Models\SalesDocument::query()->latest('validated_at')->first();
+        $sale = SalesDocument::query()->latest('validated_at')->first();
         DB::table('sales_documents')->where('id', $sale->id)->update([
             'validated_at' => '2026-09-25 10:00:00',
             'due_date' => '2026-09-30',
