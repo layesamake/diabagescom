@@ -6,6 +6,7 @@ use App\Domain\Inventory\StockAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Models\Payment;
 use App\Models\SalesDocument;
+use App\Models\SalesDocumentLine;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
@@ -40,7 +41,7 @@ final class SalesDayLedger
      */
     public function detailForDay(CarbonImmutable $day, User $user, bool $all): array
     {
-        $documents = $this->documentsForDay($day, $user, $all)->load(['customer:id,name', 'author:id,name']);
+        $documents = $this->documentsForDay($day, $user, $all)->load(['customer:id,name', 'author:id,name', 'lines']);
         $payments = Payment::query()
             ->where('tenant_id', $this->context->tenantId())
             ->whereIn('sales_document_id', $documents->pluck('id'))
@@ -65,17 +66,86 @@ final class SalesDayLedger
             'total' => (int) $documents->sum('total'),
             'count' => $documents->count(),
             'by_method' => $byMethod,
-            'sales' => array_values($documents->map(fn (SalesDocument $document) => [
-                'id' => $document->id,
-                'number' => $document->number,
-                'time' => $document->validated_at?->format('H:i'),
-                'customer' => $document->customer?->name,
-                'total' => $document->total,
-                'balance' => $document->balanceDue(),
-                'seller' => $document->author->name,
-                'ticket_url' => route('sales.ticket', ['document' => $document]),
-            ])->all()),
+            'sales' => array_values($documents->map(function (SalesDocument $document) use ($payments) {
+                $documentPayments = $payments[$document->id] ?? collect();
+                $balance = $document->balanceDue();
+
+                return [
+                    'id' => $document->id,
+                    'number' => $document->number,
+                    'time' => $document->validated_at?->format('H:i'),
+                    'customer' => $document->customer?->name,
+                    'total' => $document->total,
+                    'balance' => $balance,
+                    'seller' => $document->author->name,
+                    'method' => $this->primaryMethod($documentPayments, $balance),
+                    'products' => $this->productBadges($document),
+                    'ticket_url' => route('sales.ticket', ['document' => $document]),
+                ];
+            })->all()),
         ];
+    }
+
+    /**
+     * Mode principal d'une vente : « credit » s'il reste à payer, sinon le
+     * premier paiement (espèces ou téléphone selon la méthode du paiement).
+     *
+     * @param  \Illuminate\Support\Collection<int, Payment>  $documentPayments
+     */
+    private function primaryMethod(\Illuminate\Support\Collection $documentPayments, int $balance): string
+    {
+        if ($balance > 0) {
+            return 'credit';
+        }
+        foreach ($documentPayments as $payment) {
+            if (in_array($payment->method, ['wave', 'orange_money'], true)) {
+                return 'mobile';
+            }
+            if ($payment->method === 'cash') {
+                return 'cash';
+            }
+        }
+
+        return 'cash';
+    }
+
+    /**
+     * Deux premiers articles d'une vente, badge « initiales » + quantité
+     * formatée (1,500 ou 1,5), ordre de saisie conservé.
+     *
+     * @return list<array{id: string, initials: string, quantity: string, label: string}>
+     */
+    private function productBadges(SalesDocument $document): array
+    {
+        $lines = $document->lines
+            ->sortBy('position')
+            ->take(2)
+            ->values();
+
+        return array_values(array_map(fn (SalesDocumentLine $line) => [
+            'id' => $line->product_id,
+            'initials' => $this->initials($line->label),
+            'quantity' => $line->quantity,
+            'label' => $line->label,
+        ], $lines->all()));
+    }
+
+    private function initials(string $label): string
+    {
+        $words = preg_split('/\s+/u', trim($label)) ?: [];
+        $initials = '';
+        foreach ($words as $word) {
+            if ($word === '') {
+                continue;
+            }
+            $initials .= mb_strtoupper(mb_substr($word, 0, 1, 'UTF-8'), 'UTF-8');
+            if (mb_strlen($initials, 'UTF-8') >= 3) {
+                break;
+            }
+        }
+        $initials = mb_substr($initials, 0, 3, 'UTF-8');
+
+        return $initials !== '' ? $initials : '·';
     }
 
     /**

@@ -4,6 +4,7 @@
  * dessous. Utilisé par le Stock (assez / bientôt fini / presque fini) et par
  * Mes ventes (espèces / téléphone / crédit).
  */
+import type { Component } from 'vue';
 import type { CouleurSimple } from './palette';
 import { fondClair, fondPlein } from './palette';
 
@@ -13,6 +14,8 @@ export type CaseFiltre = {
     /** Nombre ou montant déjà formaté. */
     valeur: string;
     couleur: CouleurSimple;
+    /** Icône optionnelle affichée en médaillon au-dessus du montant. */
+    icone?: Component;
 };
 
 defineProps<{
@@ -39,6 +42,17 @@ const emit = defineEmits<{ filtrer: [cle: string | null] }>();
             :aria-pressed="actif === item.cle"
             @click="emit('filtrer', actif === item.cle ? null : item.cle)"
         >
+            <span
+                v-if="item.icone"
+                class="inline-flex size-10 items-center justify-center rounded-full"
+                :style="{
+                    backgroundColor: 'var(--s-surface)',
+                    color: `var(--s-${item.couleur === 'vert-fonce' ? 'vert' : item.couleur}-fonce)`,
+                }"
+                aria-hidden="true"
+            >
+                <component :is="item.icone" :size="22" :stroke-width="2" />
+            </span>
             <span class="text-[26px] leading-none font-extrabold tabular-nums">
                 {{ item.valeur }}
             </span>
