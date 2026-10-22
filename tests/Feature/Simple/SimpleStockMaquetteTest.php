@@ -95,7 +95,7 @@ class SimpleStockMaquetteTest extends TestCase
 
                     return true;
                 })
-                ->has('counters.enough', 1)
+                ->where('counters.enough', 1)
                 ->where('counters.low', 1)
                 ->where('counters.empty', 0));
     }
