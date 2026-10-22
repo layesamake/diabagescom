@@ -74,7 +74,10 @@ class SimpleStockMaquetteTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('simple/Stock')
-                ->where('products', function (array $products) use ($low, $enough) {
+                ->where('products', function ($products) use ($low, $enough) {
+                    if ($products instanceof \Illuminate\Support\Collection) {
+                        $products = $products->all();
+                    }
                     $byId = [];
                     foreach ($products as $row) {
                         $byId[$row['id']] = $row;
