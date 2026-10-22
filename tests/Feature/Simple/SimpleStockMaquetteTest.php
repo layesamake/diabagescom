@@ -4,6 +4,7 @@ namespace Tests\Feature\Simple;
 
 use App\Http\Middleware\ResolveTenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Tests\Feature\Sales\SalesTestHelpers;
 use Tests\TestCase;
@@ -75,7 +76,7 @@ class SimpleStockMaquetteTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('simple/Stock')
                 ->where('products', function ($products) use ($low, $enough) {
-                    if ($products instanceof \Illuminate\Support\Collection) {
+                    if ($products instanceof Collection) {
                         $products = $products->all();
                     }
                     $byId = [];
