@@ -33,7 +33,7 @@ class SimpleStockMaquetteTest extends TestCase
     /**
      * @return array{tenant: mixed, user: mixed, warehouse: Warehouse, unit: Unit}
      */
-    private function setup(): array
+    private function bootstrapStock(): array
     {
         $setup = $this->createTenantWithMember();
 
@@ -52,7 +52,7 @@ class SimpleStockMaquetteTest extends TestCase
 
     public function test_products_carry_a_progress_ratio_and_a_status_label(): void
     {
-        $s = $this->setup();
+        $s = $this->bootstrapStock();
         $product = Product::create([
             'tenant_id' => $s['tenant']->id,
             'name' => 'Riz parfumé',
@@ -86,7 +86,7 @@ class SimpleStockMaquetteTest extends TestCase
 
     public function test_withdrawal_reason_is_required_for_a_minus_action(): void
     {
-        $s = $this->setup();
+        $s = $this->bootstrapStock();
         $product = Product::create([
             'tenant_id' => $s['tenant']->id,
             'name' => 'Œufs',
@@ -127,7 +127,7 @@ class SimpleStockMaquetteTest extends TestCase
 
     public function test_supported_withdrawal_reasons_match_the_maquette(): void
     {
-        $s = $this->setup();
+        $s = $this->bootstrapStock();
 
         $this->act($s)
             ->get('/simple/stock')
