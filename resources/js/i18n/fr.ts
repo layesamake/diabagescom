@@ -2088,6 +2088,8 @@ export const fr = {
     pos: {
         frequent: 'Articles fréquents',
         tile_stock: 'stock {quantity}',
+        tile_increment: 'Ajouter une {name}',
+        tile_decrement: 'Retirer une {name}',
         quick_cash: 'Montant reçu',
         exact_amount: 'Montant exact',
         title: 'Vente comptoir',
