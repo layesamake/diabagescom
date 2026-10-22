@@ -104,7 +104,7 @@ class SimpleStockMaquetteTest extends TestCase
 
         // Action « − » sans motif : 422
         $this->act($s)
-            ->post('/simple/stock/ajuster', [
+            ->postJson('/simple/stock/ajuster', [
                 'product_id' => $product->id,
                 'delta' => '-1',
             ])
