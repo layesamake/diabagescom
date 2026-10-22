@@ -14,16 +14,30 @@ withDefaults(
     defineProps<{
         titre: string;
         icone?: Component;
+        /** Numéro de l'étape en cours (1..N) — affichée en pastille orange à droite. */
+        etape?: number;
+        /** Nombre total d'étapes ; la pastille n'apparaît que si les deux sont fournis. */
+        etapeTotal?: number;
         /** Code de la phrase lue par le haut-parleur de l'écran. */
         codeAudio?: string;
         audioDisponible?: boolean;
         horsLigne?: boolean;
         retourVisible?: boolean;
     }>(),
-    { audioDisponible: false, horsLigne: false, retourVisible: true },
+    {
+        audioDisponible: false,
+        horsLigne: false,
+        retourVisible: true,
+        etape: undefined,
+        etapeTotal: undefined,
+    },
 );
 
 const emit = defineEmits<{ retour: []; jouer: [code: string] }>();
+const afficherPastille = (
+    etape: number | undefined,
+    etapeTotal: number | undefined,
+): boolean => typeof etape === 'number' && typeof etapeTotal === 'number';
 </script>
 
 <template>
@@ -60,6 +74,17 @@ const emit = defineEmits<{ retour: []; jouer: [code: string] }>();
             {{ titre }}
         </h1>
 
+        <span
+            v-if="afficherPastille(etape, etapeTotal)"
+            class="inline-flex shrink-0 items-center rounded-full px-3 py-1 text-sm font-extrabold tabular-nums"
+            :style="{
+                backgroundColor: 'var(--s-orange)',
+                color: 'var(--s-sur-orange)',
+            }"
+            aria-live="polite"
+            >{{ etape }} / {{ etapeTotal }}</span
+        >
+
         <CloudOff
             v-if="horsLigne"
             :size="26"
@@ -69,7 +94,7 @@ const emit = defineEmits<{ retour: []; jouer: [code: string] }>();
         />
 
         <BoutonHautParleur
-            v-if="codeAudio"
+            v-if="codeAudio && !afficherPastille(etape, etapeTotal)"
             :code="codeAudio"
             :disponible="audioDisponible"
             @jouer="emit('jouer', $event)"
