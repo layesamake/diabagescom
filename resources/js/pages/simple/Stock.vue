@@ -118,7 +118,7 @@ function confirmerMotif(reason: string): void {
 
     <EnTeteEcran
         titre="Stock"
-        icone="Package"
+        :icone="Package"
         :retour-visible="true"
         :code-audio="audio_code"
         :audio-disponible="true"
