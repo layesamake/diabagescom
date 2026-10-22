@@ -19,6 +19,7 @@ import {
     Trash2,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import { useAppContext } from '@/composables/useAppContext';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 import { fondClair, fondPlein } from '@/components/simple/palette';
 
@@ -62,6 +63,7 @@ const COUNTERS: Statut[] = ['enough', 'low', 'empty'];
 const motifOuvert = ref<Produit | null>(null);
 const motifEnVol = ref<string | null>(null);
 
+const { can } = useAppContext();
 const produitsVisibles = computed(() => props.products);
 
 const motifIcones: Record<string, typeof Trash2> = {
@@ -123,6 +125,24 @@ function confirmerMotif(reason: string): void {
         :code-audio="audio_code"
         :audio-disponible="true"
     />
+
+    <h1
+        class="sr-only lg:not-sr-only lg:col-span-2 lg:text-[32px] lg:font-extrabold"
+    >
+        Stock
+    </h1>
+
+    <a
+        v-if="can('catalog.create')"
+        href="/simple/articles/nouveau"
+        class="hidden min-h-12 items-center rounded-[18px] px-4 text-[17px] font-extrabold lg:inline-flex"
+        :style="{
+            backgroundColor: 'var(--s-bleu-clair)',
+            color: 'var(--s-sur-bleu-clair)',
+        }"
+    >
+        Ajouter un article
+    </a>
 
     <div class="grid gap-4 p-4 pb-28">
         <!-- Trois compteurs colorés solides (07a) -->
