@@ -14,6 +14,24 @@
 - [ ] La désactivation d'un module contenant déjà des données (écritures, commandes) est refusée avec un message clair.
 - [ ] ★ Abonnement / tarifs : trois formules seulement, Essentiel (5 000 / 51 000), Business (12 500 / 120 000) et Premium (15 000 / 135 000).
 
+## 0 bis. Mode simple (interface de la maquette)
+Couvre Accueil, Vendre, Caisse, Mes ventes, Stock, Clients et crédit, Ajouter un article, Premiers pas et Messages audio. Les écrans Achats (réception) et Mes résultats de la maquette ne sont pas encore développés.
+
+- [ ] ★ Le mode simple est activé : l'adresse `/simple` s'ouvre (sinon page introuvable : l'option `DIABA_SIMPLE_MODE` est coupée). La bascule simple/expert fonctionne sans perdre la session.
+- [ ] ★ Accueil : salutation, badge « Essai : N jours », carte « Aujourd'hui » (montant en F, ventes, comparaison avec hier), tuiles Vendre, Caisse, Stock, Clients, « À regarder », « Cette semaine ».
+- [ ] ★ Vendre : recherche, panier avec badge de quantité et boutons − et +, bandeau panier vide, encaissement. En mode expert : une seule vente créée (même en double clic), stock diminué.
+- [ ] ★ Caisse : ouvrir, compter les billets, enregistrer un mouvement, fermer ; l'écart est annoncé clairement.
+- [ ] Mes ventes : chiffres du jour, liste, annulation avec confirmation.
+- [ ] Stock en couleurs : seuls les dépôts autorisés apparaissent ; les boutons + et − ajustent le stock.
+- [ ] Clients et crédit : dettes, fiche client, paiement partiel puis total.
+- [ ] Ajouter un article : écran tactile avec photo ; l'article apparaît dans le catalogue du mode expert.
+- [ ] Premiers pas : pastille d'étape dans le bandeau, la barre d'étapes avance.
+- [ ] Messages audio (administrateur) : langue, enregistrement, lecture au haut-parleur ; refusé à un non-administrateur.
+- [ ] ★ Droits : un vendeur ou un gestionnaire de stock ne voit que les tuiles autorisées par ses permissions.
+- [ ] Ordinateur : menu fixe à gauche, mêmes couleurs et dessins que sur téléphone.
+- [ ] ★ Téléphone : boutons d'au moins 44 px, texte lisible, pas de défilement horizontal, montants en F.
+- [ ] Comparaison écran par écran avec la maquette (couleurs, ordre des blocs, libellés) ; noter les écarts.
+
 ## 1. Accueil et menu
 - [ ] ★ La page d'accueil s'affiche sans erreur et la section « À traiter » est lisible.
 - [ ] ★ Le menu **Achats** contient « Demandes d'achat ».
