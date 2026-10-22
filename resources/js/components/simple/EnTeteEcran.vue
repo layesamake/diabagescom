@@ -7,6 +7,7 @@
  * vendeur voit qu'il peut continuer, tout sera envoyé plus tard.
  */
 import { ArrowLeft, CloudOff, Lock } from '@lucide/vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import type { Component } from 'vue';
 import BoutonHautParleur from './BoutonHautParleur.vue';
 
@@ -41,6 +42,26 @@ withDefaults(
         etapeTotal: undefined,
     },
 );
+
+const navigateurHorsLigne = ref(
+    typeof navigator !== 'undefined' && !navigator.onLine,
+);
+
+function mettreAJourReseau(): void {
+    navigateurHorsLigne.value =
+        typeof navigator !== 'undefined' && !navigator.onLine;
+}
+
+onMounted(() => {
+    mettreAJourReseau();
+    window.addEventListener('online', mettreAJourReseau);
+    window.addEventListener('offline', mettreAJourReseau);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('online', mettreAJourReseau);
+    window.removeEventListener('offline', mettreAJourReseau);
+});
 
 const emit = defineEmits<{ retour: []; jouer: [code: string] }>();
 const afficherPastille = (
@@ -107,7 +128,7 @@ const afficherPastille = (
         >
 
         <CloudOff
-            v-if="horsLigne"
+            v-if="horsLigne || navigateurHorsLigne"
             :size="26"
             :stroke-width="2"
             class="shrink-0"
