@@ -164,6 +164,8 @@ export const fr = {
             'Les clients qui ont une dette, du montant le plus élevé au plus faible.\nLe total dû indique ce que vous devez encore récupérer ; ouvrez ensuite une fiche client pour enregistrer son paiement.',
         'simple/Client':
             'La fiche présente les factures que ce client doit encore régler.\nChoisissez une facture, le montant et le mode de paiement ; les espèces nécessitent une caisse ouverte.',
+        'simple/PremiersPas':
+            "Les onze étapes pour démarrer : créer votre entreprise, enregistrer votre voix pour les messages audio, compter votre stock, ouvrir la caisse puis faire une première vente.\nL'étape en cours est mise en valeur ; celles déjà terminées montrent une coche verte.",
         'catalog/Parties':
             "Vos clients ou vos fournisseurs. Le plafond de crédit d'un client limite ce qu'il peut acheter sans payer tout de suite.",
         'catalog/ProductImport':
