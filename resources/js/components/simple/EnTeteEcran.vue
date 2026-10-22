@@ -6,7 +6,7 @@
  * L'icône de nuage barré apparaît dès que l'appareil est hors connexion : le
  * vendeur voit qu'il peut continuer, tout sera envoyé plus tard.
  */
-import { ArrowLeft, CloudOff } from '@lucide/vue';
+import { ArrowLeft, CloudOff, Lock } from '@lucide/vue';
 import type { Component } from 'vue';
 import BoutonHautParleur from './BoutonHautParleur.vue';
 
@@ -14,6 +14,13 @@ withDefaults(
     defineProps<{
         titre: string;
         icone?: Component;
+        /**
+         * Précision sous le titre, précédée d'un petit cadenas quand
+         * `sousTitreVerrouille` est vrai (« Administrateur » sur l'écran
+         * Messages audio, maquette 05a).
+         */
+        sousTitre?: string;
+        sousTitreVerrouille?: boolean;
         /** Numéro de l'étape en cours (1..N) — affichée en pastille orange à droite. */
         etape?: number;
         /** Nombre total d'étapes ; la pastille n'apparaît que si les deux sont fournis. */
@@ -28,6 +35,8 @@ withDefaults(
         audioDisponible: false,
         horsLigne: false,
         retourVisible: true,
+        sousTitre: undefined,
+        sousTitreVerrouille: false,
         etape: undefined,
         etapeTotal: undefined,
     },
@@ -68,11 +77,23 @@ const afficherPastille = (
             aria-hidden="true"
         />
 
-        <h1
-            class="min-w-0 flex-1 truncate text-[26px] leading-tight font-extrabold"
-        >
-            {{ titre }}
-        </h1>
+        <div class="min-w-0 flex-1">
+            <h1 class="truncate text-[26px] leading-tight font-extrabold">
+                {{ titre }}
+            </h1>
+            <p
+                v-if="sousTitre"
+                class="flex items-center gap-1 text-[13px] font-semibold opacity-90"
+            >
+                <Lock
+                    v-if="sousTitreVerrouille"
+                    :size="13"
+                    :stroke-width="2"
+                    aria-hidden="true"
+                />
+                {{ sousTitre }}
+            </p>
+        </div>
 
         <span
             v-if="afficherPastille(etape, etapeTotal)"
