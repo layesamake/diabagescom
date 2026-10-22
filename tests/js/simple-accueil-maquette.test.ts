@@ -26,7 +26,7 @@ void test('Accueil expose un badge Essai', () => {
 
 void test('Accueil parle de credit et plus de caisse a fermer', () => {
     const src = readFileSync('resources/js/pages/simple/Accueil.vue', 'utf8');
-    assert.match(src, /a r[eé]cup[eé]rer/i);
+    assert.match(src, /[àa] r[eé]cup[eé]rer/i);
     assert.doesNotMatch(src, /caisse a fermer/);
 });
 
