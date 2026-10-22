@@ -96,7 +96,7 @@ class SimpleModeHomeTest extends TestCase
                 ->has('alerts'));
     }
 
-    public function test_the_home_page_offers_sell_and_cash_tiles_to_a_cashier(): void
+    public function test_the_home_page_offers_sell_cash_and_customers_tiles_to_a_cashier(): void
     {
         $admin = $this->createTenantWithMember();
         $v = $this->member($admin, 'cashier');
@@ -104,7 +104,7 @@ class SimpleModeHomeTest extends TestCase
         $this->act($v)
             ->get('/simple')
             ->assertInertia(fn ($page) => $page
-                ->where('tiles', ['sell', 'cash']));
+                ->where('tiles', ['sell', 'cash', 'customers']));
     }
 
     public function test_an_admin_sees_the_total_of_every_cashier_at_home(): void

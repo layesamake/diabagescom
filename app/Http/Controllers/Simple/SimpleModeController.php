@@ -90,6 +90,8 @@ class SimpleModeController extends Controller
             'tiles' => array_values(array_filter([
                 Gate::allows('sale.create') && Gate::allows('sale.validate') ? 'sell' : null,
                 Gate::any(['cash.view_own', 'cash.view_all']) ? 'cash' : null,
+                Gate::allows('inventory.view') ? 'stock' : null,
+                Gate::allows('customer.view') ? 'customers' : null,
             ])),
             'alerts' => array_intersect_key($pending, array_flip($visible)),
         ]);
