@@ -11,6 +11,7 @@
  * - icônes colorées par fonction (règle 2 du cahier des charges) ;
  * - pied de page « En ligne » + initiales + nom utilisateur.
  */
+import { router, usePage } from '@inertiajs/vue3';
 import {
     BarChart3,
     Boxes,
@@ -22,9 +23,9 @@ import {
     UsersRound,
     Wallet,
 } from '@lucide/vue';
-import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import BarreNavBas from '@/components/simple/BarreNavBas.vue';
+import ChargementEcran from '@/components/simple/ChargementEcran.vue';
 import { useAppContext } from '@/composables/useAppContext';
 import {
     home as simpleHome,
@@ -37,6 +38,21 @@ const props = withDefaults(defineProps<{ actif?: string }>(), {
 });
 const { context, can } = useAppContext();
 const page = usePage();
+const enChargement = ref(false);
+let supprimerEvenements: Array<() => void> = [];
+
+onMounted(() => {
+    supprimerEvenements = [
+        router.on('start', () => (enChargement.value = true)),
+        router.on('finish', () => (enChargement.value = false)),
+    ];
+});
+
+onBeforeUnmount(() => {
+    supprimerEvenements.forEach((supprimer) => supprimer());
+    supprimerEvenements = [];
+});
+
 const auth = computed(
     () => page.props.auth as { user?: { name?: string; role?: string } } | null,
 );
@@ -238,6 +254,7 @@ const initialesUtilisateur = computed(() => {
 <template>
     <div
         class="mode-simple min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]"
+        :inert="enChargement || undefined"
     >
         <aside
             class="hidden min-h-dvh flex-col gap-6 border-r p-5 lg:flex"
@@ -337,7 +354,7 @@ const initialesUtilisateur = computed(() => {
             </div>
         </aside>
 
-        <main class="min-w-0">
+        <main class="min-w-0" :aria-busy="enChargement">
             <div
                 class="mx-auto w-full max-w-[1440px] pb-[calc(var(--s-barre-bas)+16px)] lg:px-8 lg:py-8 lg:pb-10"
             >
@@ -347,4 +364,9 @@ const initialesUtilisateur = computed(() => {
 
         <BarreNavBas class="lg:hidden" :actif="actif" :entrees="entrees" />
     </div>
+
+    <ChargementEcran
+        v-if="enChargement"
+        class="fixed inset-0 z-[60] min-h-dvh"
+    />
 </template>
