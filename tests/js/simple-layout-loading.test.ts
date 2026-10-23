@@ -22,7 +22,7 @@ void test('le shell simple affiche un squelette pendant les navigations Inertia'
     );
     assert.match(
         layout,
-        /:inert="enChargement\s*\?\s*''\s*:\s*undefined"/,
+        /:inert="enChargement\s*\|\|\s*undefined"/,
         'la navigation et le contenu masqués doivent devenir inertes',
     );
     assert.match(

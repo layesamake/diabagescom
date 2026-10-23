@@ -254,7 +254,7 @@ const initialesUtilisateur = computed(() => {
 <template>
     <div
         class="mode-simple min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]"
-        :inert="enChargement ? '' : undefined"
+        :inert="enChargement || undefined"
     >
         <aside
             class="hidden min-h-dvh flex-col gap-6 border-r p-5 lg:flex"
