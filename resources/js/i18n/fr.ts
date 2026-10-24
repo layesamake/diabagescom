@@ -164,6 +164,8 @@ export const fr = {
             'Les clients qui ont une dette, du montant le plus élevé au plus faible.\nLe total dû indique ce que vous devez encore récupérer ; ouvrez ensuite une fiche client pour enregistrer son paiement.',
         'simple/Achats':
             'Vos commandes aux fournisseurs. Les commandes en route attendent leur réception ; les commandes reçues ont déjà mis le stock à jour.\nTouchez une commande en route pour compter les articles livrés.',
+        'simple/Resultats':
+            'Vos résultats sur la période choisie : ce qui a été vendu, dépensé et ce qui reste.\nLes meilleures ventes indiquent les articles les plus demandés.',
         'simple/Achat':
             'Le détail de la commande à recevoir. Comparez les quantités attendues avec ce qui est livré ; le reliquat indique ce qui manque encore.\nLa réception enregistrera ensuite les articles réellement arrivés dans le stock.',
         'simple/Client':
