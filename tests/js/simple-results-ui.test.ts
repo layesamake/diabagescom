@@ -8,7 +8,7 @@ const template = source.slice(
     source.indexOf('</template>'),
 );
 
-test('Mes résultats permet de choisir semaine, mois ou année', () => {
+void test('Mes résultats permet de choisir semaine, mois ou année', () => {
     assert.match(template, /v-for="option in periods"/);
     assert.match(
         source,
@@ -19,7 +19,7 @@ test('Mes résultats permet de choisir semaine, mois ou année', () => {
     assert.match(source, /label: 'Année'/);
 });
 
-test('Mes résultats montre où sont les encaissements', () => {
+void test('Mes résultats montre où sont les encaissements', () => {
     assert.match(template, /Où est l'argent \?/);
     assert.match(template, /v-for="entry in by_method"/);
     assert.match(template, /formatFranc\(entry\.total\)/);
