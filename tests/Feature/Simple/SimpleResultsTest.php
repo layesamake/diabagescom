@@ -41,7 +41,7 @@ class SimpleResultsTest extends TestCase
                 ->where('summary.sold', 6000)
                 ->where('summary.spent', 3000)
                 ->where('summary.remaining', 2085)
-                ->where('top_products.0.label', 'RIZ')
+                ->where('top_products.0.label', 'Article RIZ')
                 ->where('can.margin', true)
                 ->where('audio_code', 'PIL-01'));
 
