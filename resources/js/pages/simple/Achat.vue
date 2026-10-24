@@ -52,9 +52,7 @@ defineProps<{
             </p>
         </section>
 
-        <p class="text-[18px] font-extrabold">
-            Comptez ce que vous avez reçu.
-        </p>
+        <p class="text-[18px] font-extrabold">Comptez ce que vous avez reçu.</p>
 
         <section
             class="overflow-hidden rounded-[22px] border"
