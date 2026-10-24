@@ -51,6 +51,7 @@ use App\Http\Controllers\Simple\SimpleGuideController;
 use App\Http\Controllers\Simple\SimpleModeController;
 use App\Http\Controllers\Simple\SimpleProductController;
 use App\Http\Controllers\Simple\SimplePurchaseController;
+use App\Http\Controllers\Simple\SimpleResultsController;
 use App\Http\Controllers\Simple\SimpleSalesController;
 use App\Http\Controllers\Simple\SimpleSalesLedgerController;
 use App\Http\Controllers\Simple\SimpleStockController;
@@ -155,6 +156,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('simple/achats', [SimplePurchaseController::class, 'index'])->name('simple.purchases');
     Route::get('simple/achats/{order}', [SimplePurchaseController::class, 'show'])->whereUuid('order')->name('simple.purchases.show');
     Route::post('simple/achats/{order}/recevoir', [SimplePurchaseController::class, 'receive'])->whereUuid('order')->name('simple.purchases.receive');
+    Route::get('simple/resultats', [SimpleResultsController::class, 'index'])->name('simple.results');
 
     // Mode simple — lot 4 : Messages audio, réservé à l'administrateur.
     Route::get('simple/voix', [SimpleVoiceController::class, 'index'])->name('simple.voice.index');
