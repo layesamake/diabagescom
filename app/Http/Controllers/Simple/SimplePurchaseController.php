@@ -4,8 +4,12 @@ namespace App\Http\Controllers\Simple;
 
 use App\Domain\Inventory\Quantity;
 use App\Domain\Inventory\StockAccess;
+use App\Domain\Purchases\GoodsReceiptService;
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseOrder;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -86,6 +90,44 @@ class SimplePurchaseController extends Controller
             'can' => ['receive' => $receivable && Gate::allows('purchase.receive')],
             'audio_code' => 'ACH-05',
         ]);
+    }
+
+    public function receive(
+        Request $request,
+        PurchaseOrder $order,
+        StockAccess $access,
+        GoodsReceiptService $receipts,
+    ): RedirectResponse {
+        Gate::authorize('purchase.receive');
+        abort_unless(in_array($order->warehouse_id, $access->accessibleIds(), true), 404);
+
+        $data = $request->validate([
+            'idempotency_key' => ['required', 'uuid'],
+            'quantities' => ['required', 'array', 'max:200'],
+            'quantities.*' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+        /** @var array<string, string> $quantities */
+        $quantities = array_map(
+            fn ($quantity): string => (string) $quantity,
+            $data['quantities'],
+        );
+        $receipts->receiveOrder(
+            $order,
+            $quantities,
+            null,
+            null,
+            $user,
+            (string) $data['idempotency_key'],
+        );
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Stock mis à jour.',
+        ]);
+
+        return to_route('simple.purchases.show', $order);
     }
 
     /**
