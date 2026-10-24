@@ -35,6 +35,32 @@ void test('la barre de progression suit les etapes reelles', () => {
     assert.match(region[0], /:en-cours="enCours !== null"/);
 });
 
+void test('la barre represente chaque statut du guide, meme hors ordre', () => {
+    const src = readFileSync(page, 'utf8');
+    const barre = readFileSync(
+        'resources/js/components/simple/BarreEtapes.vue',
+        'utf8',
+    );
+
+    assert.match(src, /const etatsProgression = computed/);
+    assert.match(src, /etape\.status === 'skipped'/);
+    assert.match(src, /:etats="etatsProgression"/);
+    assert.match(barre, /etats\??:\s*EtatSegment\[\]/);
+    assert.match(barre, /props\.etats/);
+});
+
+void test('la progression a un nom accessible', () => {
+    const src = readFileSync(page, 'utf8');
+    const barre = readFileSync(
+        'resources/js/components/simple/BarreEtapes.vue',
+        'utf8',
+    );
+
+    assert.match(src, /aria-label="Progression du parcours"/);
+    assert.match(barre, /ariaLabel\??:\s*string/);
+    assert.match(barre, /:aria-label="ariaLabel"/);
+});
+
 void test('Premiers pas affiche les etapes reelles et peut les deplier', () => {
     const src = readFileSync(page, 'utf8');
     assert.match(src, /v-for="etape in visibles"/, 'liste des étapes attendue');
@@ -66,4 +92,21 @@ void test('la route simple du guide est branchee sur son controleur', () => {
         routes,
         /Route::get\('simple\/guide', \[SimpleGuideController::class, 'index'\]\)/,
     );
+});
+
+void test('Premiers pas est atteignable sans faire croire que Accueil est actif', () => {
+    const layout = readFileSync(
+        'resources/js/layouts/SimpleLayout.vue',
+        'utf8',
+    );
+    const accueil = readFileSync(
+        'resources/js/pages/simple/Accueil.vue',
+        'utf8',
+    );
+
+    assert.match(layout, /'simple\/PremiersPas': 'plus'/);
+    assert.match(layout, /href: '\/simple\/guide'/);
+    assert.match(layout, /libelle: 'Premiers pas'/);
+    assert.match(accueil, /href="\/simple\/guide"/);
+    assert.match(accueil, /Premiers pas/);
 });

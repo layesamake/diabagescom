@@ -47,6 +47,7 @@ use App\Http\Controllers\Settings\GoogleDriveController;
 use App\Http\Controllers\Settings\MemberController;
 use App\Http\Controllers\Settings\NotificationController;
 use App\Http\Controllers\Simple\SimpleCustomerController;
+use App\Http\Controllers\Simple\SimpleGuideController;
 use App\Http\Controllers\Simple\SimpleModeController;
 use App\Http\Controllers\Simple\SimpleProductController;
 use App\Http\Controllers\Simple\SimpleSalesController;
@@ -117,6 +118,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     // répondent 404 tant que DIABA_SIMPLE_MODE n'est pas activé.
     Route::post('mode', [SimpleModeController::class, 'switch'])->name('simple.mode');
     Route::get('simple', [SimpleModeController::class, 'home'])->name('simple.home');
+    Route::get('simple/guide', [SimpleGuideController::class, 'index'])->name('simple.guide');
     Route::get('simple/composants', [SimpleModeController::class, 'demo'])->name('simple.demo');
     Route::get('simple/maquettes/{fichier}', [SimpleModeController::class, 'mockup'])
         ->where('fichier', '[0-9a-z-]+')

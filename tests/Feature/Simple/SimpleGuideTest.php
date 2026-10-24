@@ -61,4 +61,19 @@ class SimpleGuideTest extends TestCase
                 ->where('guide.track', 'cashier')
                 ->where('guide.steps', fn ($steps) => collect($steps)->pluck('key')->doesntContain('voice')));
     }
+
+    public function test_a_skipped_step_is_kept_and_the_next_action_advances(): void
+    {
+        $admin = $this->createTenantWithMember();
+
+        $this->act($admin)
+            ->post('/guide/steps/company', ['status' => 'skipped'])
+            ->assertRedirect();
+
+        $this->act($admin)
+            ->get('/simple/guide')
+            ->assertInertia(fn ($page) => $page
+                ->where('guide.steps.0.status', 'skipped')
+                ->where('guide.next', 'voice'));
+    }
 }
