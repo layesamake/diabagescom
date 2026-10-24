@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Simple;
 
-use App\Domain\Inventory\StockAccess;
 use App\Domain\Inventory\Quantity;
+use App\Domain\Inventory\StockAccess;
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseOrder;
 use Illuminate\Support\Facades\Gate;
