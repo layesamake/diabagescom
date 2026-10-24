@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 import { PackageCheck, Truck } from '@lucide/vue';
+import { computed, ref } from 'vue';
+import Compteur from '@/components/simple/Compteur.vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 
 type Ligne = {
@@ -13,7 +15,7 @@ type Ligne = {
     remaining: string;
 };
 
-defineProps<{
+const props = defineProps<{
     order: {
         id: string;
         number: string | null;
@@ -24,6 +26,35 @@ defineProps<{
     can: { receive: boolean };
     audio_code: string;
 }>();
+
+const quantites = ref<Record<string, number>>(
+    Object.fromEntries(
+        props.order.lines.map((line) => [line.id, Number(line.remaining)]),
+    ),
+);
+const envoi = ref(false);
+const auMoinsUneQuantite = computed(() =>
+    Object.values(quantites.value).some((quantity) => quantity > 0),
+);
+
+function recevoir(): void {
+    if (envoi.value || !auMoinsUneQuantite.value) return;
+
+    envoi.value = true;
+    router.post(
+        `/simple/achats/${props.order.id}/recevoir`,
+        {
+            idempotency_key: crypto.randomUUID(),
+            quantities: Object.fromEntries(
+                Object.entries(quantites.value).map(([id, quantity]) => [
+                    id,
+                    String(quantity),
+                ]),
+            ),
+        },
+        { onFinish: () => (envoi.value = false) },
+    );
+}
 </script>
 
 <template>
@@ -79,8 +110,28 @@ defineProps<{
                         {{ line.quantity }}
                     </p>
                 </div>
+                <Compteur
+                    v-if="can.receive"
+                    v-model:valeur="quantites[line.id]"
+                    :max="Number(line.remaining)"
+                    :unite="line.unit"
+                />
             </article>
         </section>
+
+        <button
+            v-if="can.receive"
+            type="button"
+            class="min-h-16 rounded-[22px] px-5 text-[20px] font-extrabold disabled:opacity-40"
+            :style="{
+                backgroundColor: 'var(--s-vert)',
+                color: 'var(--s-sur-vert)',
+            }"
+            :disabled="envoi || !auMoinsUneQuantite"
+            @click="recevoir"
+        >
+            Ranger dans le stock
+        </button>
 
         <p
             v-if="!can.receive"
