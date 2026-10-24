@@ -8,29 +8,47 @@
  */
 import { computed } from 'vue';
 
+type EtatSegment = 'faite' | 'passee' | 'en-cours' | 'a-faire';
+
 const props = withDefaults(
     defineProps<{
         total: number;
         faites: number;
         /** Vrai si une étape est commencée mais pas finie. */
         enCours?: boolean;
+        /** États ordonnés, utilisés quand la progression n'est pas séquentielle. */
+        etats?: EtatSegment[];
+        /** Nom annoncé par les lecteurs d'écran. */
+        ariaLabel?: string;
         libelle?: string | null;
     }>(),
-    { enCours: false, libelle: null },
+    { enCours: false, ariaLabel: 'Progression', libelle: null },
 );
 
-const segments = computed(() =>
-    Array.from({ length: props.total }, (_, index) => {
-        if (index < props.faites) {
-            return 'faite';
-        }
+const segments = computed<EtatSegment[]>(
+    () =>
+        props.etats ??
+        Array.from({ length: props.total }, (_, index): EtatSegment => {
+            if (index < props.faites) {
+                return 'faite';
+            }
 
-        return index === props.faites && props.enCours ? 'en-cours' : 'a-faire';
-    }),
+            return index === props.faites && props.enCours
+                ? 'en-cours'
+                : 'a-faire';
+        }),
+);
+const totalAffiche = computed(() => props.etats?.length ?? props.total);
+const traitees = computed(() =>
+    props.etats
+        ? props.etats.filter((etat) => etat === 'faite' || etat === 'passee')
+              .length
+        : props.faites,
 );
 
 const couleurs = {
     faite: 'var(--s-vert-fonce)',
+    passee: 'var(--s-vert-clair)',
     'en-cours': 'var(--s-orange)',
     'a-faire': 'var(--s-bordure)',
 } as const;
@@ -43,15 +61,18 @@ const couleurs = {
             class="flex items-baseline justify-between gap-2 text-[15px] font-semibold"
         >
             <span>{{ libelle }}</span>
-            <span class="tabular-nums">{{ faites }} / {{ total }}</span>
+            <span class="tabular-nums"
+                >{{ traitees }} / {{ totalAffiche }}</span
+            >
         </div>
 
         <div
             class="flex gap-1"
             role="progressbar"
-            :aria-valuenow="faites"
+            :aria-label="ariaLabel"
+            :aria-valuenow="traitees"
             :aria-valuemin="0"
-            :aria-valuemax="total"
+            :aria-valuemax="totalAffiche"
         >
             <span
                 v-for="(etat, index) in segments"

@@ -19,6 +19,7 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     Boxes,
     Clock,
+    ListChecks,
     PackageX,
     Settings2,
     ShoppingCart,
@@ -212,6 +213,18 @@ function versModeExpert(): void {
                 @appui="ouvrir(tuile.href)"
             />
         </div>
+
+        <Link
+            href="/simple/guide"
+            class="flex min-h-14 items-center justify-center gap-2 rounded-[24px] text-[17px] font-bold lg:col-span-2"
+            :style="{
+                backgroundColor: 'var(--s-orange-clair)',
+                color: 'var(--s-sur-orange-clair)',
+            }"
+        >
+            <ListChecks :size="22" :stroke-width="2" aria-hidden="true" />
+            Premiers pas
+        </Link>
 
         <section
             v-if="alerts.low_stock || alerts.credit_to_recover"
