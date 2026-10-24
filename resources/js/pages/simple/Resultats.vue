@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { BarChart3 } from '@lucide/vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 import { formatFranc } from '@/lib/money';
 
-defineProps<{
-    period: { key: 'week' | 'month' | 'year'; from: string; to: string };
+type PeriodKey = 'week' | 'month' | 'year';
+
+const props = defineProps<{
+    period: { key: PeriodKey; from: string; to: string };
     summary: { sold: number; spent: number | null; remaining: number | null };
     comparison: Record<string, unknown>;
     by_method: { method: string; total: number }[];
@@ -13,6 +16,33 @@ defineProps<{
     can: { margin: boolean };
     audio_code: string;
 }>();
+
+const periods: { key: PeriodKey; label: string; title: string }[] = [
+    { key: 'week', label: 'Semaine', title: 'Cette semaine' },
+    { key: 'month', label: 'Mois', title: 'Ce mois-ci' },
+    { key: 'year', label: 'Année', title: 'Cette année' },
+];
+
+const title = computed(
+    () =>
+        periods.find((option) => option.key === props.period.key)?.title ??
+        'Mes résultats',
+);
+
+function choosePeriod(key: PeriodKey): void {
+    router.get('/simple/resultats', { period: key });
+}
+
+function methodLabel(method: string): string {
+    return (
+        {
+            cash: 'Espèces',
+            mobile_money: 'Mobile money',
+            card: 'Carte',
+            transfer: 'Virement',
+        }[method] ?? method
+    );
+}
 </script>
 
 <template>
@@ -27,7 +57,30 @@ defineProps<{
     />
 
     <main class="grid gap-4 p-4 pb-28 lg:max-w-3xl lg:p-8">
-        <p class="text-[18px] font-extrabold">Ce mois-ci</p>
+        <div
+            class="grid grid-cols-3 gap-2"
+            role="group"
+            aria-label="Choisir la période"
+        >
+            <button
+                v-for="option in periods"
+                :key="option.key"
+                type="button"
+                class="min-h-12 rounded-xl border px-2 py-3 text-[15px] font-extrabold"
+                :class="
+                    option.key === period.key
+                        ? 'bg-[var(--s-vert-fonce)] text-white'
+                        : 'bg-white'
+                "
+                :style="{ borderColor: 'var(--s-bordure)' }"
+                :aria-pressed="option.key === period.key"
+                @click="choosePeriod(option.key)"
+            >
+                {{ option.label }}
+            </button>
+        </div>
+
+        <p class="text-[18px] font-extrabold">{{ title }}</p>
         <section class="grid gap-3">
             <article
                 class="rounded-[22px] p-5"
@@ -67,6 +120,24 @@ defineProps<{
                     {{ formatFranc(summary.remaining) }}
                 </p>
             </article>
+        </section>
+
+        <section
+            v-if="by_method.length > 0"
+            class="rounded-[22px] border p-4"
+            :style="{ borderColor: 'var(--s-bordure)' }"
+        >
+            <h2 class="text-[20px] font-extrabold">Où est l'argent ?</h2>
+            <dl class="mt-3 grid gap-2">
+                <div
+                    v-for="entry in by_method"
+                    :key="entry.method"
+                    class="flex items-center justify-between gap-3 text-[17px] font-semibold"
+                >
+                    <dt>{{ methodLabel(entry.method) }}</dt>
+                    <dd class="tabular-nums">{{ formatFranc(entry.total) }}</dd>
+                </div>
+            </dl>
         </section>
 
         <section
