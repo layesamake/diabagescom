@@ -85,10 +85,11 @@ function datePrevue(order: Commande): string | null {
             </div>
 
             <div class="grid gap-3">
-                <article
+                <a
                     v-for="order in open_orders"
                     :key="order.id"
-                    class="rounded-[22px] border p-4"
+                    :href="`/simple/achats/${order.id}`"
+                    class="block rounded-[22px] border p-4"
                     :style="{
                         borderColor: 'var(--s-bordure)',
                         backgroundColor: 'var(--s-surface)',
@@ -127,7 +128,7 @@ function datePrevue(order: Commande): string | null {
                     >
                         Prévue le {{ datePrevue(order) }}
                     </p>
-                </article>
+                </a>
             </div>
         </section>
 

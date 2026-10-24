@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Simple;
 
 use App\Domain\Inventory\StockAccess;
+use App\Domain\Inventory\Quantity;
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseOrder;
 use Illuminate\Support\Facades\Gate;
@@ -49,6 +50,41 @@ class SimplePurchaseController extends Controller
                 ->where('status', PurchaseOrder::RECEIVED)
                 ->values(),
             'audio_code' => 'ACH-01',
+        ]);
+    }
+
+    public function show(PurchaseOrder $order, StockAccess $access): Response
+    {
+        Gate::authorize('purchase.view');
+        abort_unless(in_array($order->warehouse_id, $access->accessibleIds(), true), 404);
+
+        $order->load(['supplier:id,name', 'lines.product.unit']);
+        $receivable = in_array($order->status, [
+            PurchaseOrder::CONFIRMED,
+            PurchaseOrder::PARTIALLY_RECEIVED,
+        ], true);
+
+        return Inertia::render('simple/Achat', [
+            'order' => [
+                ...$this->summary($order),
+                'supplier' => $order->supplier->only(['id', 'name']),
+                'lines' => $order->lines->map(function ($line): array {
+                    $remaining = Quantity::of($line->quantity)
+                        ->sub(Quantity::of($line->quantity_received));
+
+                    return [
+                        'id' => $line->id,
+                        'product_id' => $line->product_id,
+                        'name' => $line->label,
+                        'unit' => $line->unit_code,
+                        'quantity' => Quantity::of($line->quantity)->format(),
+                        'received' => Quantity::of($line->quantity_received)->format(),
+                        'remaining' => $remaining->format(),
+                    ];
+                })->values(),
+            ],
+            'can' => ['receive' => $receivable && Gate::allows('purchase.receive')],
+            'audio_code' => 'ACH-05',
         ]);
     }
 
