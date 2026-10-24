@@ -29,3 +29,14 @@ void test('Achats ne propose une nouvelle commande quavec la permission metier',
     assert.match(src, /href="\/purchases\/orders\/create"/);
     assert.match(src, /Commander/);
 });
+
+void test('le detail permet de compter les articles et de les ranger dans le stock', () => {
+    const detail = readFileSync('resources/js/pages/simple/Achat.vue', 'utf8');
+
+    assert.match(detail, /Compteur/);
+    assert.match(detail, /quantites/);
+    assert.match(detail, /crypto\.randomUUID\(\)/);
+    assert.match(detail, /router\.post\(/);
+    assert.match(detail, /\/simple\/achats\/\$\{props\.order\.id\}\/recevoir/);
+    assert.match(detail, /Ranger dans le stock/);
+});
