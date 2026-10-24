@@ -78,4 +78,40 @@ class SimplePurchasesTest extends TestCase
                 ->where('received_orders.0.status', 'received')
                 ->where('audio_code', 'ACH-01'));
     }
+
+    public function test_simple_purchases_opens_a_confirmed_order_for_receipt(): void
+    {
+        $tenant = $this->createTenantWithMember();
+        $purchaser = $this->member($tenant, 'purchaser');
+        $product = $this->makeProduct($purchaser, 'RIZ', 'U');
+        $supplier = $this->makeSupplier($purchaser);
+        $this->enter($purchaser);
+
+        $order = app(PurchaseOrderService::class)->confirm(
+            app(PurchaseOrderService::class)->saveDraft(null, [
+                'warehouse_id' => $purchaser['warehouse']->id,
+                'supplier_id' => $supplier->id,
+                'lines' => [[
+                    'product_id' => $product->id,
+                    'quantity' => '10',
+                    'unit_cost' => 1200,
+                ]],
+            ], $purchaser['user']),
+            $purchaser['user'],
+        );
+
+        $this->act($purchaser)
+            ->get("/simple/achats/{$order->id}")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('simple/Achat')
+                ->where('order.id', $order->id)
+                ->where('order.number', $order->number)
+                ->where('order.status', 'confirmed')
+                ->where('order.supplier.name', $supplier->name)
+                ->where('order.lines.0.product_id', $product->id)
+                ->where('order.lines.0.remaining', '10.000')
+                ->where('can.receive', true)
+                ->where('audio_code', 'ACH-05'));
+    }
 }
