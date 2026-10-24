@@ -110,7 +110,7 @@ class SimplePurchasesTest extends TestCase
                 ->where('order.status', 'confirmed')
                 ->where('order.supplier.name', $supplier->name)
                 ->where('order.lines.0.product_id', $product->id)
-                ->where('order.lines.0.remaining', '10.000')
+                ->where('order.lines.0.remaining', '10')
                 ->where('can.receive', true)
                 ->where('audio_code', 'ACH-05'));
     }
