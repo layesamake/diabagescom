@@ -7,7 +7,7 @@
  * contrôleur simple, filtrées par les dépôts accessibles à l'utilisateur.
  */
 import { Head, router } from '@inertiajs/vue3';
-import { CheckCircle2, PackageOpen, Truck } from 'lucide-vue-next';
+import { CheckCircle2, PackageOpen, Truck } from 'lucide-vue';
 import { computed } from 'vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 import { useAppContext } from '@/composables/useAppContext';
