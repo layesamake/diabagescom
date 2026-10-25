@@ -165,9 +165,25 @@ function methodLabel(method: string): string {
             :style="{ borderColor: 'var(--s-bordure)' }"
         >
             <h2 class="text-[20px] font-extrabold">Meilleures ventes</h2>
-            <p class="mt-2 text-[17px] font-semibold">
-                {{ top_products[0].label }}
-            </p>
+            <dl class="mt-3 grid gap-2">
+                <div
+                    v-for="product in top_products"
+                    :key="`${product.label}-${product.quantity}`"
+                    class="flex items-center justify-between gap-3 text-[17px] font-semibold"
+                >
+                    <dt>
+                        {{ product.label }}
+                        <span
+                            class="text-[15px] font-medium text-[var(--s-texte-doux)]"
+                        >
+                            × {{ product.quantity }}
+                        </span>
+                    </dt>
+                    <dd class="tabular-nums">
+                        {{ formatFranc(product.total) }}
+                    </dd>
+                </div>
+            </dl>
         </section>
     </main>
 </template>
