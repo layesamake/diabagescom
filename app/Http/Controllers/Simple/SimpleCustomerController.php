@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Simple;
 
+use App\Domain\Catalog\PartyService;
 use App\Domain\Inventory\StockAccess;
 use App\Domain\Sales\PaymentService;
 use App\Http\Controllers\Controller;
@@ -55,10 +56,58 @@ class SimpleCustomerController extends Controller
             ])
             ->values();
 
+        // Clients qui ne doivent rien (maquette 08a) : sans eux, un client tout juste
+        // créé n'apparaîtrait nulle part tant qu'il n'a pas de dette.
+        $settled = Customer::query()
+            ->select('id', 'name', 'phone')
+            ->whereNull('archived_at')
+            ->whereNotIn('id', $customers->pluck('id')->all())
+            ->orderBy('name')
+            ->limit(200)
+            ->get()
+            ->map(fn (Customer $customer): array => [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'phone' => $customer->phone,
+            ])
+            ->values();
+
         return Inertia::render('simple/Clients', [
             'total_due' => $customers->sum('due'),
             'customers' => $customers,
+            'settled' => $settled,
+            'can' => ['create' => Gate::allows('customer.manage')],
         ]);
+    }
+
+    /** Formulaire « Nouveau client » : un nom et, si on l'a, un numéro de téléphone. */
+    public function create(): Response
+    {
+        Gate::authorize('customer.manage');
+
+        return Inertia::render('simple/ClientNouveau');
+    }
+
+    /**
+     * Création par le même service que le mode expert (code automatique, audit,
+     * contrôle de l'abonnement) : un client créé ici est le même client partout.
+     */
+    public function store(Request $request, PartyService $parties): RedirectResponse
+    {
+        Gate::authorize('customer.manage');
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'min:2', 'max:160'],
+            'phone' => ['nullable', 'string', 'max:32', 'regex:/^[0-9+() .-]{6,32}$/'],
+        ], attributes: ['name' => 'nom', 'phone' => 'téléphone']);
+
+        $customer = $parties->create(Customer::class, [
+            'name' => $data['name'],
+            'phone' => $data['phone'] ?? null,
+        ]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('catalog.party.customer_saved', ['name' => $customer->name])]);
+
+        return to_route('simple.customers');
     }
 
     public function show(Customer $customer, StockAccess $access): Response

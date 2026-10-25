@@ -161,7 +161,9 @@ export const fr = {
         'simple/NouvelArticle':
             'Ajoutez un article en quelques informations : son nom, son prix, son unité et sa famille.\nLa référence et la taxe sont préparées automatiquement ; vous pourrez ajouter le stock à la réception ou depuis l’écran Stock.',
         'simple/Clients':
-            'Les clients qui ont une dette, du montant le plus élevé au plus faible.\nLe total dû indique ce que vous devez encore récupérer ; ouvrez ensuite une fiche client pour enregistrer son paiement.',
+            'Les clients qui ont une dette, du montant le plus élevé au plus faible, puis ceux qui ne doivent rien.\nLe total dû indique ce que vous devez encore récupérer ; ouvrez une fiche client pour enregistrer son paiement, ou touchez « Nouveau client » pour en ajouter un.',
+        'simple/ClientNouveau':
+            'Ajoutez un client avec son nom et, si vous l’avez, son numéro de téléphone.\nIl apparaîtra dans la liste des clients, sans dette, et vous pourrez le choisir pour une vente à crédit.',
         'simple/Achats':
             'Vos commandes aux fournisseurs. Les commandes en route attendent leur réception ; les commandes reçues ont déjà mis le stock à jour.\nTouchez une commande en route pour compter les articles livrés.',
         'simple/Resultats':

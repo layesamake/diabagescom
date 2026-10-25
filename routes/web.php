@@ -141,6 +141,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
 
     // Mode simple — lot 5 : liste des dettes clients.
     Route::get('simple/clients', [SimpleCustomerController::class, 'index'])->name('simple.customers');
+    Route::get('simple/clients/nouveau', [SimpleCustomerController::class, 'create'])->name('simple.customers.create');
+    Route::post('simple/clients', [SimpleCustomerController::class, 'store'])->middleware('throttle:30,1')->name('simple.customers.store');
     Route::get('simple/clients/{customer}', [SimpleCustomerController::class, 'show'])->whereUuid('customer')->name('simple.customers.show');
     Route::post('simple/clients/{customer}/factures/{document}/paiement', [SimpleCustomerController::class, 'pay'])
         ->whereUuid('customer')->whereUuid('document')->middleware('throttle:60,1')->name('simple.customers.pay');
