@@ -43,9 +43,13 @@ class SimpleResultsController extends Controller
             default => $today->startOfMonth(),
         };
         $to = $today->endOfDay();
-        $days = $from->startOfDay()->diffInDays($to->startOfDay()) + 1;
-        $previousTo = $from->subDay()->endOfDay();
-        $previousFrom = $previousTo->startOfDay()->subDays($days - 1);
+        // Période de comparaison alignée sur le calendrier : au 25 octobre, « octobre depuis le
+        // 1er » se compare à « septembre du 1er au 25 », pas à la fenêtre de même durée juste avant.
+        [$previousFrom, $previousTo] = match ($key) {
+            'week' => [$from->subWeek(), $today->subWeek()->endOfDay()],
+            'year' => [$from->subYearNoOverflow(), $today->subYearNoOverflow()->endOfDay()],
+            default => [$from->subMonthNoOverflow(), $today->subMonthNoOverflow()->endOfDay()],
+        };
         $all = Gate::allows('report.view_all');
         $margin = Gate::allows('report.margin_view');
         $data = $pilotage->build(
@@ -69,6 +73,11 @@ class SimpleResultsController extends Controller
                 'key' => $key,
                 'from' => $from->toDateString(),
                 'to' => $to->toDateString(),
+                // Période de comparaison : sert à nommer le mois (« Mieux que septembre »).
+                'previous' => [
+                    'from' => $previousFrom->toDateString(),
+                    'to' => $previousTo->toDateString(),
+                ],
             ],
             'summary' => [
                 'sold' => $summary['total'],

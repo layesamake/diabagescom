@@ -1,18 +1,29 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
-import { BarChart3 } from '@lucide/vue';
+import { BarChart3, Equal, TrendingDown, TrendingUp } from '@lucide/vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 import { useAudio } from '@/composables/useAudio';
 import { formatFranc } from '@/lib/money';
+import { comparisonMessage } from '@/lib/periodComparison';
 
 type PeriodKey = 'week' | 'month' | 'year';
 
 const audio = useAudio();
 const props = defineProps<{
-    period: { key: PeriodKey; from: string; to: string };
+    period: {
+        key: PeriodKey;
+        from: string;
+        to: string;
+        /** Période de comparaison, alignée sur le calendrier. */
+        previous: { from: string; to: string };
+    };
     summary: { sold: number; spent: number | null; remaining: number | null };
-    comparison: Record<string, unknown>;
+    /** Écart avec la période précédente : `change` est nul s'il n'y a rien à comparer. */
+    comparison: Record<
+        string,
+        { value: number | null; change: number | null } | undefined
+    >;
     by_method: { method: string; total: number }[];
     by_day: { day: string; total: number; sales: number }[];
     top_products: { label: string; quantity: string; total: number }[];
@@ -31,6 +42,40 @@ const title = computed(
         periods.find((option) => option.key === props.period.key)?.title ??
         'Mes résultats',
 );
+
+// « Il me reste » si l'utilisateur peut le voir, sinon « Vendu » : on compare ce qui est affiché.
+const comparaison = computed(() => {
+    const mesure =
+        props.can.margin && props.summary.remaining !== null
+            ? props.comparison.margin
+            : props.comparison.total;
+
+    return comparisonMessage(
+        props.period.key,
+        props.period.previous.from,
+        mesure?.change ?? null,
+    );
+});
+const styleComparaison = {
+    mieux: {
+        backgroundColor: 'var(--s-vert-clair)',
+        color: 'var(--s-sur-vert-clair)',
+    },
+    moins: {
+        backgroundColor: 'var(--s-orange-clair)',
+        color: 'var(--s-sur-orange-clair)',
+    },
+    pareil: {
+        backgroundColor: 'var(--s-surface)',
+        color: 'var(--s-texte)',
+        border: '1px solid var(--s-bordure)',
+    },
+} as const;
+const iconeComparaison = {
+    mieux: TrendingUp,
+    moins: TrendingDown,
+    pareil: Equal,
+} as const;
 
 function choosePeriod(key: PeriodKey): void {
     router.get('/simple/resultats', { period: key });
@@ -127,6 +172,20 @@ function methodLabel(method: string): string {
                 </p>
             </article>
         </section>
+
+        <p
+            v-if="comparaison"
+            class="inline-flex min-h-12 items-center gap-2 justify-self-start rounded-full px-4 text-[17px] font-extrabold"
+            :style="styleComparaison[comparaison.sens]"
+        >
+            <component
+                :is="iconeComparaison[comparaison.sens]"
+                :size="22"
+                :stroke-width="2.5"
+                aria-hidden="true"
+            />
+            {{ comparaison.texte }}
+        </p>
 
         <section
             v-if="by_method.length > 0"
