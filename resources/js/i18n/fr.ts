@@ -34,9 +34,13 @@ export const fr = {
     },
     nav: {
         dashboard: 'Accueil',
+        guide: 'Guide de démarrage',
+        help_center: 'Centre d’aide',
         audit: "Journal d'audit",
         devices: 'Appareils',
         subscription: 'Abonnement',
+        features: 'Fonctionnalités',
+        simple_mode: 'Mode simple (images)',
         warehouses: 'Dépôts',
         settings: 'Paramètres',
         profile: 'Profil',
@@ -132,6 +136,10 @@ export const fr = {
     help: {
         button: 'Aide sur cette page',
         title: 'À quoi sert cette page ?',
+        'help/Index':
+            'Le centre d’aide : des étapes simples pour les tâches courantes, les questions les plus fréquentes et le sens des mots du métier.\nTapez un mot dans la recherche pour ne voir que ce qui le concerne.',
+        'guide/Index':
+            'Votre guide de démarrage : les étapes à suivre, adaptées à votre rôle. Une étape se coche toute seule dès qu’elle est faite ; vous pouvez aussi la cocher vous-même ou la remettre à plus tard.\nLe bouton « Faire la visite » vous montre où se trouve chaque rubrique.',
         Dashboard:
             'Votre tableau de bord : les ventes du jour, les actions les plus fréquentes et ce qui demande votre attention (stock bas, factures en retard, caisse à fermer).\nCliquez sur une alerte pour aller directement à la liste concernée.',
         'sales/Pos':
@@ -150,6 +158,20 @@ export const fr = {
             "Vos articles. Ajoutez-les un par un avec « Nouvel article », ou importez votre liste depuis un fichier Excel (CSV).\nUn article archivé n'apparaît plus à la vente mais reste dans l'historique.",
         'catalog/ProductForm':
             "La fiche d'un article : nom, prix de vente, unité, taxe et photo. Le code-barres permet de le retrouver en le scannant.\nLe coût d'achat se calcule tout seul à partir de vos réceptions.",
+        'simple/NouvelArticle':
+            'Ajoutez un article en quelques informations : son nom, son prix, son unité et sa famille.\nLa référence et la taxe sont préparées automatiquement ; vous pourrez ajouter le stock à la réception ou depuis l’écran Stock.',
+        'simple/Clients':
+            'Les clients qui ont une dette, du montant le plus élevé au plus faible.\nLe total dû indique ce que vous devez encore récupérer ; ouvrez ensuite une fiche client pour enregistrer son paiement.',
+        'simple/Achats':
+            'Vos commandes aux fournisseurs. Les commandes en route attendent leur réception ; les commandes reçues ont déjà mis le stock à jour.\nTouchez une commande en route pour compter les articles livrés.',
+        'simple/Resultats':
+            'Vos résultats sur la période choisie : ce qui a été vendu, dépensé et ce qui reste.\nLes meilleures ventes indiquent les articles les plus demandés.',
+        'simple/Achat':
+            'Le détail de la commande à recevoir. Comparez les quantités attendues avec ce qui est livré ; le reliquat indique ce qui manque encore.\nLa réception enregistrera ensuite les articles réellement arrivés dans le stock.',
+        'simple/Client':
+            'La fiche présente les factures que ce client doit encore régler.\nChoisissez une facture, le montant et le mode de paiement ; les espèces nécessitent une caisse ouverte.',
+        'simple/PremiersPas':
+            "Les onze étapes pour démarrer : créer votre entreprise, enregistrer votre voix pour les messages audio, compter votre stock, ouvrir la caisse puis faire une première vente.\nL'étape en cours est mise en valeur ; celles déjà terminées montrent une coche verte.",
         'catalog/Parties':
             "Vos clients ou vos fournisseurs. Le plafond de crédit d'un client limite ce qu'il peut acheter sans payer tout de suite.",
         'catalog/ProductImport':
@@ -182,6 +204,82 @@ export const fr = {
             'Le journal de toutes les actions importantes : qui a fait quoi et quand. Il ne peut pas être modifié.',
         'sync/Queue':
             'Les ventes faites sans connexion Internet. Elles sont envoyées automatiquement dès que la connexion revient.\nSi une vente est refusée (stock insuffisant, par exemple), vous pouvez la corriger ici.',
+        'accounting/Accounts':
+            'Votre plan comptable (SYSCOHADA) et les comptes utilisés par la comptabilisation automatique des ventes, achats, paiements et du stock.\nCe paramétrage est proposé à titre provisoire : faites-le valider par votre expert-comptable avant tout usage officiel.',
+        'accounting/Entries':
+            'Toutes les écritures comptables : celles créées automatiquement par vos ventes et achats, et vos écritures diverses.\nUne écriture en brouillon se modifie ; une fois validée, elle ne change plus et se corrige par une écriture inverse.',
+        'accounting/EntryForm':
+            "Saisissez une écriture diverse : choisissez les comptes et les montants au débit et au crédit. Le total du débit doit égaler celui du crédit pour pouvoir valider.\nEnregistrez d'abord en brouillon ; vous pourrez la relire et joindre vos pièces justificatives avant de la valider.",
+        'accounting/EntryShow':
+            "Le détail d'une écriture : ses lignes au débit et au crédit, son état et ses pièces justificatives.\nUn brouillon peut être modifié ou supprimé ; une écriture validée est figée. Ajoutez le justificatif (PDF ou photo) pour garder la preuve avec l'écriture.",
+        'accounting/Reconciliation':
+            "Le rapprochement bancaire : comparez votre relevé de banque avec les écritures de votre compte.\nDémarrez un rapprochement, puis cochez les écritures qui figurent sur votre relevé : le montant rapproché et l'écart avec le relevé vous disent s'il reste quelque chose à vérifier.",
+        'accounting/Reports':
+            'Les états comptables : bilan, compte de résultat, balance, grand livre et balances des clients et fournisseurs.\nChoisissez la date ou la période, puis exportez en fichier si besoin. Présentation simplifiée, à faire valider par votre expert-comptable.',
+        'catalog/PartyImport':
+            "Importez vos clients ou vos fournisseurs depuis un fichier CSV (exportable depuis Excel).\nTéléchargez d'abord le modèle, remplissez-le, puis envoyez-le : un aperçu ligne par ligne vous montre ce qui sera ajouté et ce qui est à corriger. Rien n'est enregistré avant votre confirmation.",
+        'catalog/ReferenceData':
+            "Les listes utilisées par vos articles : catégories, unités de vente (pièce, kg, litre…) et taux de taxe.\nUn nouveau taux ne s'applique qu'aux opérations futures : les documents déjà validés ne changent pas. Faites valider les taux réglementaires par votre expert-comptable.",
+        'inventory/CountShow':
+            'Un inventaire : saisissez la quantité réellement comptée pour chaque article. Le stock théorique est figé au moment de la validation.\nÀ la validation, les écarts sont enregistrés comme des mouvements de stock, avec leur motif, et restent consultables.',
+        'inventory/TransferForm':
+            "Préparez un transfert de marchandise d'un dépôt vers un autre : choisissez l'origine, la destination, puis les articles et les quantités.\nLe stock quitte le dépôt d'origine à l'expédition et n'entre dans le dépôt de destination qu'à la réception.",
+        'inventory/TransferShow':
+            "Le suivi d'un transfert entre deux dépôts. Expédiez-le depuis le dépôt d'origine ; le dépôt de destination le réceptionne ensuite.\nÀ la réception, indiquez la quantité réellement reçue si elle diffère de ce qui a été envoyé.",
+        'platform/Billing':
+            "La facturation des abonnements de la plateforme : factures émises aux entreprises, paiements déclarés ou reçus, et avoirs.\nVérifiez un paiement avant de le valider ; l'annulation d'une facture d'abonnement demande un motif et reste tracée.",
+        'platform/Dashboard':
+            'Le tableau de bord de la plateforme : abonnements, essais qui se terminent bientôt, factures en retard et encaissements.\nCliquez sur une entreprise pour ouvrir sa fiche. Les données métier des entreprises (ventes, clients…) ne sont jamais visibles ici.',
+        'platform/Plans':
+            "Les formules proposées aux entreprises : limites (utilisateurs, dépôts) et tarifs en F.\nUn tarif vide signifie « non encore validé » : la formule ne peut pas être achetée tant qu'il n'est pas fixé.",
+        'platform/Support':
+            "L'assistance d'une entreprise cliente : consultation de sa fiche (logo, devanture, régime de TVA, lien Maps) avec un motif obligatoire.\nChaque consultation ou modification est enregistrée dans le journal de l'entreprise. Le cachet n'est jamais affiché.",
+        'platform/TenantCreate':
+            "Créez l'espace d'une entreprise cliente : son compte administrateur, son premier dépôt et son essai gratuit.\nL'administrateur reçoit une invitation par e-mail pour choisir son mot de passe.",
+        'platform/TenantShow':
+            "La fiche d'une entreprise cliente : sa formule, l'état de son abonnement, ses options et son historique.\nVous pouvez changer de formule, arrêter l'abonnement (tout de suite ou à l'échéance) ou ouvrir un accès d'assistance limité dans le temps et tracé. Toute action sensible demande un motif.",
+        'platform/Tenants':
+            "La liste des entreprises clientes avec l'état de leur abonnement (essai, actif, en retard, suspendu).\nOuvrez une fiche pour agir, ou créez un nouveau client. Les données métier des entreprises ne sont pas visibles ici.",
+        'purchases/InvoiceForm':
+            "Saisissez une facture reçue d'un fournisseur : choisissez le fournisseur, sa référence, les lignes et les montants.\nEnregistrez en brouillon pour relire ; elle reçoit son numéro et devient payable une fois validée.",
+        'purchases/InvoiceShow':
+            "Le détail d'une facture fournisseur. Une fois validée, elle compte dans ce que vous devez à ce fournisseur.\nEnregistrez ici chaque règlement (total ou partiel) : le reste à payer se met à jour.",
+        'purchases/OrderShow':
+            "Le détail d'une commande fournisseur. Confirmez-la pour lui donner son numéro : elle ne se modifie plus.\nÀ la livraison, utilisez « Réceptionner » et saisissez les quantités réellement reçues : le stock se met à jour tout de suite.",
+        'purchases/ReceiptShow':
+            'Une réception de marchandises : ce qui est entré en stock, quand et par qui.\nSi une partie doit repartir chez le fournisseur, faites un retour : les quantités sortent du stock et leur montant est déduit de la facture liée.',
+        'purchases/RequestForm':
+            "Exprimez un besoin d'achat : choisissez les articles et les quantités souhaitées. Pas de prix ni de fournisseur à ce stade.\nEnregistrez en brouillon, puis envoyez la demande pour qu'elle soit examinée.",
+        'purchases/RequestShow':
+            "Le suivi d'une demande d'achat : brouillon, envoyée, approuvée ou refusée, puis transformée en commande.\nUne demande envoyée ne se modifie plus. Un approbateur la valide ou la refuse en donnant un motif ; les achats la transforment ensuite en commande fournisseur.",
+        'purchases/Requests':
+            "Les demandes d'achat : un collaborateur exprime un besoin, un approbateur le valide, puis les achats le transforment en commande fournisseur.\nVous ne voyez que vos propres demandes, sauf si votre rôle est lié aux achats ou à l'approbation.",
+        'settings/Appearance':
+            "Choisissez l'apparence de l'application : clair, sombre, ou automatique selon votre appareil.\nCe choix est personnel : il ne change pas l'affichage des autres utilisateurs.",
+        'settings/Company':
+            "La fiche de votre entreprise : raison sociale, adresse, téléphone, NINEA, RCCM, logo, cachet et régime de TVA.\nCes informations s'impriment sur vos devis, factures et avoirs ; les champs vides ne s'impriment pas.",
+        'settings/Devices':
+            "Les appareils autorisés à vendre hors connexion (téléphone, tablette, ordinateur de caisse).\nSi un appareil est perdu ou n'est plus utilisé, révoquez-le : il ne pourra plus envoyer de ventes.",
+        'simple/Demo':
+            'Chaque composant du mode simple à côté de la maquette qui lui sert de référence.\\nOutil de validation interne : comparez, puis signalez ce qui doit changer.',
+        'settings/Features':
+            "Activez la comptabilité et la boutique en ligne : incluses dans votre formule, mais éteintes jusqu'à votre décision.\nRéservé à l'administrateur. Une fois des données saisies (écritures, commandes), le module ne peut plus être désactivé.",
+        'settings/Index':
+            'Tous vos réglages au même endroit : votre compte, votre entreprise, vos données.\nChaque carte explique en une phrase à quoi elle sert. Vous ne voyez que ce que votre rôle vous permet de régler.',
+        'settings/Notifications':
+            "Choisissez, pour chaque sujet, où vous voulez être prévenu : à l'écran ou par e-mail.\nCes choix sont les vôtres et valent pour cette entreprise. L'e-mail est limité à un par jour, seulement s'il y a quelque chose à traiter.",
+        'settings/Profile':
+            "Votre profil : votre nom et votre adresse e-mail de connexion.\nSi vous changez d'adresse e-mail, il faudra la confirmer. Vous pouvez aussi supprimer votre compte depuis cette page.",
+        'settings/Security':
+            "La sécurité de votre compte : mot de passe, double authentification et clés d'accès.\nActivez la double authentification : même si quelqu'un connaît votre mot de passe, il ne pourra pas se connecter sans votre téléphone.",
+        'settings/Subscription':
+            "Votre abonnement : la formule choisie, son état (essai, actif…), vos limites et ce que vous utilisez déjà.\nVous pouvez changer de formule, ajouter des options et consulter ou régler vos factures d'abonnement.",
+        'storefront/Index':
+            'Votre boutique en ligne : présentez votre entreprise (accroche, description, contacts, horaires) et recevez des commandes sans paiement en ligne.\nCochez « Boutique publiée » pour la rendre visible à vos clients, et choisissez si vous recevez des commandes et si vous proposez la livraison.',
+        'storefront/Orders':
+            "Les commandes reçues par votre boutique en ligne. Faites-les avancer : nouvelle, confirmée, en préparation, prête, terminée ; ou refusée ou annulée.\nUne commande confirmée devient une commande client (client retrouvé ou créé) que vous pouvez ouvrir pour la suivre comme n'importe quelle vente.",
+        'storefront/Products':
+            "Choisissez les articles qui apparaissent dans votre boutique (Publié) ou non (Brouillon), et complétez leur nom public, leur description publique et leur prix public.\nUn article en brouillon reste utilisable en caisse mais n'apparaît pas aux clients de la boutique.",
     },
     scanner: {
         title: 'Scanner avec la caméra',
@@ -201,37 +299,429 @@ export const fr = {
         sell: 'Vendre',
         menu: 'Menu',
     },
-    checklist: {
-        title: 'Bien démarrer avec DIABA GESCOM',
-        progress: '{done} étape(s) sur {total} terminée(s)',
-        hide: 'Masquer cette liste',
-        done: 'terminé',
-        todo: 'à faire',
-        steps: {
+    search: {
+        button: 'Rechercher',
+        title: 'Recherche',
+        hint: 'Tapez pour trouver une page, un article, un client, un fournisseur ou un document.',
+        placeholder: 'Rechercher une page, un article, un client…',
+        empty: 'Aucun résultat pour « {q} ».',
+        footer: '↑ ↓ pour choisir · Entrée pour ouvrir · Échap pour fermer',
+        draft: 'brouillon',
+        new_product: 'Ajouter un article',
+        groups: {
+            pages: 'Aller à',
+            products: 'Articles',
+            customers: 'Clients',
+            suppliers: 'Fournisseurs',
+            documents: 'Documents de vente',
+        },
+        keywords: {
+            dashboard: 'accueil tableau de bord resume chiffres',
+            pos: 'vendre vente caisse comptoir encaisser ticket',
+            sales: 'factures documents commandes avoirs ventes',
+            quote: 'devis proposition prix nouveau creer',
+            cash: 'caisse fond de caisse ouvrir fermer especes',
+            customers: 'clients acheteurs credit',
+            suppliers: 'fournisseurs vendeurs',
+            orders: 'achats commandes fournisseur receptions livraisons',
+            invoices: 'factures fournisseur achats payer',
+            requests: 'demandes achat besoin approbation',
+            products: 'articles produits catalogue prix photo code barre',
+            new_product: 'ajouter creer nouvel article produit',
+            stock: 'stock quantites depots niveaux alertes',
+            transfers: 'transferts depots deplacer stock',
+            counts: 'inventaires comptage ecarts',
+            reports: 'rapports statistiques ventes marge export',
+            accounting: 'comptabilite ecritures bilan journal comptes',
+            company: 'entreprise fiche logo adresse ninea rccm tva',
+            members: 'collaborateurs equipe utilisateurs roles inviter',
+            backup: 'sauvegarde export donnees google drive copie',
+            settings: 'parametres reglages configuration profil securite',
+            guide: 'guide demarrage aide etapes visite',
+            help: 'aide centre glossaire questions faq mots avoir comment faire',
+        },
+    },
+    settings_hub: {
+        page_title: 'Paramètres',
+        heading: 'Paramètres',
+        description:
+            'Tous vos réglages au même endroit. Choisissez ce que vous voulez modifier.',
+        sections: {
+            account: 'Mon compte',
+            company: 'Mon entreprise',
+            data: 'Données et contrôle',
+        },
+        overview: 'Vue d’ensemble',
+        items: {
+            profile:
+                'Votre nom, votre adresse e-mail et la suppression du compte.',
+            security: 'Mot de passe, double authentification et clés d’accès.',
+            appearance: 'Thème clair, sombre ou automatique.',
+            notifications:
+                'Les alertes que vous voulez recevoir, à l’écran ou par e-mail.',
+            company:
+                'Raison sociale, adresse, NINEA, logo et mentions des documents.',
+            members:
+                'Inviter des collaborateurs et choisir ce que chacun peut faire.',
+            warehouses: 'Vos magasins et dépôts, et qui y a accès.',
+            subscription:
+                'Votre formule, les options et les factures de l’abonnement.',
+            features:
+                'Activer ou désactiver la comptabilité et la boutique en ligne.',
+            backup: 'Une copie de vos données sur votre ordinateur ou Google Drive.',
+            audit: 'Qui a fait quoi et quand : le journal des actions importantes.',
+            devices: 'Les appareils autorisés à vendre hors connexion.',
+        },
+    },
+    help_center: {
+        nav: 'Centre d’aide',
+        page_title: 'Centre d’aide',
+        heading: 'Centre d’aide',
+        description:
+            'Des réponses simples : comment faire, questions fréquentes et sens des mots du métier.',
+        search_label: 'Rechercher dans l’aide',
+        search_placeholder: 'Ex. avoir, inventaire, sauvegarde…',
+        empty: 'Rien ne correspond à « {q} ». Essayez un mot plus court ou utilisez la recherche Ctrl+K.',
+        open: 'Y aller',
+        see_center: 'Ouvrir le centre d’aide',
+        sections: {
+            tasks: 'Comment faire ?',
+            faq: 'Questions fréquentes',
+            glossary: 'Le sens des mots',
+        },
+        tasks: {
+            sell: {
+                title: 'Faire une vente au comptoir',
+                steps: 'Ouvrez la caisse avec le fond de caisse du jour.\nDans « Vente comptoir », cherchez ou scannez l’article : il s’ajoute au panier.\nAjustez la quantité, choisissez le mode de paiement.\nCliquez sur « Encaisser », puis imprimez ou envoyez le ticket.',
+            },
+            quote: {
+                title: 'Préparer un devis',
+                steps: 'Ouvrez « Nouveau devis » et choisissez le client.\nAjoutez les articles et les quantités.\nEnregistrez le brouillon, relisez, puis validez : le devis reçoit son numéro.\nPartagez-le par WhatsApp ou e-mail, ou téléchargez le PDF.',
+            },
             product: {
-                title: 'Ajouter vos articles',
-                hint: 'Nom, prix de vente, et photo si vous voulez.',
+                title: 'Ajouter un article',
+                steps: 'Dans « Articles », cliquez sur « Ajouter un article ».\nIndiquez le nom et le prix de vente, avec une photo si vous voulez.\nEnregistrez. Pour une longue liste, utilisez « Importer » avec un fichier CSV.',
             },
             stock: {
-                title: 'Saisir votre stock',
-                hint: 'Indiquez les quantités que vous avez en magasin.',
+                title: 'Saisir le stock de départ',
+                steps: 'Ouvrez « Stock » et cliquez sur « Stock initial ».\nPour chaque article, indiquez la quantité présente et son coût.\nEnregistrez le stock initial : chaque quantité devient un mouvement que vous pourrez toujours consulter.',
+            },
+            order: {
+                title: 'Commander et réceptionner chez un fournisseur',
+                steps: 'Dans « Achats », créez une commande : fournisseur, articles, quantités.\nConfirmez-la : elle reçoit un numéro et ne se modifie plus.\nÀ la livraison, cliquez sur « Réceptionner » et saisissez ce que vous avez vraiment reçu.\nLe stock augmente tout de suite.',
+            },
+            count: {
+                title: 'Faire un inventaire',
+                steps: 'Dans « Stock », ouvrez « Inventaires » puis démarrez un inventaire pour un dépôt.\nSaisissez la quantité réellement comptée pour chaque article.\nValidez : les écarts sont enregistrés comme des mouvements de stock.',
+            },
+            member: {
+                title: 'Donner accès à un collaborateur',
+                steps: 'Ouvrez « Paramètres » puis « Collaborateurs ».\nCliquez sur « Ajouter un collaborateur » : nom, e-mail, rôle et dépôts accessibles.\nIl reçoit un e-mail pour choisir son mot de passe. Chacun ne voit que ce que son rôle permet.',
+            },
+            backup: {
+                title: 'Sauvegarder vos données',
+                steps: 'Ouvrez « Paramètres » puis « Sauvegarde ».\nDemandez une copie : elle se télécharge sur votre ordinateur.\nOu connectez votre Google Drive pour y envoyer vos sauvegardes.',
+            },
+        },
+        faq: {
+            invoice_fix: {
+                question: 'Comment corriger une facture déjà validée ?',
+                answer: 'Une facture validée ne se modifie plus, pour garder une trace fiable. Pour la corriger, créez un avoir depuis la facture : il l’annule en tout ou en partie, et vous pouvez ensuite refaire une facture juste.',
+            },
+            offline: {
+                question: 'Puis-je vendre sans connexion Internet ?',
+                answer: 'Oui, sur un appareil autorisé. Les ventes restent sur l’appareil puis partent dès que la connexion revient. L’état s’affiche en haut de l’écran : En ligne, Hors connexion ou Synchronisation. Ne vous déconnectez pas avant l’envoi des ventes en attente.',
+            },
+            search: {
+                question:
+                    'Comment retrouver vite un article, un client ou une page ?',
+                answer: 'Appuyez sur Ctrl+K (⌘K sur Mac) ou cliquez sur « Rechercher » en haut de l’écran. Tapez quelques lettres : pages, articles, clients, fournisseurs et documents s’affichent.',
+            },
+            switch: {
+                question: 'Comment changer d’entreprise ou de dépôt ?',
+                answer: 'En haut de l’écran, cliquez sur le nom de l’entreprise ou du dépôt : la liste de ceux auxquels vous avez accès s’affiche.',
+            },
+            who_owes: {
+                question: 'Où voir ce que mes clients me doivent ?',
+                answer: 'Sur l’accueil, « Reste à encaisser » donne le total. Dans « Ventes », le filtre « Non soldées » liste les factures concernées.',
+            },
+            cash_close: {
+                question: 'Comment fermer la caisse ?',
+                answer: 'Dans « Caisse », ouvrez la session en cours et fermez-la en comptant l’argent. L’écart éventuel entre ce qui est attendu et ce que vous avez compté est enregistré.',
+            },
+            roles: {
+                question:
+                    'Pourquoi un collaborateur ne voit-il pas certaines pages ?',
+                answer: 'Chaque rôle (vendeur, gestionnaire de dépôt, achats, comptable, direction) ne donne accès qu’à ce qui le concerne. L’administrateur peut changer le rôle d’une personne dans Paramètres, Collaborateurs.',
+            },
+            trial: {
+                question: 'Que se passe-t-il à la fin de l’essai gratuit ?',
+                answer: 'Choisissez votre formule dans Paramètres, Abonnement avant la fin de l’essai. Sans formule, l’espace peut passer en lecture seule : vous consultez vos données mais ne pouvez plus en saisir.',
+            },
+            backup: {
+                question: 'Mes données sont-elles en sécurité ?',
+                answer: 'Elles sont protégées et propres à votre entreprise. Gardez en plus une copie : dans Paramètres, Sauvegarde, téléchargez-la ou envoyez-la sur votre Google Drive.',
+            },
+        },
+        glossary: {
+            credit_note: {
+                term: 'Avoir',
+                definition:
+                    'Document qui annule une facture, en tout ou en partie : vous ne modifiez jamais une facture validée, vous la corrigez par un avoir.',
+            },
+            quote: {
+                term: 'Devis',
+                definition:
+                    'Proposition de prix envoyée à un client avant la vente. Il ne change pas le stock ni la comptabilité tant qu’il n’est pas transformé en commande ou en facture.',
+            },
+            draft: {
+                term: 'Brouillon',
+                definition:
+                    'Document en préparation : il se modifie librement et n’a pas encore de numéro. Une fois validé, il est figé.',
+            },
+            receipt: {
+                term: 'Réception',
+                definition:
+                    'Enregistrement de la marchandise livrée par un fournisseur. Elle fait entrer les quantités en stock.',
+            },
+            transfer: {
+                term: 'Transfert',
+                definition:
+                    'Envoi de marchandise d’un dépôt à un autre : le stock sort à l’expédition et entre à la réception.',
+            },
+            stock_count: {
+                term: 'Inventaire',
+                definition:
+                    'Comptage de ce que vous avez réellement en dépôt, comparé au stock théorique. Les écarts sont enregistrés comme des mouvements.',
+            },
+            low_stock: {
+                term: 'Stock bas',
+                definition:
+                    'Article dont la quantité est passée sous le seuil d’alerte que vous avez fixé : c’est le moment de recommander.',
+            },
+            warehouse: {
+                term: 'Dépôt',
+                definition:
+                    'Un lieu où vous gardez ou vendez de la marchandise (magasin, entrepôt). Le stock se suit dépôt par dépôt.',
+            },
+            cash_float: {
+                term: 'Fond de caisse',
+                definition:
+                    'Argent présent dans la caisse à l’ouverture, pour rendre la monnaie. Il se compte à l’ouverture et à la fermeture.',
+            },
+            cash_gap: {
+                term: 'Écart de caisse',
+                definition:
+                    'Différence entre l’argent attendu et l’argent compté à la fermeture de la caisse. Il est enregistré pour être expliqué.',
+            },
+            receivable: {
+                term: 'Reste à encaisser',
+                definition:
+                    'Ce que vos clients vous doivent encore sur les factures validées (ventes à crédit, paiements partiels).',
+            },
+            purchase_request: {
+                term: 'Demande d’achat',
+                definition:
+                    'Un besoin exprimé par un collaborateur (quoi et combien), à faire approuver avant de devenir une commande fournisseur.',
+            },
+            entry: {
+                term: 'Écriture comptable',
+                definition:
+                    'Enregistrement d’une opération en comptabilité, avec un total au débit égal au total au crédit. Une écriture validée ne change plus.',
+            },
+            chart: {
+                term: 'Plan comptable',
+                definition:
+                    'La liste des comptes utilisés pour classer vos opérations (ici le référentiel SYSCOHADA). À valider avec votre expert-comptable.',
+            },
+            bank_rec: {
+                term: 'Rapprochement bancaire',
+                definition:
+                    'Comparaison de votre relevé de banque avec vos écritures, pour vérifier que tout correspond.',
+            },
+            vat_regime: {
+                term: 'Régime de TVA',
+                definition:
+                    'Votre situation fiscale : régime réel, contribution globale unique (CGU) ou exonéré. Il détermine les mentions imprimées sur vos documents.',
+            },
+            ninea: {
+                term: 'NINEA / RCCM',
+                definition:
+                    'Numéros d’identification de votre entreprise (fiscal et registre du commerce). Ils s’impriment sur vos devis et factures.',
+            },
+        },
+    },
+    guide: {
+        nav: 'Guide de démarrage',
+        page_title: 'Guide de démarrage',
+        progress: '{done} étape(s) sur {total} terminée(s)',
+        complete_title: 'Bravo, vous avez fait le tour !',
+        complete_text:
+            'Toutes les étapes sont terminées. Le guide reste ici si vous voulez revoir quelque chose.',
+        start_tour: 'Faire la visite',
+        replay_tour: 'Revoir la visite guidée',
+        continue: 'Continuer : {title}',
+        go: 'Y aller',
+        mark_done: "C'est fait",
+        skip: 'Plus tard',
+        reopen: 'Remettre à faire',
+        hide_card: 'Masquer ce guide',
+        see_all: 'Voir tout le guide',
+        auto_done: 'Fait automatiquement',
+        status_done: 'terminé',
+        status_skipped: 'reporté',
+        status_todo: 'à faire',
+        step_of: 'Étape {n} sur {total}',
+        banner_next: 'Étape suivante',
+        banner_hide: 'Masquer',
+        reminder_title: 'À faire avant de vendre',
+        reminder_text: '{title} : {hint}',
+        phases: {
+            before: 'Avant de vendre',
+            goal: 'Votre première vente',
+            after: 'Pour aller plus loin',
+        },
+        tracks: {
+            admin: {
+                title: 'Bienvenue ! Préparons votre entreprise',
+                intro: 'En quelques étapes, vous serez prêt à vendre. Chaque étape se coche toute seule dès qu’elle est faite.',
+            },
+            cashier: {
+                title: 'Bienvenue ! Prêt à encaisser ?',
+                intro: 'Ouvrez votre caisse puis faites une première vente : c’est tout ce qu’il faut pour commencer.',
+                phases: { before: 'Avant d’encaisser' },
+            },
+            warehouse: {
+                title: 'Bienvenue ! Votre stock sous contrôle',
+                intro: 'Mettez le stock à jour, recevez les livraisons et faites vos inventaires.',
+                phases: {
+                    before: 'Pour mettre le stock à jour',
+                    after: 'Au quotidien',
+                },
+            },
+            purchaser: {
+                title: 'Bienvenue ! Vos achats, pas à pas',
+                intro: 'Ajoutez vos fournisseurs, passez vos commandes et suivez les livraisons.',
+                phases: { after: 'Pour bien démarrer vos achats' },
+            },
+            accountant: {
+                title: 'Bienvenue ! Votre comptabilité',
+                intro: 'Vérifiez le paramétrage puis suivez les écritures et les états.',
+                phases: { after: 'Pour démarrer la comptabilité' },
+            },
+            management: {
+                title: 'Bienvenue ! Votre tableau de pilotage',
+                intro: 'Suivez l’activité de l’entreprise : ventes, stock, caisse et alertes.',
+                phases: { after: 'Pour suivre l’activité' },
+            },
+            member: {
+                title: 'Bienvenue ! Vos premiers pas',
+                intro: 'Voici les étapes utiles pour ce que vous pouvez faire dans l’entreprise.',
+            },
+        },
+        steps: {
+            company: {
+                title: 'Compléter la fiche de votre entreprise',
+                hint: 'Adresse, téléphone, NINEA et logo : ils s’impriment sur vos factures et devis.',
+            },
+            voice: {
+                title: 'Enregistrer la voix du mode simple',
+                hint: 'Choisissez la langue locale et enregistrez les phrases : vos vendeurs les entendront au bon endroit.',
+            },
+            products: {
+                title: 'Ajouter vos articles',
+                hint: 'Nom, prix de vente, et photo si vous voulez. Vous pouvez aussi les importer depuis Excel.',
+            },
+            stock: {
+                title: 'Saisir votre stock de départ',
+                hint: 'Indiquez les quantités que vous avez déjà en magasin.',
             },
             cash: {
                 title: 'Ouvrir la caisse',
-                hint: 'Comptez le fond de caisse du jour.',
+                hint: 'Comptez le fond de caisse avant la première vente du jour.',
             },
             sale: {
-                title: 'Faire votre première vente',
-                hint: 'Au comptoir : cherchez l’article, encaissez, imprimez le ticket.',
+                title: 'Faire une première vente',
+                hint: 'Au comptoir : cherchez l’article, encaissez, imprimez le ticket. Un essai suffit.',
+            },
+            customer: {
+                title: 'Ajouter un client',
+                hint: 'Utile pour vendre à crédit et retrouver son historique d’achats.',
             },
             team: {
                 title: 'Inviter un collaborateur',
-                hint: 'Vendeur, gestionnaire de stock ou comptable.',
+                hint: 'Vendeur, gestionnaire de stock ou comptable : chacun ne voit que ce qui le concerne.',
             },
             backup: {
                 title: 'Sauvegarder vos données',
                 hint: 'Une copie sur votre ordinateur ou votre Google Drive.',
             },
+            supplier: {
+                title: 'Ajouter un fournisseur',
+                hint: 'Pour commander et suivre ce que vous leur devez.',
+            },
+            order: {
+                title: 'Créer une commande fournisseur',
+                hint: 'Choisissez le fournisseur et les articles à commander.',
+            },
+            receipt: {
+                title: 'Réceptionner une livraison',
+                hint: 'Ouvrez une commande confirmée et enregistrez ce que vous avez reçu : le stock se met à jour.',
+            },
+            count: {
+                title: 'Faire un inventaire',
+                hint: 'Comptez vos articles et corrigez les écarts.',
+            },
+            accounting: {
+                title: 'Vérifier le plan comptable',
+                hint: 'Contrôlez les comptes proposés avec votre comptable avant de comptabiliser.',
+            },
+            entry: {
+                title: 'Passer une écriture',
+                hint: 'Enregistrez une première écriture diverse : brouillon, puis validation.',
+            },
+            reports: {
+                title: 'Consulter vos rapports',
+                hint: 'Ventes du jour, par article, par vendeur.',
+            },
+        },
+        tour: {
+            label: 'Visite guidée',
+            previous: 'Précédent',
+            next: 'Suivant',
+            finish: 'Terminer',
+            skip: 'Passer la visite',
+            step_of: '{n} sur {total}',
+            welcome_title: 'Bienvenue sur DIABA GESCOM',
+            welcome_text:
+                'Faisons un tour rapide, d’une minute, pour savoir où trouver chaque chose. Vous pourrez le refaire quand vous voulez.',
+            context_title: 'Votre entreprise et votre dépôt',
+            context_text:
+                'Vous voyez toujours ici dans quelle entreprise et quel dépôt vous travaillez. Cliquez pour en changer.',
+            search_title: 'Tout retrouver en un instant',
+            search_text:
+                'Tapez quelques lettres pour trouver une page, un article, un client ou une facture. Raccourci : Ctrl+K.',
+            sell_title: 'Vendre',
+            sell_text:
+                'Vente au comptoir, factures et devis, caisse et clients : tout ce qui fait rentrer de l’argent.',
+            buy_title: 'Acheter',
+            buy_text:
+                'Vos fournisseurs, commandes, réceptions et factures d’achat.',
+            stock_title: 'Articles et stock',
+            stock_text:
+                'Votre catalogue d’articles, le stock par dépôt, les transferts et les inventaires.',
+            manage_title: 'Gestion',
+            manage_text:
+                'Rapports, comptabilité et paramètres : collaborateurs, sauvegarde, abonnement.',
+            help_title: 'Besoin d’aide ?',
+            help_text:
+                'Le bouton « ? » explique en quelques phrases simples la page où vous êtes.',
+            guide_title: 'Votre guide',
+            guide_text:
+                'Retrouvez ici les étapes à suivre et votre progression. Il se met à jour tout seul.',
+            done_title: 'C’est tout !',
+            done_text:
+                'Suivez les étapes du guide dans l’ordre : votre première vente sera vite là.',
         },
     },
     team: {
@@ -632,6 +1122,16 @@ export const fr = {
         action_quote: 'Préparer une proposition de prix',
         action_cash: 'Ouvrir, suivre ou fermer la caisse',
         action_purchase: 'Commander et réceptionner chez un fournisseur',
+        action_product: 'Nom, prix de vente et photo d’un nouvel article',
+        action_stock: 'Quantités en magasin et alertes de stock bas',
+        action_reports: 'Ventes du jour, par article, par vendeur',
+        action_accounting: 'Écritures, journaux et états comptables',
+        action_customer: 'Fiches clients et ventes à crédit',
+        action_supplier: 'Fiches fournisseurs et ce que vous leur devez',
+        action_receive: 'Enregistrer ce que le fournisseur a livré',
+        action_transfer: 'Envoyer du stock d’un dépôt à un autre',
+        action_count: 'Compter les articles et corriger les écarts',
+        action_request: 'Exprimer un besoin à faire approuver',
     },
     subscription: {
         page_title: 'Abonnement',
@@ -670,6 +1170,19 @@ export const fr = {
                 "L'application est en lecture seule : vous pouvez consulter vos données mais plus en enregistrer.",
             suspended: "L'accès à cette entreprise est suspendu.",
             action: 'Voir mon abonnement',
+        },
+    },
+    features: {
+        description:
+            'La comptabilité et la boutique en ligne sont incluses dans votre formule : activez-les quand vous êtes prêt à les utiliser.',
+        hint: 'Incluse dans votre formule.',
+        not_included:
+            'Pas incluse dans votre formule actuelle. Contactez le support pour en savoir plus.',
+        activate: 'Activer',
+        deactivate: 'Désactiver',
+        labels: {
+            accounting: 'Comptabilité',
+            online_store: 'Boutique en ligne',
         },
     },
     warehouses: {
@@ -732,10 +1245,15 @@ export const fr = {
         },
         category: 'Catégorie',
         no_category: 'Sans catégorie',
+        add_category: 'Ajouter une catégorie…',
+        add_category_description:
+            'Créez une catégorie puis elle sera choisie pour cet article.',
+        category_name: 'Nom de la catégorie',
+        category_name_required: 'Saisissez un nom de catégorie.',
         unit: 'Unité',
         tax: 'Taxe',
-        sale_price: 'Prix de vente (XOF, TTC)',
-        standard_cost: "Coût d'achat (XOF)",
+        sale_price: 'Prix de vente (F, TTC)',
+        standard_cost: "Coût d'achat (F)",
         description_label: 'Description',
         price_locked:
             "Vous n'avez pas l'autorisation de modifier les prix de cet article.",
@@ -755,6 +1273,9 @@ export const fr = {
         image_title: 'Photo',
         archive: "Archiver l'article",
         restore: "Réactiver l'article",
+        duplicate: "Dupliquer l'article",
+        duplicate_confirm:
+            'Dupliquer « {name} » ? Une nouvelle fiche sera créée pour modification immédiate.',
         archived_notice:
             'Cet article est archivé : il ne peut plus être vendu mais reste dans l’historique.',
         back: 'Retour aux articles',
@@ -777,6 +1298,7 @@ export const fr = {
         low_count: '{count} article(s) sous le seuil d’alerte',
         quantity: 'Quantité',
         reorder_point: 'Seuil',
+        lead_time: 'Délai fournisseur',
         average_cost: 'Coût moyen',
         value: 'Valeur',
         low: 'Stock bas',
@@ -798,7 +1320,7 @@ export const fr = {
             'Quantités présentes au démarrage, valorisées au coût indiqué.',
         reason: 'Motif',
         reason_placeholder: 'Ex. casse, vol, erreur de saisie…',
-        unit_cost: 'Coût unitaire (XOF)',
+        unit_cost: 'Coût unitaire (F)',
         lines: 'Articles',
         add_line: 'Ajouter un article',
         remove_line: 'Retirer {name}',
@@ -950,7 +1472,7 @@ export const fr = {
         city: 'Ville',
         tax_number: 'NINEA',
         terms: 'Délai de paiement (jours)',
-        credit_limit: 'Plafond de crédit (XOF)',
+        credit_limit: 'Plafond de crédit (F)',
         credit_hint: 'Vide : aucune vente à crédit autorisée.',
         no_credit: 'Pas de crédit',
         notes: 'Notes',
@@ -969,7 +1491,7 @@ export const fr = {
         description:
             'Ajoutez ou mettez à jour vos contacts à partir d’un fichier CSV (Excel : « Enregistrer sous… CSV »).',
         format_customers:
-            'Première ligne : les noms de colonnes. Obligatoire : nom. Facultatives : code, telephone, email, adresse, ville, ninea, delai_paiement (jours), notes, plafond_credit (XOF).',
+            'Première ligne : les noms de colonnes. Obligatoire : nom. Facultatives : code, telephone, email, adresse, ville, ninea, delai_paiement (jours), notes, plafond_credit (F).',
         format_suppliers:
             'Première ligne : les noms de colonnes. Obligatoire : nom. Facultatives : code, telephone, email, adresse, ville, ninea, delai_paiement (jours), notes.',
         matching:
@@ -1055,6 +1577,25 @@ export const fr = {
         trial_ends_on: 'Fin le {date}',
         overdue_title: 'Factures en retard',
         nothing_to_do: 'Rien à traiter.',
+        activation_title: 'Activation des nouvelles entreprises',
+        activation_note:
+            "Pour chaque étape du guide, combien d'entreprises actives l'ont franchie. Seule l'existence d'une donnée (oui/non) est lue, jamais son contenu.",
+        activation_of: '{count} sur {total}',
+        stalled_title: 'À relancer : aucune vente après 3 jours',
+        stalled_next: 'Prochaine étape : {step}',
+        stalled_since: 'Inscrite le {date}',
+        milestones_title: 'Avancement du démarrage',
+        milestones_note: "Oui/non uniquement : le contenu n'est pas visible.",
+        milestone: {
+            company: 'Entreprise configurée',
+            products: 'Premier article',
+            stock: 'Stock initial',
+            cash: 'Caisse ouverte',
+            sale: 'Première vente',
+            customer: 'Premier client',
+            team: 'Équipe invitée',
+            backup: 'Sauvegarde faite',
+        },
         tenants_title: 'Entreprises clientes',
         tenants_description:
             'Abonnements des entreprises. Les données métier des entreprises ne sont pas visibles ici.',
@@ -1082,7 +1623,7 @@ export const fr = {
         },
         plans_title: 'Formules',
         plans_description:
-            'Limites et tarifs (XOF). Un tarif vide signifie « non encore validé ».',
+            'Limites et tarifs (F). Un tarif vide signifie « non encore validé ».',
         search: 'Rechercher une entreprise',
         company: 'Entreprise',
         members: '{count} membre(s)',
@@ -1156,8 +1697,8 @@ export const fr = {
         included_users: 'Utilisateurs inclus',
         accounting: 'Comptabilité',
         online_store: 'Boutique en ligne',
-        price_monthly: 'Prix mensuel (XOF)',
-        price_yearly: 'Prix annuel (XOF)',
+        price_monthly: 'Prix mensuel (F)',
+        price_yearly: 'Prix annuel (F)',
         active: 'Proposée aux clients',
         save_plan: 'Enregistrer',
     },
@@ -1193,7 +1734,7 @@ export const fr = {
         filter_all: 'Tous',
         public_name: 'Nom public',
         public_description: 'Description publique',
-        public_price: 'Prix public (XOF)',
+        public_price: 'Prix public (F)',
         save_product: 'Enregistrer le produit',
         no_products:
             'Aucun article pour le moment. Les articles que vous achetez arrivent ici automatiquement en brouillon.',
@@ -1405,7 +1946,7 @@ export const fr = {
         },
     },
     money: {
-        xof: 'XOF',
+        xof: 'F',
         total: 'Total',
         total_excl_tax: 'Total HT',
         total_tax: 'TVA',
@@ -1503,7 +2044,7 @@ export const fr = {
         lines: 'Articles',
         quantity: 'Quantité',
         unit_price: 'Prix TTC',
-        discount: 'Remise (XOF)',
+        discount: 'Remise (F)',
         line_total: 'Total ligne',
         remove_line: 'Retirer {name}',
         save_draft: 'Enregistrer le brouillon',
@@ -1553,6 +2094,8 @@ export const fr = {
     pos: {
         frequent: 'Articles fréquents',
         tile_stock: 'stock {quantity}',
+        tile_increment: 'Ajouter une {name}',
+        tile_decrement: 'Retirer une {name}',
         quick_cash: 'Montant reçu',
         exact_amount: 'Montant exact',
         title: 'Vente comptoir',
@@ -1594,7 +2137,7 @@ export const fr = {
         closed: 'Fermée',
         opened_by: 'Ouverte par {name} le {date}',
         open_action: 'Ouvrir',
-        opening_amount: 'Fond de caisse (XOF)',
+        opening_amount: 'Fond de caisse (F)',
         open_title: 'Ouvrir « {name} »',
         view_session: 'Voir la session',
         history: 'Historique des sessions',
@@ -1620,7 +2163,7 @@ export const fr = {
         add_income: 'Enregistrer une recette',
         label: 'Libellé',
         reason: 'Motif / justificatif',
-        amount: 'Montant (XOF)',
+        amount: 'Montant (F)',
         close_title: 'Fermer la caisse',
         wizard: {
             steps: 'Étapes de la fermeture',
@@ -1653,7 +2196,7 @@ export const fr = {
             breakdown: 'Comptage',
         },
         expected: 'Montant attendu',
-        counted: 'Montant compté (XOF)',
+        counted: 'Montant compté (F)',
         difference: 'Écart',
         closing_note: 'Explication de l’écart',
         close: 'Fermer la caisse',
@@ -1670,25 +2213,168 @@ export const fr = {
         },
     },
     reports: {
-        nav: 'Rapports',
-        title: 'Rapports',
+        nav: 'Pilotage',
+        title: 'Pilotage',
         description_all:
-            'Ventes de l’entreprise sur la période (avoirs déduits).',
-        description_own: 'Vos ventes sur la période (avoirs déduits).',
-        all_warehouses: 'Tous les dépôts',
-        revenue: 'Chiffre d’affaires TTC',
-        sales_count: 'Ventes',
+            'Comprendre l’activité de votre commerce et décider des prochaines actions.',
+        description_own:
+            'Vos ventes et vos indicateurs sur les dépôts autorisés.',
+        updated_at: 'Données mises à jour à',
+        business_timezone: 'Fuseau métier :',
+        filters: 'Filtres de pilotage',
+        today: 'Aujourd’hui',
+        this_week: 'Cette semaine',
+        this_month: 'Ce mois',
+        from: 'Du',
+        to: 'Au',
+        warehouse: 'Dépôt',
+        all_warehouses: 'Tous les dépôts autorisés',
+        apply: 'Appliquer',
+        compared_with: 'comparée à',
+        activity_period: 'Activité sur la période',
+        activity_period_hint:
+            'Les ventes validées et les avoirs sont rapprochés sur les mêmes dates.',
+        revenue: 'Chiffre d’affaires net TTC',
+        revenue_excl_tax: 'Chiffre d’affaires HT',
+        revenue_definition:
+            'Ventes validées TTC, diminuées des avoirs validés. Les brouillons et annulations sont exclus.',
+        net_of_credit_notes: 'Avoirs déduits.',
+        sales_count: 'Nombre de ventes',
+        sales_definition:
+            'Nombre de factures validées. Les avoirs ne sont pas comptés comme des ventes.',
         average_basket: 'Panier moyen',
-        margin: 'Marge brute (HT)',
+        average_definition:
+            'Chiffre d’affaires net TTC divisé par le nombre de factures validées.',
+        margin: 'Marge brute HT',
+        margin_definition:
+            'Ventes nettes HT moins coût historique des articles vendus. Le calcul est signalé comme partiel si un coût manque.',
+        margin_rate: 'Taux de marque',
+        rate_not_applicable: 'Taux non applicable.',
+        comparison_unavailable: 'Comparaison indisponible',
+        stable: 'Stable',
+        previous_zero: 'période précédente sans valeur',
+        partial_margin: 'Marge partielle : couverture des coûts historiques',
+        current_situation: 'Situation actuelle',
+        current_situation_hint:
+            'Ces montants sont calculés à la date de mise à jour, indépendamment de la période de ventes.',
         receivables: 'Créances clients',
+        overdue_receivables: 'Dont créances échues',
         payables: 'Dettes fournisseurs',
         stock_value: 'Valeur du stock',
+        stock_current: 'Situation actuelle au coût disponible.',
+        priorities: 'Vos priorités',
+        priorities_hint:
+            'Les constats les plus importants issus des données disponibles.',
+        no_priority: 'Aucune priorité détectée',
+        no_priority_hint:
+            'Aucune anomalie ne dépasse les règles actuelles sur ce périmètre.',
+        urgent: 'Urgent',
+        important: 'Important',
+        elements: 'élément(s)',
+        understand_evolution: 'Comprendre l’évolution',
+        understand_evolution_hint:
+            'Les montants négatifs correspondent à des avoirs supérieurs aux ventes du jour.',
+        revenue_evolution: 'Évolution du chiffre d’affaires',
+        margin_evolution: 'Évolution de la marge',
+        no_sales: 'Aucune vente validée sur la période.',
+        no_margin_data: 'Aucune marge calculable sur la période.',
+        table_view: 'Afficher le tableau accessible',
+        date: 'Date',
+        product_profitability: 'Rentabilité des articles',
+        product_profitability_hint:
+            'Articles classés par chiffre d’affaires HT, avec leur marge autorisée, leur stock actuel et leur dernière vente.',
+        no_product_sales: 'Aucun article vendu sur la période',
+        no_product_sales_hint:
+            'Essayez une période plus longue ou un autre dépôt.',
+        product: 'Article',
+        quantity: 'Quantité',
+        stock: 'Stock',
+        last_sale: 'Dernière vente',
+        service: 'Service',
+        cost_missing: 'Coût manquant',
+        view_product: 'Voir l’article',
+        actions: 'Actions',
+        money_to_collect: 'Argent à encaisser',
+        money_to_collect_hint:
+            'Créances ouvertes classées selon leur ancienneté après échéance.',
+        aging_1_7: 'Échues depuis 1 à 7 jours',
+        aging_8_30: 'Échues depuis 8 à 30 jours',
+        aging_31_60: 'Échues depuis 31 à 60 jours',
+        aging_over_60: 'Échues depuis plus de 60 jours',
+        invoices: 'facture(s)',
+        bucket: 'Tranche',
+        amount: 'Montant',
+        reorder_date: 'Date de commande recommandée',
+        source: 'Depuis',
+        destination: 'Vers',
+        missing_due_dates: 'de créances n’ont pas de date d’échéance.',
+        view_invoices: 'Voir les factures à encaisser',
+        watch: 'À surveiller',
+        warehouse_comparison: 'Comparaison des dépôts',
+        warehouse_comparison_hint:
+            'Ventes et marge sur la période choisie ; valeur du stock et dettes fournisseurs sont des situations actuelles. Mêmes définitions que les totaux de la page.',
+        transfer_suggestions: 'Transferts possibles entre dépôts',
+        transfer_suggestions_hint:
+            'Suggestion, sans effet : un dépôt qui manque bientôt d’un article (demande fiable) pourrait recevoir l’excédent d’un autre dépôt. Le dépôt source conserve {days} jours de sa propre demande et son seuil de réapprovisionnement ; un dépôt sans historique fiable n’est jamais vidé. Seuls les dépôts affichés dans le filtre sont comparés.',
+        transfer_none: 'Aucun transfert à suggérer.',
+        transfer_none_hint:
+            'Il faut au moins deux dépôts dans le périmètre, un dépôt à court d’un article et un autre avec un excédent sûr.',
+        transfer_from: 'Depuis',
+        transfer_to: 'Vers',
+        transfer_quantity: 'Quantité suggérée',
+        prepare_transfer:
+            'Préparer un transfert (aucune ligne n’est préremplie)',
+        stock_risk: 'Risque de rupture',
+        stock_risk_hint:
+            'Estimation : stock disponible divisé par les ventes par jour observées sur les {window} derniers jours (ou depuis la première entrée en stock). Elle n’est calculée qu’avec au moins {history} jours d’historique et {sales} ventes. Les commandes d’achat attendues ne sont pas comptées, et si le stock a été à zéro la demande peut être sous-estimée. Un article est signalé sous {risk} jours de couverture, en rupture ou au seuil de réapprovisionnement.',
+        stock_risk_none: 'Aucun article à risque de rupture.',
+        stock_risk_none_hint:
+            'Les articles sans historique suffisant ne sont pas évalués.',
+        risk_status: 'Situation',
+        status_out: 'Rupture',
+        status_low: 'Moins de {risk} jours',
+        status_reorder: 'Seuil de réapprovisionnement atteint',
+        available: 'Disponible',
+        daily_demand: 'Ventes par jour',
+        coverage: 'Couverture',
+        insufficient_history: 'Historique insuffisant',
+        supplier_lead_time: 'Délai fournisseur : {days} j.',
+        no_sales_state: 'Aucune vente',
+        view_movements: 'Voir les mouvements',
+        coverage_counts:
+            '{atRisk} article(s) à surveiller · {insufficient} avec un historique insuffisant · {noSales} sans vente récente.',
+        dormant_stock: 'Stock dormant',
+        dormant_stock_hint:
+            'Articles en stock, non vendus depuis {days} jours et en stock depuis au moins {days} jours. Situation actuelle : elle ne dépend pas de la période choisie.',
+        dormant_days: 'Sans vente depuis',
+        days: 'jours',
+        dormant_none: 'Aucun article dormant.',
+        dormant_none_hint:
+            'Tous les articles en stock ont été vendus récemment ou viennent d’être reçus.',
+        dormant_articles: 'article(s) sans vente récente',
+        dormant_value: 'valeur du stock concerné :',
+        dormant_item_value: 'Valeur du stock',
+        dormant_truncated: 'Les {shown} premiers articles sont affichés.',
+        never_sold: 'Jamais vendu',
+        view_stock: 'Voir le stock',
+        money_to_pay: 'Argent à payer',
+        money_to_pay_hint:
+            'Dettes fournisseurs ouvertes selon leur échéance. Ce sont des soldes connus, pas de la trésorerie disponible.',
+        due_overdue: 'Échues',
+        due_7: 'À échéance dans 7 jours',
+        due_8_30: 'À échéance dans 8 à 30 jours',
+        due_later: 'À échéance dans plus de 30 jours',
+        missing_payable_due_dates:
+            'de dettes fournisseurs n’ont pas de date d’échéance.',
+        view_supplier_invoices: 'Voir les factures fournisseurs à payer',
         by_day: 'Chiffre d’affaires par jour',
         by_method: 'Par moyen de paiement',
         by_warehouse: 'Par dépôt',
         by_seller: 'Par vendeur',
         top_products: 'Meilleurs articles',
-        no_sales: 'Aucune vente sur la période.',
+        no_payment: 'Aucun règlement sur la période.',
+        estimates_disclaimer:
+            'Ces indicateurs sont des estimations de gestion fondées sur les opérations validées et les coûts historiques disponibles. Ils ne remplacent pas les états comptables officiels.',
     },
     billing: {
         title: 'Facturation et paiement',
@@ -1732,7 +2418,7 @@ export const fr = {
         reject_title: 'Rejeter ce paiement ?',
         reject_reason: 'Motif du rejet :',
         credit_note: 'Émettre un avoir',
-        credit_amount: 'Montant (XOF)',
+        credit_amount: 'Montant (F)',
         credit_reason: 'Motif de l’avoir',
         credit_submit: 'Émettre l’avoir',
         credited: 'Avoirs : {amount}',
@@ -1898,7 +2584,7 @@ export const fr = {
             unbalanced:
                 'Le bilan présente un écart de {amount} : vérifiez les écritures.',
             accounts: 'Comptes',
-            amount: 'Montant (XOF)',
+            amount: 'Montant (F)',
             disclaimer:
                 'Présentation simplifiée du système normal SYSCOHADA, calculée sur les écritures validées. Le bilan est arrêté à la date « au » ; le compte de résultat couvre la période choisie. À valider avec votre expert-comptable avant tout usage officiel.',
         },
@@ -1919,7 +2605,7 @@ export const fr = {
         export_pdf: 'PDF',
         no_data: 'Aucune écriture validée sur la période.',
         statement_date: 'Date du relevé',
-        statement_balance: 'Solde du relevé (XOF)',
+        statement_balance: 'Solde du relevé (F)',
         reference: 'Référence du relevé',
         start_reconciliation: 'Démarrer le rapprochement',
         book_balance: 'Solde comptable : {amount}',
@@ -1977,7 +2663,7 @@ export const fr = {
         provisional_hint:
             'Reçu provisoire : la vente sera validée par le serveur au retour du réseau. Elle ne fait pas encore foi.',
         logout_pending:
-            '{count} vente(s) n’ont pas encore été envoyées. En vous déconnectant, elles seront supprimées de cet appareil. Continuer ?',
+            '{count} vente(s) hors ligne ne sont pas réglées (non envoyées, refusées ou à vérifier). En vous déconnectant, elles seront supprimées de cet appareil. Continuer ?',
         devices: 'Appareils',
         devices_description:
             'Appareils autorisés à vendre hors connexion. Révoquez un appareil perdu ou qui n’est plus utilisé.',

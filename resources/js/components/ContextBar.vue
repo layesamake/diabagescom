@@ -47,6 +47,7 @@ const triggerClass =
     <div
         v-if="context"
         class="flex min-w-0 flex-1 flex-nowrap items-center gap-1"
+        data-tour="context"
     >
         <DropdownMenu>
             <DropdownMenuTrigger

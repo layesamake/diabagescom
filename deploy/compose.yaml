@@ -54,7 +54,10 @@ services:
 
   nginx:
     image: ${DIABA_IMAGE}-nginx:${DIABA_VERSION}
-    networks: [backend, edge]
+    networks:
+      backend: {}
+      edge:
+        aliases: ["${DIABA_ENV}-nginx"]
     depends_on:
       app: { condition: service_healthy }
     restart: unless-stopped
@@ -65,6 +68,7 @@ services:
 
   caddy:
     image: caddy:2.10-alpine
+    profiles: [edge]
     # Port 80 partagé avec un autre site sur le même VPS : DIABA_HTTP_BIND=127.0.0.1:8081
     # (le certificat est alors obtenu par le défi TLS-ALPN sur 443).
     ports:
@@ -73,6 +77,7 @@ services:
       - "443:443/udp"
     environment:
       DIABA_DOMAIN: ${DIABA_DOMAIN:?}
+      DIABA_ENV: ${DIABA_ENV:?}
       ACME_EMAIL: ${ACME_EMAIL:?}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
@@ -136,6 +141,8 @@ networks:
   backend:
     internal: true
   edge:
+    external: ${DIABA_EDGE_EXTERNAL:-false}
+    name: ${DIABA_EDGE_NETWORK:?DIABA_EDGE_NETWORK requis}
   egress:
 
 volumes:

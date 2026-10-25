@@ -100,8 +100,8 @@ class ProductController extends Controller
     {
         Gate::authorize('catalog.view');
 
-        // Le coût d'achat est une donnée sensible : réservé à qui saisit du stock valorisé.
-        $showCost = Gate::allows('inventory.adjust');
+        // Le coût d'achat est une donnée sensible : réservé à qui voit les marges.
+        $showCost = Gate::allows('report.margin_view');
 
         // Stock disponible affiché à la vente, seulement pour un dépôt accessible.
         $warehouseId = (string) $request->query('warehouse', '');
@@ -151,8 +151,12 @@ class ProductController extends Controller
 
         /** @var User $user */
         $user = $request->user();
-        /** @var array{sku: string, name: string, type: string, unit_id: string, sale_price: int} $data */
+        /** @var array{sku: string, name: string, type: string, unit_id: string, sale_price: int, standard_cost?: int|null} $data */
         $data = $request->validated();
+        // Sans droit sur les coûts, le coût saisi est ignoré (valeur par défaut du service).
+        if (! Gate::allows('report.margin_view')) {
+            unset($data['standard_cost']);
+        }
         $product = $service->create($data, $user);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('catalog.product.created', ['name' => $product->name])]);
@@ -175,6 +179,10 @@ class ProductController extends Controller
         $user = $request->user();
         /** @var array{sku: string, name: string, type: string, unit_id: string, tax_rate_id: string, sale_price: int, version: int} $data */
         $data = $request->validated();
+        // Le coût n'est ni lisible ni modifiable sans droit sur les coûts : on conserve la valeur existante.
+        if (! Gate::allows('report.margin_view')) {
+            $data['standard_cost'] = $product->standard_cost;
+        }
         $service->update($product, $data, (int) $data['version'], $user);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('catalog.product.updated')]);
@@ -192,6 +200,24 @@ class ProductController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __($archived ? 'catalog.product.archived' : 'catalog.product.restored')]);
 
         return back(303);
+    }
+
+    /**
+     * Clone un article pour accélérer la saisie d'articles voisins
+     * (nouveau SKU, nom suffixé « (copie) », photo recopiée, codes-barres
+     * non repris). Redirige vers la fiche de la copie pour ajustement.
+     */
+    public function duplicate(Request $request, Product $product, ProductService $service): RedirectResponse
+    {
+        Gate::authorize('catalog.create');
+
+        /** @var User $user */
+        $user = $request->user();
+        $copy = $service->duplicate($product, $user);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('catalog.product.duplicated', ['name' => $copy->name])]);
+
+        return to_route('products.edit', $copy);
     }
 
     public function addBarcode(Request $request, Product $product, ProductService $service): RedirectResponse
@@ -289,7 +315,8 @@ class ProductController extends Controller
 
         return [
             'product' => $product ? [
-                ...$product->only(['id', 'sku', 'name', 'description', 'type', 'category_id', 'unit_id', 'tax_rate_id', 'sale_price', 'standard_cost', 'version']),
+                ...$product->only(['id', 'sku', 'name', 'description', 'type', 'category_id', 'unit_id', 'tax_rate_id', 'sale_price', 'version']),
+                'standard_cost' => Gate::allows('report.margin_view') ? $product->standard_cost : null,
                 'archived' => $product->archived_at !== null,
                 'image_url' => $this->imageUrl($product),
                 'barcodes' => $product->barcodes->map(fn (ProductBarcode $b) => $b->only(['id', 'code', 'symbology', 'is_primary']))->values(),
@@ -302,6 +329,7 @@ class ProductController extends Controller
                 'update' => Gate::allows('catalog.update'),
                 'archive' => Gate::allows('catalog.archive'),
                 'price_override' => Gate::allows('catalog.price_override'),
+                'cost' => Gate::allows('report.margin_view'),
             ],
         ];
     }

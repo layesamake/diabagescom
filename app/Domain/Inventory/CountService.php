@@ -84,9 +84,13 @@ final class CountService
 
     public function removeLine(InventoryCount $count, InventoryCountLine $line): void
     {
+        $this->access->assertCanWrite($this->context->tenant());
+
         DB::transaction(function () use ($count, $line): void {
-            $this->expectDraft($this->lock($count));
-            abort_unless($line->count_id === $count->id, 404);
+            $locked = $this->lock($count);
+            $this->stockAccess->warehouse($locked->warehouse_id);
+            $this->expectDraft($locked);
+            abort_unless($line->count_id === $locked->id, 404);
             $line->delete();
         });
     }
@@ -167,6 +171,7 @@ final class CountService
 
         return DB::transaction(function () use ($count, $actor): InventoryCount {
             $locked = $this->lock($count);
+            $this->stockAccess->warehouse($locked->warehouse_id);
             $this->expectDraft($locked);
 
             $locked->status = InventoryCount::CANCELLED;

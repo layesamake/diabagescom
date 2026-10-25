@@ -1,3 +1,4 @@
+@import '@fontsource/atkinson-hyperlegible-next';
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
@@ -9,7 +10,7 @@
 
 @theme inline {
     --font-sans:
-        Instrument Sans, ui-sans-serif, system-ui, sans-serif,
+        'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
@@ -100,7 +101,7 @@
     body,
     html {
         --font-sans:
-            'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+            'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif,
             'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
             'Noto Color Emoji';
     }
@@ -111,6 +112,7 @@
     --color-brand-navy: #002456;
     --color-brand-teal: #018270;
     --color-brand-teal-light: #01a985;
+    --color-brand-teal-dark: #015a4d;
     --color-brand-gold: #e8a304;
     --color-brand-white: #ffffff;
     --color-ink: #10213d;
@@ -306,4 +308,117 @@
     ::-webkit-scrollbar-button {
         display: none;
     }
+}
+
+/*
+  Barre du haut : vert foncé de la marque, écritures blanches, dans les deux
+  thèmes. Les couleurs sémantiques sont redéfinies seulement ici : les
+  composants de la barre (entreprise, dépôt, recherche, aide, état réseau,
+  fil d'Ariane) gardent leurs classes et s'adaptent tout seuls. Les menus et
+  boîtes de dialogue s'ouvrent hors de la barre et gardent le thème normal.
+*/
+.app-topbar {
+    background-color: var(--color-brand-teal-dark);
+    color: #ffffff;
+    --foreground: #ffffff;
+    --muted-foreground: rgb(255 255 255 / 0.82);
+    --background: rgb(255 255 255 / 0.1);
+    --muted: rgb(255 255 255 / 0.16);
+    --accent: rgb(255 255 255 / 0.16);
+    --accent-foreground: #ffffff;
+    --border: rgb(255 255 255 / 0.3);
+    --input: rgb(255 255 255 / 0.4);
+    --ring: #ffffff;
+    --sidebar-border: rgb(255 255 255 / 0.2);
+    --success-soft: rgb(255 255 255 / 0.16);
+    --success-soft-foreground: #ffffff;
+    --success-border: rgb(255 255 255 / 0.45);
+}
+
+.dark .app-topbar {
+    background-color: #0a3f37;
+}
+
+@layer utilities {
+    [data-reveal] {
+        opacity: 0;
+        transform: translateY(12px);
+        transition:
+            opacity 500ms ease,
+            transform 500ms ease;
+    }
+
+    [data-reveal].is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-reveal] {
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+    }
+
+    @media (max-width: 767px) {
+        body {
+            padding-bottom: 76px;
+        }
+    }
+}
+
+/*
+  Mode simple (interface en images pour les vendeurs qui lisent mal).
+
+  Valeurs exactes du cahier des charges : à n'écrire qu'ici, jamais en dur
+  dans les écrans. Les couleurs ne changent jamais de sens : Vendre vert,
+  Caisse orange, Stock bleu, Clients violet, alerte rouge.
+
+  Le mode simple est toujours en thème clair (lisible en plein soleil) :
+  ces variables ne sont pas redéfinies par .dark.
+*/
+.mode-simple {
+    --s-fond: #f1f4f3;
+    --s-surface: #ffffff;
+    --s-texte: #10201c;
+    --s-texte-doux: #4a5a56;
+    --s-bordure: #d5dedb;
+    --s-marque: #0a3f37;
+    --s-marque-2: #0f5247;
+    --s-vert: #34b89c;
+    --s-vert-fonce: #1e9c80;
+    --s-vert-clair: #e3f6f0;
+    --s-orange: #f2a93b;
+    --s-orange-clair: #fff1d6;
+    --s-bleu: #2563c9;
+    --s-bleu-clair: #dce8fb;
+    --s-violet: #6d3fb8;
+    --s-violet-clair: #ede4fa;
+    --s-rouge: #c8372d;
+    --s-rouge-clair: #fce3de;
+
+    /* Texte à poser sur chacune de ces couleurs (contraste vérifié). */
+    --s-sur-marque: #ffffff;
+    --s-sur-vert: #04201a;
+    --s-sur-vert-fonce: #04201a;
+    --s-sur-vert-clair: #0a3f37;
+    --s-sur-orange: #2a1a00;
+    --s-sur-orange-clair: #6b4300;
+    --s-sur-bleu: #ffffff;
+    --s-sur-bleu-clair: #173e80;
+    --s-sur-violet: #ffffff;
+    --s-sur-violet-clair: #3f2270;
+    --s-sur-rouge: #ffffff;
+    --s-sur-rouge-clair: #a0261e;
+
+    /* Rayons et hauteur de la barre du bas. */
+    --s-rayon-champ: 16px;
+    --s-rayon-carte: 24px;
+    --s-barre-bas: 88px;
+
+    background-color: var(--s-fond);
+    color: var(--s-texte);
+    font-family:
+        'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;
 }

@@ -52,8 +52,26 @@ const props = defineProps<{
         }[];
         history: Month[];
     };
+    activation: { total: number; steps: Record<string, number> };
+    stalled: {
+        id: string;
+        name: string;
+        created_at: string;
+        next: string | null;
+    }[];
     canManageBilling: boolean;
 }>();
+
+const milestoneKeys = [
+    'company',
+    'products',
+    'stock',
+    'cash',
+    'sale',
+    'customer',
+    'team',
+    'backup',
+] as const;
 
 defineOptions({
     layout: {
@@ -316,6 +334,76 @@ const kpis = computed(() => {
                     </li>
                 </ul>
             </div>
+        </section>
+
+        <section class="space-y-3">
+            <div>
+                <h2 class="font-semibold">
+                    {{ t('platform.activation_title') }}
+                </h2>
+                <p class="text-xs text-muted-foreground">
+                    {{ t('platform.activation_note') }}
+                </p>
+            </div>
+            <ul class="space-y-2 text-sm">
+                <li v-for="key in milestoneKeys" :key="key" class="space-y-1">
+                    <div class="flex justify-between gap-3">
+                        <span>{{ t(`platform.milestone.${key}`) }}</span>
+                        <span class="text-muted-foreground tabular-nums">{{
+                            t('platform.activation_of', {
+                                count: activation.steps[key] ?? 0,
+                                total: activation.total,
+                            })
+                        }}</span>
+                    </div>
+                    <div class="h-2 overflow-hidden rounded-full bg-muted">
+                        <div
+                            class="h-full rounded-full bg-primary"
+                            :style="{
+                                width:
+                                    activation.total === 0
+                                        ? '0%'
+                                        : `${Math.round(((activation.steps[key] ?? 0) / activation.total) * 100)}%`,
+                            }"
+                        />
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+        <section class="space-y-2">
+            <h2 class="font-semibold">{{ t('platform.stalled_title') }}</h2>
+            <p
+                v-if="stalled.length === 0"
+                class="text-sm text-muted-foreground"
+            >
+                {{ t('platform.nothing_to_do') }}
+            </p>
+            <ul v-else class="divide-y rounded-lg border text-sm">
+                <li
+                    v-for="row in stalled"
+                    :key="row.id"
+                    class="flex flex-wrap items-center gap-3 p-3"
+                >
+                    <Link
+                        :href="tenantsIndex({ query: { q: row.name } })"
+                        class="flex-1 font-medium hover:underline"
+                        >{{ row.name }}</Link
+                    >
+                    <span v-if="row.next" class="text-muted-foreground">{{
+                        t('platform.stalled_next', {
+                            step: t(
+                                `platform.milestone.${row.next as (typeof milestoneKeys)[number]}`,
+                            ),
+                        })
+                    }}</span>
+                    <span class="text-muted-foreground">{{
+                        t('platform.stalled_since', {
+                            date: formatDate(row.created_at),
+                        })
+                    }}</span>
+                </li>
+            </ul>
         </section>
     </div>
 </template>

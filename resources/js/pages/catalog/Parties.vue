@@ -303,6 +303,15 @@ function toggleArchive(party: Party): void {
 
         <EmptyState v-if="parties.data.length === 0">
             {{ t('parties.empty') }}
+            <template v-if="canManage" #action>
+                <Button class="h-11" @click="editing = 'new'">
+                    <Plus class="size-4" />{{
+                        type === 'customer'
+                            ? t('parties.add_customer')
+                            : t('parties.add_supplier')
+                    }}
+                </Button>
+            </template>
         </EmptyState>
 
         <ul v-else class="divide-y rounded-lg border">

@@ -87,17 +87,20 @@ class FeatureAccessTest extends TestCase
         $add(User::factory()->create(), 'cashier');
     }
 
-    public function test_accounting_is_only_available_on_accounting_plans(): void
+    public function test_accounting_requires_both_the_plan_and_the_administrator_to_activate_it(): void
     {
-        $without = $this->createTenantWithMember(plan: 'business');
-        $with = $this->createTenantWithMember(plan: 'business_accounting');
+        $notActivated = $this->createTenantWithMember(plan: 'business', activateAccounting: false);
+        $activated = $this->createTenantWithMember(plan: 'business', activateAccounting: true);
         $access = app(FeatureAccess::class);
 
-        $this->assertFalse($access->hasFeature($without['tenant'], 'accounting'));
-        $this->assertTrue($access->hasFeature($with['tenant'], 'accounting'));
+        // Toutes les formules incluent désormais la comptabilité…
+        $this->assertTrue($access->planIncludesFeature($notActivated['tenant'], 'accounting'));
+        // … mais elle reste indisponible jusqu'à l'activation par l'administrateur.
+        $this->assertFalse($access->hasFeature($notActivated['tenant'], 'accounting'));
+        $this->assertTrue($access->hasFeature($activated['tenant'], 'accounting'));
 
         $this->expectException(FeatureNotIncluded::class);
-        $access->assertFeature($without['tenant'], 'accounting');
+        $access->assertFeature($notActivated['tenant'], 'accounting');
     }
 
     public function test_read_only_blocks_mutations_but_allows_reading(): void

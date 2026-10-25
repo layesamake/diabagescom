@@ -40,41 +40,39 @@ return [
      * Formules créées si absentes (diaba:sync-plans). Une fois en base, elles
      * sont gérées par le super-administrateur et jamais écrasées ici.
      *
-     * À VALIDER PAR LE PROPRIÉTAIRE avant commercialisation : nombre
-     * d'utilisateurs inclus, nombre de dépôts « Business » et prix. Les prix
-     * restent null (non affichés, non facturables) tant qu'ils ne sont pas fixés.
+     * Restructuration validée le 17/10/2026 : 3 formules, comptabilité et
+     * boutique en ligne incluses partout (activables par l'administrateur
+     * de l'entreprise dans le backoffice, désactivées par défaut).
      */
     'default_plans' => [
         'essential' => [
             'name' => 'Essentiel',
             'warehouse_limit' => 1,
             'included_users' => 2,
-            'accounting_enabled' => false,
-            'online_store_enabled' => false,
-            'sort_order' => 10,
-        ],
-        'essential_accounting' => [
-            'name' => 'Essentiel Compta',
-            'warehouse_limit' => 1,
-            'included_users' => 3,
             'accounting_enabled' => true,
-            'online_store_enabled' => false,
-            'sort_order' => 20,
+            'online_store_enabled' => true,
+            'price_monthly' => 5000,
+            'price_yearly' => 51000,
+            'sort_order' => 10,
         ],
         'business' => [
             'name' => 'Business',
             'warehouse_limit' => 5,
             'included_users' => 5,
-            'accounting_enabled' => false,
-            'online_store_enabled' => false,
+            'accounting_enabled' => true,
+            'online_store_enabled' => true,
+            'price_monthly' => 12500,
+            'price_yearly' => 120000,
             'sort_order' => 30,
         ],
         'business_accounting' => [
-            'name' => 'Business Compta',
+            'name' => 'Premium',
             'warehouse_limit' => 5,
             'included_users' => 8,
             'accounting_enabled' => true,
-            'online_store_enabled' => false,
+            'online_store_enabled' => true,
+            'price_monthly' => 15000,
+            'price_yearly' => 135000,
             'sort_order' => 40,
         ],
     ],
@@ -85,7 +83,7 @@ return [
      */
     'marketing' => [
         // Numéro WhatsApp au format international sans « + » (ex. 221771234567).
-        'whatsapp' => env('DIABA_SALES_WHATSAPP', '221767642727'),
+        'whatsapp' => env('DIABA_SALES_WHATSAPP', '221768645834'),
         'email' => env('DIABA_CONTACT_EMAIL', 'etiennesamake@gmail.com'),
 
         // Indexation par les moteurs de recherche : à activer en production
@@ -100,5 +98,27 @@ return [
     // Boutique en ligne publique : limite anti-spam par numéro de téléphone et par heure.
     'storefront' => [
         'orders_per_phone_per_hour' => 5,
+    ],
+
+    /*
+     * Mode simple (interface en images pour les vendeurs qui lisent mal).
+     *
+     * Tant que ce drapeau est faux, les routes /simple et la bascule
+     * n'existent pas : un lot livré sur dev ne peut pas apparaître chez un
+     * client en production avant validation.
+     */
+    'simple_mode' => [
+        'enabled' => (bool) env('DIABA_SIMPLE_MODE', false),
+    ],
+
+    /*
+     * Filigrane DIABA GESCOM sur les documents imprimés et partagés.
+     *
+     * Activé sur les environnements d'essai pour protéger l'application :
+     * le logo apparaît en filigrane diagonal sur les PDF A4, les tickets
+     * thermiques et les tickets navigateur.
+     */
+    'trial_watermark' => [
+        'enabled' => (bool) env('DIABA_TRIAL_WATERMARK', false),
     ],
 ];

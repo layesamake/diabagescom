@@ -4,15 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Domain\Audit\AuditLog;
 use App\Domain\Inventory\StockAccess;
+use App\Domain\Reports\PilotageReport;
 use App\Domain\Reports\ReportExporter;
 use App\Domain\Reports\TabularReport;
 use App\Domain\Tenancy\TenantContext;
 use App\Models\User;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,82 +25,59 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class SalesReportController extends Controller
 {
-    public function index(Request $request, TenantContext $context, StockAccess $access, AuditLog $audit, ReportExporter $exporter): Response|StreamedResponse|HttpResponse
-    {
+    public function index(
+        Request $request,
+        TenantContext $context,
+        StockAccess $access,
+        AuditLog $audit,
+        ReportExporter $exporter,
+        PilotageReport $pilotage,
+    ): Response|StreamedResponse|HttpResponse {
         abort_unless(Gate::any(['report.view_own', 'report.view_all']), 403);
         /** @var User $user */
         $user = $request->user();
         $all = Gate::allows('report.view_all');
         $margin = Gate::allows('report.margin_view');
+        $inventory = Gate::allows('inventory.view');
+        $purchases = Gate::allows('purchase.view');
+        $catalog = Gate::allows('catalog.view');
+        $sales = Gate::allows('sale.view');
         $warehouses = $access->accessibleIds();
-
-        $from = CarbonImmutable::parse((string) $request->query('from', CarbonImmutable::today()->startOfMonth()->toDateString()))->startOfDay();
-        $to = CarbonImmutable::parse((string) $request->query('to', CarbonImmutable::today()->toDateString()))->endOfDay();
+        $timezone = $context->tenant()->timezone;
+        $today = CarbonImmutable::now($timezone);
+        $fromLocal = CarbonImmutable::parse((string) $request->query('from', $today->startOfMonth()->toDateString()), $timezone)->startOfDay();
+        $toLocal = CarbonImmutable::parse((string) $request->query('to', $today->toDateString()), $timezone)->endOfDay();
+        abort_if($fromLocal->greaterThan($toLocal), 422, __('reports.invalid_period'));
+        $dormantDays = (int) $request->query('dormant_days', 90);
+        $dormantDays = in_array($dormantDays, [30, 60, 90, 180, 365], true) ? $dormantDays : 90;
         $warehouse = in_array($request->query('warehouse'), $warehouses, true) ? (string) $request->query('warehouse') : null;
-
-        // Ventes validées (factures) moins avoirs, sur le périmètre autorisé.
-        $documents = fn (): Builder => DB::table('sales_documents as d')
-            ->where('d.tenant_id', $context->tenantId())
-            ->whereIn('d.type', ['invoice', 'credit_note'])
-            ->where('d.status', 'validated')
-            ->whereBetween('d.validated_at', [$from, $to])
-            ->whereIn('d.warehouse_id', $warehouse !== null ? [$warehouse] : $warehouses)
-            ->when(! $all, fn (Builder $q) => $q->where('d.created_by', $user->id));
-        $signed = "CASE WHEN d.type = 'credit_note' THEN -1 ELSE 1 END";
-
-        $totals = $documents()->selectRaw("COALESCE(SUM({$signed} * d.total), 0) AS total, COALESCE(SUM({$signed} * d.total_excl_tax), 0) AS excl,
-            COUNT(*) FILTER (WHERE d.type = 'invoice') AS sales")->first();
-
-        $cost = $margin ? (int) $documents()->join('sales_document_lines as l', 'l.document_id', '=', 'd.id')
-            ->selectRaw("COALESCE(SUM({$signed} * ROUND(l.quantity * COALESCE(l.unit_cost, 0))), 0) AS cost")
-            ->whereRaw("(d.type = 'invoice' OR l.restock)")->value('cost') : null;
-
-        $byDay = $documents()->selectRaw("DATE(d.validated_at) AS day, SUM({$signed} * d.total) AS total, COUNT(*) FILTER (WHERE d.type = 'invoice') AS sales")
-            ->groupByRaw('DATE(d.validated_at)')->orderBy('day')->get()
-            ->map(fn ($r) => ['day' => (string) $r->day, 'total' => (int) $r->total, 'sales' => (int) $r->sales]);
-
-        $byWarehouse = $documents()->join('warehouses as w', 'w.id', '=', 'd.warehouse_id')
-            ->selectRaw("w.name, SUM({$signed} * d.total) AS total")->groupBy('w.name')->orderByDesc('total')->get()
-            ->map(fn ($r) => ['label' => (string) $r->name, 'total' => (int) $r->total]);
-
-        $bySeller = $all ? $documents()->join('users as u', 'u.id', '=', 'd.created_by')
-            ->selectRaw("u.name, SUM({$signed} * d.total) AS total")->groupBy('u.name')->orderByDesc('total')->get()
-            ->map(fn ($r) => ['label' => (string) $r->name, 'total' => (int) $r->total]) : collect();
-
-        $byMethod = DB::table('payments as p')
-            ->whereIn('p.sales_document_id', $documents()->select('d.id'))
-            ->selectRaw("p.method, SUM(CASE WHEN p.direction = 'in' THEN p.amount ELSE -p.amount END) AS total")
-            ->groupBy('p.method')->orderByDesc('total')->get()
-            ->map(fn ($r) => ['method' => (string) $r->method, 'total' => (int) $r->total]);
-
-        $topProducts = $documents()->join('sales_document_lines as l', 'l.document_id', '=', 'd.id')
-            ->selectRaw("l.sku, l.label, SUM({$signed} * l.quantity) AS quantity, SUM({$signed} * l.line_total) AS total")
-            ->groupBy('l.sku', 'l.label')->orderByDesc('total')->limit(10)->get()
-            ->map(fn ($r) => ['sku' => (string) $r->sku, 'label' => (string) $r->label, 'quantity' => (string) $r->quantity, 'total' => (int) $r->total]);
-
-        $receivables = $all ? (int) DB::table('sales_documents')->where('tenant_id', $context->tenantId())
-            ->where('type', 'invoice')->where('status', 'validated')->whereIn('warehouse_id', $warehouses)
-            ->sum(DB::raw('GREATEST(total - amount_paid - amount_credited, 0)')) : null;
-        $payables = $all && Gate::allows('purchase.view') ? (int) DB::table('supplier_invoices')->where('tenant_id', $context->tenantId())
-            ->where('status', 'validated')->whereIn('warehouse_id', $warehouses)
-            ->sum(DB::raw('GREATEST(total - amount_paid - amount_credited, 0)')) : null;
-        $stockValue = $margin ? (int) DB::table('inventory_balances')->where('tenant_id', $context->tenantId())
-            ->whereIn('warehouse_id', $warehouse !== null ? [$warehouse] : $warehouses)
-            ->where('quantity_on_hand', '>', 0)->sum(DB::raw('ROUND(quantity_on_hand * average_cost)')) : null;
-
-        $total = (int) $totals?->total;
-        $sales = (int) $totals?->sales;
-        $summary = [
-            'total' => $total,
-            'excl_tax' => (int) $totals?->excl,
-            'sales' => $sales,
-            'average' => $sales > 0 ? intdiv($total, $sales) : 0,
-            'cost' => $cost,
-            'margin' => $cost !== null ? (int) $totals?->excl - $cost : null,
-            'receivables' => $receivables,
-            'payables' => $payables,
-            'stock_value' => $stockValue,
-        ];
+        $days = $fromLocal->startOfDay()->diffInDays($toLocal->startOfDay()) + 1;
+        $previousToLocal = $fromLocal->subDay()->endOfDay();
+        $previousFromLocal = $previousToLocal->startOfDay()->subDays($days - 1);
+        $data = $pilotage->build(
+            $user,
+            $all,
+            $margin,
+            $inventory,
+            $purchases,
+            $warehouses,
+            $warehouse,
+            $fromLocal->utc(),
+            $toLocal->utc(),
+            $previousFromLocal->utc(),
+            $previousToLocal->utc(),
+            $timezone,
+            $dormantDays,
+        );
+        $summary = $data['summary'];
+        $summary['receivables'] = $data['receivables']['total'] ?? null;
+        $byDay = $data['byDay'];
+        $byWarehouse = $data['byWarehouse'];
+        $bySeller = $data['bySeller'];
+        $byMethod = $data['byMethod'];
+        $topProducts = $data['topProducts'];
+        $from = $fromLocal;
+        $to = $toLocal;
 
         if ($request->query('format') === 'csv') {
             Gate::authorize('report.export');
@@ -157,6 +133,31 @@ class SalesReportController extends Controller
                     $bySeller->map(fn (array $r) => [$r['label'], $r['total']])->all());
             }
 
+            $sections[] = TabularReport::section(__('reports.warehouse_comparison'), [__('reports.warehouse'), __('reports.revenue'), __('reports.sales_count'), __('reports.margin'), __('reports.stock_value'), __('reports.payables')],
+                array_map(fn (array $r) => [$r['name'], $r['total'], $r['sales'], $r['margin'], $r['stock_value'], $r['payables']], $data['warehouseComparison']));
+
+            $sections[] = TabularReport::section(__('reports.product_profitability'), [__('reports.product'), __('reports.quantity'), __('reports.revenue_excl_tax'), __('reports.margin'), __('reports.stock'), __('reports.last_sale')],
+                $data['products']->map(fn (array $r) => [$r['label'], $r['quantity'], $r['revenue_excl_tax'], $r['margin'], $r['stock'], $r['last_sale']])->all());
+
+            if ($data['stockInsights'] !== null) {
+                $sections[] = TabularReport::section(__('reports.stock_risk'), [__('reports.product'), __('reports.risk_status'), __('reports.available'), __('reports.coverage'), __('reports.supplier_lead_time'), __('reports.reorder_date')],
+                    array_map(fn (array $r) => [$r['label'], $r['status'], $r['available'], $r['coverage_days'], $r['lead_time_days'], $r['reorder_date']], $data['stockInsights']['coverage']['items']));
+                $sections[] = TabularReport::section(__('reports.transfer_suggestions'), [__('reports.product'), __('reports.source'), __('reports.destination'), __('reports.quantity'), __('reports.coverage')],
+                    array_map(fn (array $r) => [$r['label'], $r['source']['name'], $r['destination']['name'], $r['quantity'], $r['destination_coverage_days']], $data['stockInsights']['transfers']['items']));
+            }
+
+            if ($data['receivables'] !== null) {
+                $sections[] = TabularReport::section(__('reports.money_to_collect'), [__('reports.bucket'), __('reports.amount'), __('reports.invoices')], array_map(fn (array $r) => [$r[0], $data['receivables']['aging'][$r[1]]['amount'], $data['receivables']['aging'][$r[1]]['count']], [
+                    [__('reports.aging_1_7'), '1_7'], [__('reports.aging_8_30'), '8_30'], [__('reports.aging_31_60'), '31_60'], [__('reports.aging_over_60'), 'over_60'],
+                ]));
+            }
+
+            if ($data['payablesSchedule'] !== null) {
+                $sections[] = TabularReport::section(__('reports.money_to_pay'), [__('reports.bucket'), __('reports.amount'), __('reports.invoices')], array_map(fn (array $r) => [$r[0], $data['payablesSchedule'][$r[1]]['amount'], $data['payablesSchedule'][$r[1]]['count']], [
+                    [__('reports.due_overdue'), 'overdue'], [__('reports.due_7'), 'due_7'], [__('reports.due_8_30'), 'due_8_30'], [__('reports.due_later'), 'later'],
+                ]));
+            }
+
             return $exporter->respond($format, new TabularReport(
                 __('reports.title'),
                 __('accounting.export.period', ['from' => $from->format('d/m/Y'), 'to' => $to->format('d/m/Y')]),
@@ -165,15 +166,41 @@ class SalesReportController extends Controller
         }
 
         return Inertia::render('reports/Sales', [
-            'filters' => ['from' => $from->toDateString(), 'to' => $to->toDateString(), 'warehouse' => $warehouse],
+            'filters' => ['from' => $from->toDateString(), 'to' => $to->toDateString(), 'warehouse' => $warehouse, 'dormant_days' => $dormantDays],
+            'period' => [
+                'from' => $fromLocal->toDateString(),
+                'to' => $toLocal->toDateString(),
+                'previous_from' => $previousFromLocal->toDateString(),
+                'previous_to' => $previousToLocal->toDateString(),
+                'today' => $today->toDateString(),
+                'timezone' => $timezone,
+            ],
             'warehouses' => $access->accessible()->map->only(['id', 'name'])->values(),
             'summary' => $summary,
+            'comparison' => $data['comparison'],
             'byDay' => $byDay,
+            'byDayMargin' => $data['byDayMargin'],
             'byWarehouse' => $byWarehouse,
+            'warehouseComparison' => $data['warehouseComparison'],
             'bySeller' => $bySeller,
             'byMethod' => $byMethod,
             'topProducts' => $topProducts,
-            'can' => ['all' => $all, 'margin' => $margin, 'export' => Gate::allows('report.export')],
+            'products' => $data['products'],
+            'receivables' => $data['receivables'],
+            'payablesSchedule' => $data['payablesSchedule'],
+            'stockInsights' => $data['stockInsights'],
+            'priorities' => $data['priorities'],
+            'freshness' => now()->setTimezone($timezone)->toIso8601String(),
+            'can' => [
+                'all' => $all,
+                'margin' => $margin,
+                'inventory' => $inventory,
+                'purchases' => $purchases,
+                'catalog' => $catalog,
+                'sales' => $sales,
+                'export' => Gate::allows('report.export'),
+                'transfer' => Gate::allows('inventory.transfer_create'),
+            ],
         ]);
     }
 }

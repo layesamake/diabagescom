@@ -24,6 +24,8 @@ export type AppContext = {
     tenant: ContextOption;
     warehouse: WarehouseOption | null;
     role: { code: string; name: string };
+    ui_mode: 'simple' | 'expert';
+    simple_mode_available: boolean;
     tenants: ContextOption[];
     warehouses: WarehouseOption[];
     permissions: string[];

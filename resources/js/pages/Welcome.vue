@@ -2,34 +2,18 @@
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import {
     ArrowRight,
-    BookOpenCheck,
-    Boxes,
     Check,
-    CircleCheck,
-    CloudOff,
-    CloudUpload,
-    FileText,
-    Lock,
-    Mail,
+    House,
+    Menu,
     MessageCircle,
-    Bell,
-    NotebookPen,
-    PackageX,
-    Receipt,
-    ScanBarcode,
-    ShieldCheck,
+    Package,
     ShoppingCart,
-    Smartphone,
-    Store,
-    Truck,
-    Users,
+    Speaker,
     Wallet,
     X,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
-import AppLogo from '@/components/AppLogo.vue';
-import { Button } from '@/components/ui/button';
-import { formatXof } from '@/lib/money';
+
 import { dashboard, login, register } from '@/routes';
 import { privacy, terms } from '@/routes/legal';
 
@@ -44,22 +28,26 @@ type Plan = {
     price_yearly: number | null;
 };
 
+type Addon = {
+    code: string;
+    label: string;
+    price_monthly: number;
+    price_yearly: number | null;
+};
+
 const props = defineProps<{
     plans: Plan[];
-    addons: {
-        code: string;
-        label: string;
-        price_monthly: number;
-        price_yearly: number | null;
-    }[];
+    addons: Addon[];
     recommended: string | null;
     trialDays: number;
     contact: { whatsapp: string | null; email: string | null };
-    testimonials: { quote: string; name: string; business?: string }[];
 }>();
 
 const page = usePage();
 const signedIn = computed(() => Boolean(page.props.auth?.user));
+const mobileMenuOpen = ref(false);
+const whatsappNumber = ref('');
+const formMessage = ref('');
 const yearly = ref(false);
 
 const whatsappUrl = computed(() =>
@@ -67,1002 +55,886 @@ const whatsappUrl = computed(() =>
         ? `https://wa.me/${props.contact.whatsapp}?text=${encodeURIComponent('Bonjour, je souhaite en savoir plus sur DIABA GESCOM.')}`
         : null,
 );
-const contactUrl = computed(
-    () =>
-        whatsappUrl.value ??
-        (props.contact.email ? `mailto:${props.contact.email}` : null),
+
+const ctaHref = computed(() => (signedIn.value ? dashboard() : register()));
+const annualAvailable = computed(() =>
+    props.plans.some((plan) => plan.price_yearly !== null),
 );
 
+const industries = [
+    'Alimentation',
+    'Quincaillerie',
+    'Ferme et élevage',
+    'Cosmétiques',
+    'Pièces détachées',
+    'Grossistes',
+];
+
 const problems = [
-    {
-        icon: NotebookPen,
-        before: 'Le cahier de ventes',
-        after: 'Chaque vente est enregistrée, retrouvée en une seconde.',
-    },
-    {
-        icon: Wallet,
-        before: 'L’écart de caisse inexpliqué',
-        after: 'Ouverture, mouvements et comptage guidé : vous savez où est chaque franc.',
-    },
-    {
-        icon: PackageX,
-        before: 'La rupture de stock',
-        after: 'Le stock suit chaque vente et chaque achat, avec alerte avant d’être à court.',
-    },
-    {
-        icon: FileText,
-        before: 'La facture faite à la main',
-        after: 'Devis, facture et reçu PDF prêts en un clic, envoyés par WhatsApp.',
-    },
+    [
+        'Le cahier de ventes',
+        'Chaque vente enregistrée, retrouvée en une seconde.',
+    ],
+    [
+        'L’argent qui manque en caisse',
+        'On compte les billets, l’écran dit s’il manque quelque chose.',
+    ],
+    ['La rupture de stock', 'L’article devient rouge avant d’être fini.'],
+    [
+        'Le crédit oublié',
+        'Vous voyez qui vous doit combien, et l’appelez en un geste.',
+    ],
 ];
 
 const features = [
-    {
-        icon: ScanBarcode,
-        title: 'Vente comptoir et scan',
-        text: 'Scannez avec la caméra du téléphone ou une douchette, encaissez en espèces, Wave ou Orange Money.',
-    },
-    {
-        icon: Wallet,
-        title: 'Caisse',
-        text: 'Fond de caisse, dépenses, entrées et fermeture avec comptage billet par billet.',
-    },
-    {
-        icon: Boxes,
-        title: 'Stock multi-dépôts',
-        text: 'Boutique, magasin, entrepôt : transferts, inventaires et valeur du stock.',
-    },
-    {
-        icon: Truck,
-        title: 'Achats et fournisseurs',
-        text: 'Bons de commande, réceptions, factures fournisseurs et dettes à payer.',
-    },
-    {
-        icon: Receipt,
-        title: 'Devis, factures, reçus',
-        text: 'Documents PDF à votre nom, avec votre logo et votre cachet, numérotés automatiquement, imprimables sur ticket.',
-    },
-    {
-        icon: Store,
-        title: 'Boutique en ligne',
-        text: 'Une vitrine à votre logo, avec vos articles, votre localisation Google Maps et la prise de commande. Vous confirmez, le client paie à la livraison ou au retrait.',
-    },
-    {
-        icon: MessageCircle,
-        title: 'Partage WhatsApp',
-        text: 'Envoyez une facture ou un devis à votre client en un message.',
-    },
-    {
-        icon: CloudOff,
-        title: 'Hors connexion',
-        text: 'Coupure internet ? Continuez à vendre : tout se synchronise au retour du réseau.',
-    },
-    {
-        icon: BookOpenCheck,
-        title: 'Comptabilité SYSCOHADA',
-        text: 'Écritures générées par vos ventes et achats, justificatifs joints, journaux, balance et rapprochement bancaire.',
-    },
-    {
-        icon: Bell,
-        title: 'Alertes sur mesure',
-        text: 'Stock bas, factures échues, caisse à fermer : choisissez ce qui s’affiche et recevez, si vous le souhaitez, un résumé par e-mail chaque matin.',
-    },
-    {
-        icon: Users,
-        title: 'Collaborateurs',
-        text: 'Vendeurs, caissiers, gérants : chacun voit seulement ce qui le concerne.',
-    },
-    {
-        icon: CloudUpload,
-        title: 'Sauvegarde Google Drive',
-        text: 'Une copie de vos données dans votre propre Google Drive, en plus de nos sauvegardes.',
-    },
+    ['Vente et scan', 'Caméra du téléphone ou douchette.'],
+    ['Caisse', 'Ouverture, dépenses, fermeture billet par billet.'],
+    ['Stock sur plusieurs dépôts', 'Boutique, magasin, entrepôt, transferts.'],
+    ['Achats et fournisseurs', 'Commandes, réceptions, dettes à payer.'],
+    ['Factures et reçus PDF', 'À votre logo, envoyés par WhatsApp.'],
+    ['Boutique en ligne', 'Vos clients commandent depuis leur téléphone.'],
+    ['Comptabilité SYSCOHADA', 'Écritures faites toutes seules.'],
+    ['Vendeurs et gérants', 'Chacun voit seulement ce qui le concerne.'],
 ];
 
-const storeBenefits = [
-    'Votre propre adresse web à partager sur WhatsApp, Facebook ou sur votre vitrine',
-    'Vos articles, prix et photos, publiés en un clic depuis votre catalogue',
-    'Votre logo, la photo de votre devanture et un bouton Itinéraire Google Maps',
-    'Vos clients commandent depuis leur téléphone, même avec un réseau instable',
-    'Vous êtes prévenu, vous confirmez : la commande devient un document de vente',
-    'Le stock est contrôlé : pas de commande d’un article épuisé',
+const faq = [
+    [
+        'Faut-il internet tout le temps ?',
+        'Non. Vous vendez et ouvrez la caisse sans connexion. Tout se synchronise quand le réseau revient.',
+    ],
+    [
+        'Mes vendeurs ne lisent pas bien. Ça marche quand même ?',
+        'Oui. Tout se fait avec des photos, des couleurs et des gros boutons, et la voix explique chaque écran dans votre langue.',
+    ],
+    [
+        'Sur quels appareils ?',
+        'Ordinateur, tablette et téléphone, dans le navigateur. Rien à installer.',
+    ],
+    [
+        'L’essai est-il vraiment sans engagement ?',
+        'Oui. Vous avez toutes les fonctions pendant l’essai, sans carte bancaire.',
+    ],
+    [
+        'Que deviennent mes données si j’arrête ?',
+        'Elles restent à vous : export complet à tout moment, jamais vendues.',
+    ],
 ];
 
-const steps = [
-    {
-        title: 'Créez votre compte',
-        text: 'Votre nom, votre e-mail et le nom de votre commerce. Moins de 2 minutes.',
-    },
-    {
-        title: 'Ajoutez vos articles',
-        text: 'Un par un, en scannant les codes-barres, ou en important votre liste Excel (CSV).',
-    },
-    {
-        title: 'Vendez',
-        text: 'Ouvrez la caisse et encaissez : stock, reçus et chiffres suivent tout seuls.',
-    },
-];
-
-const trust = [
-    {
-        icon: CloudUpload,
-        title: 'Sauvegardé chaque jour',
-        text: 'Copies chiffrées quotidiennes, conservées hors du serveur.',
-    },
-    {
-        icon: Lock,
-        title: 'Accès sécurisés',
-        text: 'Connexion chiffrée, double authentification, journal de toutes les actions sensibles.',
-    },
-    {
-        icon: ShieldCheck,
-        title: 'Vos données restent à vous',
-        text: 'Jamais vendues ni utilisées pour de la publicité. Export complet à tout moment.',
-    },
-    {
-        icon: Smartphone,
-        title: 'Paiement simple',
-        text: 'Abonnement réglé par Wave ou virement bancaire.',
-    },
-];
-
-const faq = computed(() => [
-    {
-        q: 'Faut-il une connexion internet permanente ?',
-        a: 'Non. La vente comptoir continue sans réseau et tout se synchronise automatiquement dès que la connexion revient.',
-    },
-    {
-        q: 'L’essai gratuit est-il vraiment sans engagement ?',
-        a: `Oui. Vous profitez de toutes les fonctions pendant ${props.trialDays} jours, sans carte bancaire. Vous choisissez ensuite votre formule, ou vous arrêtez.`,
-    },
-    {
-        q: 'Sur quels appareils fonctionne DIABA GESCOM ?',
-        a: 'Sur téléphone, tablette et ordinateur, dans le navigateur. Vous pouvez aussi l’installer comme une application, sans passer par un magasin d’applications.',
-    },
-    {
-        q: 'J’ai plusieurs boutiques ou un entrepôt, est-ce possible ?',
-        a: 'Oui. Chaque dépôt a son propre stock et sa caisse ; vous suivez tout depuis un seul compte. Le nombre de dépôts dépend de la formule.',
-    },
-    {
-        q: 'Puis-je vendre en ligne ?',
-        a: 'Avec les formules qui incluent la boutique en ligne, vous publiez les articles de votre choix sur une page à votre nom (logo, photo de devanture, localisation Google Maps). Vos clients commandent, vous confirmez et suivez la commande ; le paiement se fait à la livraison ou au retrait.',
-    },
-    {
-        q: 'Mes factures peuvent-elles porter mon logo et mon cachet ?',
-        a: 'Oui. Dans Paramètres › Entreprise, vous ajoutez votre logo, votre cachet ou signature et votre régime de TVA : ils figurent sur vos devis, factures et avoirs PDF.',
-    },
-    {
-        q: 'Mon comptable peut-il utiliser les données ?',
-        a: 'Avec les formules Compta, les écritures SYSCOHADA sont générées automatiquement ; journaux, grand livre et balance s’exportent pour votre comptable.',
-    },
-    {
-        q: 'Que deviennent mes données si j’arrête ?',
-        a: 'Vous pouvez exporter toutes vos données à tout moment. Elles vous appartiennent.',
-    },
-    {
-        q: 'Puis-je changer de formule plus tard ?',
-        a: 'Oui, à tout moment depuis vos paramètres, et ajouter des utilisateurs ou des dépôts selon vos besoins.',
-    },
-]);
+function formatF(amount: number | null): string {
+    return amount === null
+        ? 'Sur demande'
+        : `${new Intl.NumberFormat('fr-FR').format(amount)} F`;
+}
 
 function planPrice(plan: Plan): number | null {
-    return yearly.value ? plan.price_yearly : plan.price_monthly;
+    return yearly.value && plan.price_yearly !== null
+        ? plan.price_yearly
+        : plan.price_monthly;
 }
 
-function yearlySaving(plan: Plan): number | null {
-    if (!plan.price_monthly || !plan.price_yearly) {
-        return null;
+function planPeriod(plan: Plan): 'an' | 'mois' {
+    return yearly.value && plan.price_yearly !== null ? 'an' : 'mois';
+}
+
+function addonPrice(addon: Addon): number {
+    return yearly.value && addon.price_yearly !== null
+        ? addon.price_yearly
+        : addon.price_monthly;
+}
+
+function addonPeriod(addon: Addon): 'an' | 'mois' {
+    return yearly.value && addon.price_yearly !== null ? 'an' : 'mois';
+}
+
+function formatWhatsappNumber(number: string | null): string {
+    if (!number) {
+        return '';
     }
 
-    const saving = Math.round(
-        (1 - plan.price_yearly / (plan.price_monthly * 12)) * 100,
+    return number.startsWith('221') && number.length === 12
+        ? `+221 ${number.slice(3, 5)} ${number.slice(5, 8)} ${number.slice(8, 10)} ${number.slice(10)}`
+        : `+${number}`;
+}
+
+function planDescription(plan: Plan): string {
+    const warehouses =
+        plan.warehouse_limit === null
+            ? 'dépôts illimités'
+            : `${plan.warehouse_limit} dépôt${plan.warehouse_limit > 1 ? 's' : ''}`;
+    return `${plan.included_users} utilisateur${plan.included_users > 1 ? 's' : ''} · ${warehouses}`;
+}
+
+function sendWhatsAppLead(): void {
+    if (!props.contact.whatsapp) {
+        formMessage.value = 'Le contact WhatsApp sera bientôt disponible.';
+        return;
+    }
+
+    const number = whatsappNumber.value.trim();
+    if (!number) {
+        formMessage.value = 'Indiquez votre numéro WhatsApp.';
+        return;
+    }
+
+    const message = `Bonjour, je souhaite commencer l’essai gratuit DIABA GESCOM. Mon numéro WhatsApp : ${number}`;
+    window.open(
+        `https://wa.me/${props.contact.whatsapp}?text=${encodeURIComponent(message)}`,
+        '_blank',
+        'noopener,noreferrer',
     );
-
-    return saving > 0 ? saving : null;
+    formMessage.value =
+        'WhatsApp est ouvert : envoyez le message pour démarrer votre essai.';
 }
-
-function planFeatures(plan: Plan): { ok: boolean; text: string }[] {
-    return [
-        {
-            ok: true,
-            text: `${plan.included_users} utilisateur${plan.included_users > 1 ? 's' : ''} inclus`,
-        },
-        {
-            ok: true,
-            text:
-                plan.warehouse_limit === null
-                    ? 'Dépôts illimités'
-                    : `${plan.warehouse_limit} dépôt${plan.warehouse_limit > 1 ? 's' : ''}`,
-        },
-        { ok: true, text: 'Ventes, caisse, stock et achats' },
-        { ok: true, text: 'Factures PDF et partage WhatsApp' },
-        { ok: true, text: 'Mode hors connexion' },
-        { ok: plan.online_store_enabled, text: 'Boutique en ligne' },
-        { ok: plan.accounting_enabled, text: 'Comptabilité SYSCOHADA' },
-    ];
-}
-
-const pricesKnown = computed(() =>
-    props.plans.some((plan) => plan.price_monthly !== null),
-);
-// Bascule mensuel/annuel seulement si au moins un prix annuel est fixé.
-const yearlyKnown = computed(() =>
-    props.plans.some((plan) => plan.price_yearly !== null),
-);
 </script>
 
 <template>
-    <Head title="Ventes, stock et caisse pour votre commerce" />
+    <Head title="DIABA GESCOM — la caisse qui parle votre langue" />
 
-    <div class="min-h-screen bg-background text-foreground">
-        <!-- En-tête -->
-        <header
-            class="sticky top-0 z-30 border-b bg-background/90 backdrop-blur"
-        >
+    <div class="min-h-screen bg-[#f1f4f3] font-sans text-[#10201c]">
+        <header class="sticky top-0 z-40 border-b border-[#d5dedb] bg-white">
             <div
-                class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3"
+                class="mx-auto flex max-w-[1200px] items-center gap-4 px-4 py-3 md:px-6"
             >
                 <Link
                     :href="'/'"
-                    class="flex items-center"
+                    data-landing="brand"
+                    class="mr-auto flex items-center gap-2.5"
                     aria-label="DIABA GESCOM, accueil"
-                    ><AppLogo
-                /></Link>
+                >
+                    <span
+                        class="grid size-11 place-items-center rounded-full bg-[#0a3f37] text-[#5be0b0]"
+                    >
+                        <House
+                            class="size-6"
+                            stroke-width="2.2"
+                            aria-hidden="true"
+                        />
+                    </span>
+                    <span
+                        class="text-[22px] font-extrabold tracking-wide text-[#0a3f37]"
+                        >DIABA <span class="text-[#1e9c80]">GESCOM</span></span
+                    >
+                </Link>
                 <nav
-                    class="hidden items-center gap-6 text-sm text-muted-foreground md:flex"
+                    class="hidden items-center gap-6 text-sm font-bold lg:flex"
                     aria-label="Sections"
                 >
-                    <a href="#fonctions" class="hover:text-foreground"
-                        >Fonctions</a
+                    <a href="#comment" class="hover:text-[#1e9c80]"
+                        >Comment ça marche</a
                     >
-                    <a href="#boutique" class="hover:text-foreground"
-                        >Boutique en ligne</a
+                    <a href="#prix" class="hover:text-[#1e9c80]">Prix</a>
+                    <a href="#questions" class="hover:text-[#1e9c80]"
+                        >Questions</a
                     >
-                    <a href="#tarifs" class="hover:text-foreground">Tarifs</a>
-                    <a href="#faq" class="hover:text-foreground">Questions</a>
-                    <a href="#contact" class="hover:text-foreground">Contact</a>
                 </nav>
-                <div class="flex items-center gap-2">
-                    <Button v-if="signedIn" as-child class="h-11">
-                        <Link :href="dashboard()">Mon espace</Link>
-                    </Button>
-                    <template v-else>
-                        <Button as-child variant="ghost" class="h-11">
-                            <Link :href="login()">Se connecter</Link>
-                        </Button>
-                        <Button as-child class="hidden h-11 sm:inline-flex">
-                            <Link :href="register()">Essai gratuit</Link>
-                        </Button>
-                    </template>
-                </div>
+                <Link
+                    v-if="!signedIn"
+                    :href="login()"
+                    class="hidden text-sm font-bold text-[#0a3f37] lg:block"
+                    >Se connecter</Link
+                >
+                <Link
+                    v-else
+                    :href="dashboard()"
+                    class="hidden text-sm font-bold text-[#0a3f37] lg:block"
+                    >Mon espace</Link
+                >
+                <Link
+                    :href="ctaHref"
+                    class="hidden min-h-12 items-center rounded-2xl bg-[#34b89c] px-5 text-sm font-extrabold text-[#04201a] lg:flex"
+                    >Essayer gratuitement</Link
+                >
+                <button
+                    type="button"
+                    class="grid size-12 place-items-center rounded-xl border-2 border-[#d5dedb] lg:hidden"
+                    :aria-expanded="mobileMenuOpen"
+                    aria-label="Ouvrir le menu"
+                    @click="mobileMenuOpen = !mobileMenuOpen"
+                >
+                    <X
+                        v-if="mobileMenuOpen"
+                        class="size-5"
+                        aria-hidden="true"
+                    />
+                    <Menu v-else class="size-5" aria-hidden="true" />
+                </button>
             </div>
+            <nav
+                v-if="mobileMenuOpen"
+                class="border-t border-[#d5dedb] bg-white px-4 py-3 lg:hidden"
+                aria-label="Menu mobile"
+            >
+                <div class="mx-auto flex max-w-[1200px] flex-col font-bold">
+                    <a
+                        href="#comment"
+                        class="rounded-xl px-3 py-3 hover:bg-[#f1f4f3]"
+                        @click="mobileMenuOpen = false"
+                        >Comment ça marche</a
+                    >
+                    <a
+                        href="#prix"
+                        class="rounded-xl px-3 py-3 hover:bg-[#f1f4f3]"
+                        @click="mobileMenuOpen = false"
+                        >Prix</a
+                    >
+                    <a
+                        href="#questions"
+                        class="rounded-xl px-3 py-3 hover:bg-[#f1f4f3]"
+                        @click="mobileMenuOpen = false"
+                        >Questions</a
+                    >
+                    <Link
+                        :href="signedIn ? dashboard() : login()"
+                        class="rounded-xl px-3 py-3 hover:bg-[#f1f4f3]"
+                        @click="mobileMenuOpen = false"
+                        >{{ signedIn ? 'Mon espace' : 'Se connecter' }}</Link
+                    >
+                </div>
+            </nav>
         </header>
 
         <main>
-            <!-- Accroche -->
-            <section class="overflow-hidden">
+            <section
+                id="haut"
+                data-landing="hero"
+                class="overflow-hidden bg-[#0a3f37] text-white"
+            >
                 <div
-                    class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:py-20 lg:grid-cols-2"
+                    class="mx-auto grid max-w-[1200px] items-center gap-10 px-4 py-12 sm:px-6 md:py-18 xl:grid-cols-[640px_1fr] xl:gap-14 xl:py-20"
                 >
-                    <div class="space-y-6">
-                        <a
-                            href="#boutique"
-                            class="mr-2 inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1 text-sm font-medium text-primary-foreground"
-                            ><Store class="size-4" aria-hidden="true" />Nouveau
-                            : votre boutique en ligne</a
-                        >
+                    <div
+                        data-landing="hero-copy"
+                        class="max-w-[640px] space-y-6"
+                    >
                         <p
-                            class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm text-muted-foreground"
+                            class="inline-flex rounded-full bg-[#0f5247] px-3 py-2 text-xs font-extrabold tracking-wider text-[#bfe6dc]"
                         >
-                            <span
-                                class="size-2 rounded-full bg-[var(--color-brand-teal-light)]"
-                                aria-hidden="true"
-                            />
-                            Conçu pour les commerces du Sénégal
+                            POUR LES COMMERÇANTS DU SÉNÉGAL ET DE L’UEMOA
                         </p>
                         <h1
-                            class="text-4xl font-bold tracking-tight text-balance md:text-5xl"
+                            class="max-w-[640px] text-4xl leading-[1.05] font-extrabold tracking-tight sm:text-5xl lg:text-[60px]"
                         >
-                            Gérez ventes, stock et caisse de votre boutique,
-                            <span
-                                class="text-[var(--color-brand-teal)] dark:text-[var(--color-brand-teal-light)]"
-                                >même sans connexion</span
-                            >.
-                        </h1>
-                        <p class="max-w-xl text-lg text-muted-foreground">
-                            DIABA GESCOM remplace le cahier, la calculatrice et
-                            les factures faites à la main. Sur votre téléphone
-                            comme sur l’ordinateur, en francs CFA.
-                        </p>
-                        <div class="flex flex-col gap-3 sm:flex-row">
-                            <Button as-child size="lg" class="h-12 text-base">
-                                <Link
-                                    :href="signedIn ? dashboard() : register()"
-                                    >Essai gratuit de {{ trialDays }} jours
-                                    <ArrowRight
-                                        class="size-4"
-                                        aria-hidden="true"
-                                /></Link>
-                            </Button>
-                            <Button
-                                as-child
-                                size="lg"
-                                variant="outline"
-                                class="h-12 text-base"
+                            Vendez en 3 gestes.<br /><span
+                                class="text-[#5be0b0]"
+                                >Même sans savoir bien lire.</span
                             >
-                                <a href="#fonctions">Voir ce que ça fait</a>
-                            </Button>
-                        </div>
-                        <p class="text-sm text-muted-foreground">
-                            Sans carte bancaire · Sans installation · Annulable
-                            à tout moment
+                        </h1>
+                        <p
+                            class="max-w-xl text-lg leading-8 text-[#d7eee7] sm:text-xl"
+                        >
+                            Diaba Gescom remplace le cahier : chaque vente,
+                            chaque franc de la caisse et chaque article du stock
+                            sont suivis. Des images, des couleurs et une voix
+                            qui parle votre langue. Même sans internet.
                         </p>
+                        <Link
+                            :href="ctaHref"
+                            class="inline-flex min-h-16 items-center gap-2 rounded-[18px] bg-[#34b89c] px-6 text-lg font-extrabold text-[#04201a] sm:text-xl"
+                            >Essayer {{ trialDays }} jours gratuits
+                            <ArrowRight class="size-5" aria-hidden="true"
+                        /></Link>
+                        <div
+                            class="flex flex-wrap gap-x-5 gap-y-2 text-sm font-bold text-[#bfe6dc]"
+                        >
+                            <span class="inline-flex items-center gap-1.5"
+                                ><Check class="size-4 text-[#5be0b0]" />Sans
+                                engagement</span
+                            >
+                            <span class="inline-flex items-center gap-1.5"
+                                ><Check class="size-4 text-[#5be0b0]" />Aucune
+                                carte bancaire</span
+                            >
+                            <span class="inline-flex items-center gap-1.5"
+                                ><Check class="size-4 text-[#5be0b0]" />Aide au
+                                démarrage sur WhatsApp</span
+                            >
+                        </div>
                     </div>
 
-                    <!-- Aperçu de l'application (dessiné en CSS : rien à télécharger) -->
                     <div
-                        class="relative mx-auto w-full max-w-lg"
-                        aria-hidden="true"
+                        data-landing="phone"
+                        class="relative mx-auto w-full max-w-md py-4 xl:translate-x-4"
                     >
                         <div
-                            class="hidden rounded-xl border bg-card p-3 shadow-xl sm:block"
+                            class="mx-auto w-64 rounded-[38px] bg-[#10201c] p-2.5 shadow-2xl sm:w-[300px]"
                         >
-                            <div class="mb-3 flex gap-1.5">
-                                <span class="size-2.5 rounded-full bg-muted" />
-                                <span class="size-2.5 rounded-full bg-muted" />
-                                <span class="size-2.5 rounded-full bg-muted" />
-                            </div>
-                            <div class="grid grid-cols-3 gap-2">
-                                <div
-                                    v-for="card in [
-                                        ['Ventes du jour', 486500],
-                                        ['En caisse', 312000],
-                                        ['À encaisser', 95000],
-                                    ]"
-                                    :key="card[0]"
-                                    class="rounded-lg border p-2"
-                                >
-                                    <p
-                                        class="text-[10px] text-muted-foreground"
-                                    >
-                                        {{ card[0] }}
-                                    </p>
-                                    <p class="text-xs font-bold tabular-nums">
-                                        {{ formatXof(card[1] as number) }}
-                                    </p>
-                                </div>
-                            </div>
                             <div
-                                class="mt-3 flex h-28 items-end gap-1.5 rounded-lg border p-2"
+                                class="overflow-hidden rounded-[29px] bg-[#f1f4f3] text-[#10201c]"
                             >
-                                <span
-                                    v-for="(h, i) in [
-                                        40, 55, 35, 70, 60, 85, 50, 75, 90, 65,
-                                        80, 95,
-                                    ]"
-                                    :key="i"
-                                    class="flex-1 rounded-t bg-[var(--color-brand-navy)]/80 dark:bg-[var(--color-brand-teal-light)]/70"
-                                    :style="{ height: `${h}%` }"
-                                />
+                                <div
+                                    class="flex items-center gap-2 bg-[#0a3f37] px-4 py-4 text-lg font-extrabold text-white"
+                                >
+                                    <ShoppingCart class="size-5" />Vendre
+                                    <Speaker
+                                        class="ml-auto size-5 text-[#5be0b0]"
+                                    />
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 p-3">
+                                    <article
+                                        v-for="(product, index) in [
+                                            ['Riz 5 kg', '8 500 F', '#f6e7d3'],
+                                            ['Huile 1 L', '1 500 F', '#fff1d6'],
+                                            ['Sucre 1 kg', '750 F', '#e7eef9'],
+                                            ['Lait 1 L', '800 F', '#e3f6f0'],
+                                        ]"
+                                        :key="product[0]"
+                                        class="overflow-hidden rounded-xl border-3 bg-white"
+                                        :class="
+                                            index === 0 || index === 2
+                                                ? 'border-[#1e9c80]'
+                                                : 'border-white'
+                                        "
+                                    >
+                                        <div
+                                            class="h-15"
+                                            :style="{ background: product[2] }"
+                                        />
+                                        <p class="p-2 text-xs font-bold">
+                                            {{ product[0] }}<br /><strong
+                                                class="text-sm text-[#0a3f37]"
+                                                >{{ product[1] }}</strong
+                                            >
+                                        </p>
+                                    </article>
+                                </div>
+                                <div
+                                    class="flex items-center gap-2 border-t border-[#d5dedb] bg-white p-3"
+                                >
+                                    <span class="mr-auto text-xl font-extrabold"
+                                        >17 750 F</span
+                                    ><span
+                                        class="rounded-xl bg-[#34b89c] px-3 py-3 text-sm font-extrabold text-[#04201a]"
+                                        >Encaisser</span
+                                    >
+                                </div>
                             </div>
                         </div>
                         <div
-                            class="mx-auto w-56 rounded-[2rem] border-4 border-foreground/80 bg-card p-3 shadow-2xl sm:absolute sm:-bottom-10 sm:-left-4 sm:mx-0"
+                            class="absolute right-0 bottom-18 flex items-center gap-2 rounded-2xl bg-white p-3 text-sm font-extrabold text-[#10201c] shadow-lg"
                         >
-                            <p class="mb-2 text-xs font-semibold">
-                                Vente comptoir
+                            <span
+                                class="grid size-9 place-items-center rounded-full bg-[#f2a93b]"
+                                ><Speaker class="size-5" /></span
+                            ><span>La voix parle<br />wolof, pulaar…</span>
+                        </div>
+                        <div
+                            class="absolute top-20 left-0 flex items-center gap-2 rounded-2xl bg-white p-3 text-sm font-extrabold text-[#10201c] shadow-lg"
+                        >
+                            <span
+                                class="grid size-9 place-items-center rounded-full bg-[#5be0b0]"
+                                ><Check class="size-5" /></span
+                            ><span>Vente faite<br />17 750 F</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="border-b border-[#d5dedb] bg-white">
+                <div
+                    class="mx-auto flex max-w-6xl items-center gap-3 overflow-x-auto px-4 py-5 sm:px-6"
+                >
+                    <span class="shrink-0 font-bold text-[#4a5a56]"
+                        >Fait pour :</span
+                    >
+                    <span
+                        v-for="industry in industries"
+                        :key="industry"
+                        class="shrink-0 rounded-full bg-[#f1f4f3] px-4 py-2 text-sm font-bold"
+                        >{{ industry }}</span
+                    >
+                </div>
+            </section>
+
+            <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-22">
+                <div class="max-w-3xl">
+                    <h2
+                        class="text-3xl font-extrabold tracking-tight md:text-4xl"
+                    >
+                        Le soir, combien avez-vous vraiment gagné ?
+                    </h2>
+                    <p class="mt-3 text-lg leading-7 text-[#4a5a56]">
+                        Avec un cahier, l’argent se perd sans qu’on sache où.
+                        Diaba Gescom répond à ces 4 soucis du quotidien.
+                    </p>
+                </div>
+                <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <article
+                        v-for="([before, after], index) in problems"
+                        :key="before"
+                        class="rounded-3xl bg-white p-6 shadow-sm"
+                    >
+                        <span
+                            class="mb-4 grid size-14 place-items-center rounded-full"
+                            :class="
+                                [
+                                    'bg-[#e3f6f0] text-[#0a3f37]',
+                                    'bg-[#fff1d6] text-[#6b4300]',
+                                    'bg-[#dce8fb] text-[#173e80]',
+                                    'bg-[#ede4fa] text-[#3f2270]',
+                                ][index]
+                            "
+                            ><Wallet
+                                v-if="index === 1"
+                                class="size-7" /><Package
+                                v-else-if="index === 2"
+                                class="size-7" /><MessageCircle
+                                v-else-if="index === 3"
+                                class="size-7" /><ShoppingCart
+                                v-else
+                                class="size-7"
+                        /></span>
+                        <p
+                            class="text-sm font-extrabold text-[#a0261e] line-through"
+                        >
+                            {{ before }}
+                        </p>
+                        <p class="mt-3 text-lg font-extrabold">{{ after }}</p>
+                    </article>
+                </div>
+            </section>
+
+            <section
+                id="comment"
+                class="mx-auto max-w-6xl scroll-mt-20 px-4 pb-18 sm:px-6 md:pb-22"
+            >
+                <p
+                    class="text-sm font-extrabold tracking-wider text-[#1e9c80] uppercase"
+                >
+                    Comment ça marche
+                </p>
+                <h2
+                    class="mt-3 text-3xl font-extrabold tracking-tight md:text-4xl"
+                >
+                    Une vente, c’est 3 gestes. Pas plus.
+                </h2>
+                <div class="mt-8 grid gap-5 md:grid-cols-3">
+                    <article
+                        v-for="(step, index) in [
+                            [
+                                'Touchez la photo de l’article',
+                                'Ou scannez son code-barres. Touchez encore pour en ajouter un.',
+                            ],
+                            [
+                                'Choisissez comment il paie',
+                                'Espèces, téléphone ou crédit : chaque mode a sa couleur.',
+                            ],
+                            [
+                                'C’est fait',
+                                'Le stock baisse, la caisse monte, le ticket s’imprime. Tout seul.',
+                            ],
+                        ]"
+                        :key="step[0]"
+                        class="rounded-3xl bg-white p-7 shadow-sm"
+                    >
+                        <span
+                            class="grid size-12 place-items-center rounded-full bg-[#0a3f37] text-xl font-extrabold text-white"
+                            >{{ index + 1 }}</span
+                        >
+                        <div
+                            class="mt-5 flex h-32 items-center justify-center rounded-2xl"
+                            :class="
+                                index === 0
+                                    ? 'bg-[#e3f6f0]'
+                                    : index === 1
+                                      ? 'bg-[#f1f4f3]'
+                                      : 'bg-[#0a3f37]'
+                            "
+                        >
+                            <span
+                                v-if="index === 0"
+                                class="rounded-xl border-3 border-[#1e9c80] bg-white px-7 py-8 text-xl font-extrabold text-[#0a3f37]"
+                                >+1</span
+                            >
+                            <span
+                                v-else-if="index === 1"
+                                class="rounded-xl bg-[#34b89c] px-6 py-3 font-extrabold text-[#04201a]"
+                                >Espèces · Wave · Crédit</span
+                            >
+                            <Check
+                                v-else
+                                class="size-15 rounded-full bg-[#5be0b0] p-3 text-[#04201a]"
+                            />
+                        </div>
+                        <h3 class="mt-5 text-xl font-extrabold">
+                            {{ step[0] }}
+                        </h3>
+                        <p class="mt-2 leading-6 text-[#4a5a56]">
+                            {{ step[1] }}
+                        </p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="bg-[#0a3f37] text-white">
+                <div
+                    class="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:px-6 md:py-22 lg:grid-cols-2"
+                >
+                    <div>
+                        <p
+                            class="text-sm font-extrabold tracking-wider text-[#5be0b0] uppercase"
+                        >
+                            Pensé pour tout le monde
+                        </p>
+                        <h2
+                            class="mt-3 text-3xl font-extrabold tracking-tight md:text-4xl"
+                        >
+                            Vos vendeurs l’utilisent dès le premier jour.
+                        </h2>
+                        <p
+                            class="mt-4 max-w-xl text-lg leading-7 text-[#d7eee7]"
+                        >
+                            Pas besoin de bien lire ni d’être à l’aise avec un
+                            téléphone. Chaque action a sa couleur, son dessin et
+                            sa voix.
+                        </p>
+                        <Link
+                            :href="ctaHref"
+                            class="mt-7 inline-flex min-h-14 items-center rounded-2xl bg-[#34b89c] px-6 text-lg font-extrabold text-[#04201a]"
+                            >Essayer avec mes vendeurs</Link
+                        >
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <article
+                            v-for="item in [
+                                [
+                                    'Images et couleurs',
+                                    'Vendre est vert, la caisse orange, le stock bleu. On ne se trompe pas.',
+                                ],
+                                [
+                                    'Une voix dans votre langue',
+                                    'Vous enregistrez les messages en wolof, pulaar, bambara…',
+                                ],
+                                [
+                                    'Même sans internet',
+                                    'Coupure ? Vous continuez à vendre. Tout se met à jour au retour du réseau.',
+                                ],
+                                [
+                                    'Wave et Orange Money',
+                                    'Espèces, téléphone, crédit : chaque paiement est rangé à sa place.',
+                                ],
+                            ]"
+                            :key="item[0]"
+                            class="rounded-3xl bg-[#0f5247] p-6"
+                        >
+                            <Speaker class="mb-4 size-9 text-[#5be0b0]" />
+                            <h3 class="text-lg font-extrabold">
+                                {{ item[0] }}
+                            </h3>
+                            <p class="mt-2 text-sm leading-6 text-[#d7eee7]">
+                                {{ item[1] }}
                             </p>
-                            <ul class="space-y-1.5 text-[11px]">
-                                <li
-                                    v-for="line in [
-                                        ['Riz parfumé 5 kg', 2, 8500],
-                                        ['Huile 1 L', 3, 1500],
-                                        ['Sucre 1 kg', 1, 750],
-                                    ]"
-                                    :key="line[0]"
-                                    class="flex justify-between gap-2 rounded border p-1.5"
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-22">
+                <p
+                    class="text-sm font-extrabold tracking-wider text-[#1e9c80] uppercase"
+                >
+                    Tout dans une seule application
+                </p>
+                <h2
+                    class="mt-3 text-3xl font-extrabold tracking-tight md:text-4xl"
+                >
+                    Du comptoir au comptable, sans rien recopier.
+                </h2>
+                <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <article
+                        v-for="(feature, index) in features"
+                        :key="feature[0]"
+                        class="flex gap-3 rounded-2xl bg-white p-5 shadow-sm"
+                    >
+                        <span
+                            class="grid size-11 shrink-0 place-items-center rounded-full"
+                            :class="
+                                index % 4 === 0
+                                    ? 'bg-[#e3f6f0] text-[#0a3f37]'
+                                    : index % 4 === 1
+                                      ? 'bg-[#fff1d6] text-[#6b4300]'
+                                      : index % 4 === 2
+                                        ? 'bg-[#dce8fb] text-[#173e80]'
+                                        : 'bg-[#ede4fa] text-[#3f2270]'
+                            "
+                            ><Package class="size-5"
+                        /></span>
+                        <div>
+                            <h3 class="font-extrabold">{{ feature[0] }}</h3>
+                            <p class="mt-1 text-sm leading-5 text-[#4a5a56]">
+                                {{ feature[1] }}
+                            </p>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="prix" class="scroll-mt-20 bg-white">
+                <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-22">
+                    <div class="mx-auto max-w-3xl text-center">
+                        <p
+                            class="text-sm font-extrabold tracking-wider text-[#1e9c80] uppercase"
+                        >
+                            Prix
+                        </p>
+                        <h2
+                            class="mt-3 text-3xl font-extrabold tracking-tight md:text-4xl"
+                        >
+                            Moins cher qu’une erreur de caisse par mois.
+                        </h2>
+                        <p class="mt-3 text-lg text-[#4a5a56]">
+                            {{ trialDays }} jours gratuits avec toutes les
+                            fonctions. Paiement par Wave ou virement. Prix en
+                            francs CFA.
+                        </p>
+                    </div>
+                    <div class="mt-10 grid gap-5 md:grid-cols-3">
+                        <article
+                            v-for="plan in plans"
+                            :key="plan.code"
+                            class="relative flex flex-col rounded-3xl border-2 p-7"
+                            :class="
+                                plan.code === recommended
+                                    ? 'border-[#34b89c] bg-[#f4fbf8]'
+                                    : 'border-[#d5dedb]'
+                            "
+                        >
+                            <span
+                                v-if="plan.code === recommended"
+                                class="absolute -top-3 left-7 rounded-full bg-[#34b89c] px-3 py-1 text-xs font-extrabold text-[#04201a]"
+                                >Conseillé dès 2 boutiques</span
+                            >
+                            <h3 class="text-xl font-extrabold">
+                                {{ plan.name }}
+                            </h3>
+                            <p class="mt-2 text-sm text-[#4a5a56]">
+                                {{ planDescription(plan) }}
+                            </p>
+                            <p class="mt-5 text-4xl font-extrabold">
+                                {{ formatF(planPrice(plan))
+                                }}<span
+                                    v-if="planPrice(plan) !== null"
+                                    class="text-base font-normal text-[#4a5a56]"
                                 >
-                                    <span class="truncate"
-                                        >{{ line[1] }} × {{ line[0] }}</span
-                                    >
-                                    <span class="tabular-nums">{{
-                                        formatXof(
-                                            (line[1] as number) *
-                                                (line[2] as number),
-                                        )
-                                    }}</span>
+                                    / {{ planPeriod(plan) }}</span
+                                >
+                            </p>
+                            <ul class="my-6 flex-1 space-y-3 text-sm">
+                                <li class="flex gap-2">
+                                    <Check
+                                        class="size-5 shrink-0 text-[#1e9c80]"
+                                    />Ventes, caisse, stock et achats
+                                </li>
+                                <li class="flex gap-2">
+                                    <Check
+                                        class="size-5 shrink-0 text-[#1e9c80]"
+                                    />Factures PDF et WhatsApp
+                                </li>
+                                <li class="flex gap-2">
+                                    <Check
+                                        class="size-5 shrink-0 text-[#1e9c80]"
+                                    />Même sans connexion
+                                </li>
+                                <li
+                                    v-if="plan.online_store_enabled"
+                                    class="flex gap-2"
+                                >
+                                    <Check
+                                        class="size-5 shrink-0 text-[#1e9c80]"
+                                    />Boutique en ligne
+                                </li>
+                                <li
+                                    v-if="plan.accounting_enabled"
+                                    class="flex gap-2"
+                                >
+                                    <Check
+                                        class="size-5 shrink-0 text-[#1e9c80]"
+                                    />Comptabilité SYSCOHADA
                                 </li>
                             </ul>
-                            <div
-                                class="mt-3 rounded-lg bg-primary p-2 text-center text-xs font-semibold text-primary-foreground"
+                            <Link
+                                :href="ctaHref"
+                                class="flex min-h-14 items-center justify-center rounded-2xl text-center font-extrabold"
+                                :class="
+                                    plan.code === recommended
+                                        ? 'bg-[#34b89c] text-[#04201a]'
+                                        : 'border-2 border-[#0a3f37] text-[#0a3f37]'
+                                "
+                                >Essayer gratuitement</Link
                             >
-                                Encaisser {{ formatXof(22250) }}
-                            </div>
-                        </div>
+                        </article>
                     </div>
-                </div>
-            </section>
-
-            <!-- Problèmes résolus -->
-            <section class="border-y bg-muted/40">
-                <div class="mx-auto max-w-6xl px-4 py-14">
-                    <h2
-                        class="mb-8 text-center text-2xl font-bold tracking-tight md:text-3xl"
-                    >
-                        Fini les soucis du quotidien
-                    </h2>
-                    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <li
-                            v-for="p in problems"
-                            :key="p.before"
-                            class="rounded-xl border bg-card p-5"
-                        >
-                            <component
-                                :is="p.icon"
-                                class="mb-3 size-6 text-muted-foreground"
-                                aria-hidden="true"
-                            />
-                            <p class="font-semibold">
-                                <s class="decoration-danger/70">{{
-                                    p.before
-                                }}</s>
-                            </p>
-                            <p class="mt-2 text-sm text-muted-foreground">
-                                {{ p.after }}
-                            </p>
-                        </li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- Fonctions -->
-            <section id="fonctions" class="scroll-mt-20">
-                <div class="mx-auto max-w-6xl px-4 py-16">
-                    <div class="mx-auto mb-10 max-w-2xl text-center">
-                        <h2
-                            class="text-2xl font-bold tracking-tight md:text-3xl"
-                        >
-                            Tout votre commerce dans une seule application
-                        </h2>
-                        <p class="mt-3 text-muted-foreground">
-                            De la vente au comptoir jusqu’à la comptabilité,
-                            sans ressaisie.
-                        </p>
-                    </div>
-                    <ul
-                        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                    >
-                        <li
-                            v-for="f in features"
-                            :key="f.title"
-                            class="rounded-xl border p-5"
-                        >
-                            <span
-                                class="mb-3 inline-flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary"
-                            >
-                                <component
-                                    :is="f.icon"
-                                    class="size-5"
-                                    aria-hidden="true"
-                                />
-                            </span>
-                            <h3 class="font-semibold">{{ f.title }}</h3>
-                            <p class="mt-1 text-sm text-muted-foreground">
-                                {{ f.text }}
-                            </p>
-                        </li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- Boutique en ligne -->
-            <section id="boutique" class="scroll-mt-20 border-y bg-muted/40">
-                <div
-                    class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2"
-                >
-                    <div class="space-y-6">
-                        <p
-                            class="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
-                        >
-                            <Store class="size-4" aria-hidden="true" />Boutique
-                            en ligne
-                        </p>
-                        <h2
-                            class="text-3xl font-bold tracking-tight text-balance md:text-4xl"
-                        >
-                            Vendez aussi quand votre boutique est fermée
-                        </h2>
-                        <p class="text-lg text-muted-foreground">
-                            Vos articles ont leur vitrine sur internet, à votre
-                            nom. Vos clients choisissent et commandent depuis
-                            leur téléphone ; vous recevez la commande dans DIABA
-                            GESCOM, déjà liée à votre stock et à votre caisse.
-                        </p>
-                        <ul class="space-y-3">
-                            <li
-                                v-for="b in storeBenefits"
-                                :key="b"
-                                class="flex gap-3 text-sm"
-                            >
-                                <CircleCheck
-                                    class="mt-0.5 size-5 shrink-0 text-[var(--color-brand-teal)] dark:text-[var(--color-brand-teal-light)]"
-                                    aria-hidden="true"
-                                />
-                                <span>{{ b }}</span>
-                            </li>
-                        </ul>
-                        <p class="text-sm text-muted-foreground">
-                            Pas de paiement en ligne à gérer : le client règle à
-                            la livraison ou au retrait. Inclus dans les formules
-                            marquées « Boutique en ligne » ci-dessous.
-                        </p>
-                        <div class="flex flex-col gap-3 sm:flex-row">
-                            <Button as-child size="lg" class="h-12 text-base">
-                                <Link
-                                    :href="signedIn ? dashboard() : register()"
-                                    >Essayer gratuitement
-                                    <ArrowRight
-                                        class="size-4"
-                                        aria-hidden="true"
-                                /></Link>
-                            </Button>
-                            <Button
-                                as-child
-                                size="lg"
-                                variant="outline"
-                                class="h-12 text-base"
-                            >
-                                <a href="#tarifs">Voir les formules</a>
-                            </Button>
-                        </div>
-                    </div>
-
-                    <!-- Aperçu d'une boutique (dessiné en CSS : rien à télécharger) -->
-                    <div class="mx-auto w-full max-w-md" aria-hidden="true">
-                        <div
-                            class="overflow-hidden rounded-2xl border bg-white text-slate-900 shadow-2xl"
-                        >
-                            <div
-                                class="h-24 bg-gradient-to-r from-[var(--color-brand-navy)] to-[var(--color-brand-teal)]"
-                            />
-                            <div class="flex items-center gap-3 border-b p-4">
-                                <span
-                                    class="-mt-10 flex size-14 shrink-0 items-center justify-center rounded-xl border-2 border-white bg-slate-100 text-xl font-bold text-[var(--color-brand-navy)] shadow"
-                                    >A</span
-                                >
-                                <div class="min-w-0">
-                                    <p class="truncate text-sm font-bold">
-                                        Boutique Aminata
-                                    </p>
-                                    <p class="truncate text-xs text-slate-500">
-                                        Alimentation générale · Dakar
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="flex gap-2 p-3 text-[11px]">
-                                <span class="rounded-md border px-2 py-1"
-                                    >Appeler</span
-                                ><span class="rounded-md border px-2 py-1"
-                                    >Itinéraire</span
-                                ><span class="rounded-md border px-2 py-1"
-                                    >WhatsApp</span
-                                >
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 p-3 pt-0">
-                                <div
-                                    v-for="item in [
-                                        ['Riz parfumé 5 kg', 8500],
-                                        ['Huile 1 L', 1500],
-                                        ['Sucre 1 kg', 750],
-                                        ['Lait en poudre', 3200],
-                                    ]"
-                                    :key="item[0]"
-                                    class="rounded-lg border p-2"
-                                >
-                                    <span
-                                        class="mb-2 block h-12 rounded bg-slate-100"
-                                    />
-                                    <p class="truncate text-[11px] font-medium">
-                                        {{ item[0] }}
-                                    </p>
-                                    <p
-                                        class="text-[11px] font-bold tabular-nums"
-                                    >
-                                        {{ formatXof(item[1] as number) }}
-                                    </p>
-                                    <span
-                                        class="mt-1 block rounded bg-slate-900 py-1 text-center text-[10px] text-white"
-                                        >Commander</span
-                                    >
-                                </div>
-                            </div>
-                        </div>
-                        <p
-                            class="mt-3 text-center text-xs text-muted-foreground"
-                        >
-                            Exemple de boutique
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Comment ça marche -->
-            <section class="border-y bg-muted/40">
-                <div class="mx-auto max-w-6xl px-4 py-16">
-                    <h2
-                        class="mb-10 text-center text-2xl font-bold tracking-tight md:text-3xl"
-                    >
-                        Prêt à vendre en 3 étapes
-                    </h2>
-                    <ol class="grid gap-6 md:grid-cols-3">
-                        <li
-                            v-for="(step, i) in steps"
-                            :key="step.title"
-                            class="flex gap-4"
-                        >
-                            <span
-                                class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground"
-                                >{{ i + 1 }}</span
-                            >
-                            <div>
-                                <h3 class="font-semibold">{{ step.title }}</h3>
-                                <p class="mt-1 text-sm text-muted-foreground">
-                                    {{ step.text }}
-                                </p>
-                            </div>
-                        </li>
-                    </ol>
-                    <div class="mt-10 text-center">
-                        <Button as-child size="lg" class="h-12 text-base">
-                            <Link :href="signedIn ? dashboard() : register()"
-                                ><ShoppingCart
-                                    class="size-4"
-                                    aria-hidden="true"
-                                />Commencer maintenant</Link
-                            >
-                        </Button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Tarifs -->
-            <section id="tarifs" class="scroll-mt-20">
-                <div class="mx-auto max-w-6xl px-4 py-16">
-                    <div class="mx-auto mb-8 max-w-2xl text-center">
-                        <h2
-                            class="text-2xl font-bold tracking-tight md:text-3xl"
-                        >
-                            Des formules adaptées à votre taille
-                        </h2>
-                        <p class="mt-3 text-muted-foreground">
-                            {{ trialDays }} jours d’essai gratuit avec toutes
-                            les fonctions. Prix en francs CFA (XOF).
-                        </p>
-                    </div>
-
                     <div
-                        v-if="yearlyKnown"
-                        class="mb-8 flex justify-center"
+                        v-if="annualAvailable"
+                        class="mx-auto mt-8 flex w-fit rounded-xl border border-[#d5dedb] bg-[#f1f4f3] p-1"
                         role="radiogroup"
                         aria-label="Période de facturation"
                     >
-                        <div class="inline-flex rounded-lg border p-1">
-                            <button
-                                type="button"
-                                role="radio"
-                                :aria-checked="!yearly"
-                                class="min-h-10 rounded-md px-4 text-sm font-medium"
-                                :class="
-                                    !yearly
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'text-muted-foreground'
-                                "
-                                @click="yearly = false"
-                            >
-                                Mensuel
-                            </button>
-                            <button
-                                type="button"
-                                role="radio"
-                                :aria-checked="yearly"
-                                class="min-h-10 rounded-md px-4 text-sm font-medium"
-                                :class="
-                                    yearly
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'text-muted-foreground'
-                                "
-                                @click="yearly = true"
-                            >
-                                Annuel
-                            </button>
-                        </div>
-                    </div>
-
-                    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <li
-                            v-for="plan in plans"
-                            :key="plan.code"
-                            class="relative flex flex-col rounded-xl border p-5"
-                            :class="
-                                plan.code === recommended
-                                    ? 'border-primary shadow-lg ring-1 ring-primary'
-                                    : ''
-                            "
+                        <button
+                            type="button"
+                            class="min-h-10 rounded-lg px-4 text-sm font-bold"
+                            :class="!yearly ? 'bg-[#0a3f37] text-white' : ''"
+                            :aria-checked="!yearly"
+                            role="radio"
+                            @click="yearly = false"
                         >
-                            <p
-                                v-if="plan.code === recommended"
-                                class="absolute -top-3 left-5 rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-primary-foreground"
-                            >
-                                Le plus complet
-                            </p>
-                            <h3 class="text-lg font-semibold">
-                                {{ plan.name }}
-                            </h3>
-                            <div class="mt-3 min-h-16">
-                                <template v-if="planPrice(plan) !== null">
-                                    <p class="text-3xl font-bold tabular-nums">
-                                        {{ formatXof(planPrice(plan)!) }}
-                                    </p>
-                                    <p class="text-sm text-muted-foreground">
-                                        {{ yearly ? 'par an' : 'par mois' }}
-                                        <template
-                                            v-if="yearly && yearlySaving(plan)"
-                                        >
-                                            · {{ yearlySaving(plan) }} %
-                                            d’économie</template
-                                        >
-                                    </p>
-                                </template>
-                                <p v-else class="text-muted-foreground">
-                                    Tarif bientôt disponible
-                                </p>
-                            </div>
-                            <ul class="my-5 flex-1 space-y-2 text-sm">
-                                <li
-                                    v-for="item in planFeatures(plan)"
-                                    :key="item.text"
-                                    class="flex items-start gap-2"
-                                    :class="
-                                        item.ok ? '' : 'text-muted-foreground'
-                                    "
-                                >
-                                    <Check
-                                        v-if="item.ok"
-                                        class="mt-0.5 size-4 shrink-0 text-success"
-                                        aria-hidden="true"
-                                    />
-                                    <X
-                                        v-else
-                                        class="mt-0.5 size-4 shrink-0"
-                                        aria-hidden="true"
-                                    />
-                                    <span
-                                        ><span v-if="!item.ok" class="sr-only"
-                                            >Non inclus : </span
-                                        >{{ item.text }}</span
-                                    >
-                                </li>
-                            </ul>
-                            <Button
-                                as-child
-                                class="h-11"
-                                :variant="
-                                    plan.code === recommended
-                                        ? 'default'
-                                        : 'outline'
-                                "
-                            >
-                                <Link
-                                    :href="signedIn ? dashboard() : register()"
-                                    >Essayer gratuitement</Link
-                                >
-                            </Button>
-                        </li>
-                    </ul>
-
+                            Mensuel
+                        </button>
+                        <button
+                            type="button"
+                            class="min-h-10 rounded-lg px-4 text-sm font-bold"
+                            :class="yearly ? 'bg-[#0a3f37] text-white' : ''"
+                            :aria-checked="yearly"
+                            role="radio"
+                            @click="yearly = true"
+                        >
+                            Annuel
+                        </button>
+                    </div>
                     <p
                         v-if="addons.length"
-                        class="mt-6 text-center text-sm text-muted-foreground"
+                        class="mt-6 text-center text-sm text-[#4a5a56]"
                     >
-                        Besoin de plus ?
-                        <template v-for="(addon, i) in addons" :key="addon.code"
-                            >{{ i ? ' · ' : '' }}{{ addon.label }} :
-                            {{
-                                formatXof(
-                                    yearly && addon.price_yearly !== null
-                                        ? addon.price_yearly
-                                        : addon.price_monthly,
-                                )
-                            }}
-                            /
-                            {{
-                                yearly && addon.price_yearly !== null
-                                    ? 'an'
-                                    : 'mois'
-                            }}</template
+                        Options :
+                        <template
+                            v-for="(addon, index) in addons"
+                            :key="addon.code"
                         >
-                    </p>
-                    <p
-                        v-if="!pricesKnown && contactUrl"
-                        class="mt-6 text-center text-sm"
-                    >
-                        <a
-                            :href="contactUrl"
-                            class="underline underline-offset-4"
-                            target="_blank"
-                            rel="noopener"
-                            >Demandez-nous les tarifs</a
-                        >
+                            {{ index ? ' · ' : ' ' }}{{ addon.label }} :
+                            {{ formatF(addonPrice(addon)) }} /
+                            {{ addonPeriod(addon) }}
+                        </template>
                     </p>
                 </div>
             </section>
 
-            <!-- Confiance -->
-            <section class="border-y bg-muted/40">
-                <div class="mx-auto max-w-6xl px-4 py-16">
-                    <h2
-                        class="mb-10 text-center text-2xl font-bold tracking-tight md:text-3xl"
-                    >
-                        Vos données sont entre de bonnes mains
-                    </h2>
-                    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <li
-                            v-for="item in trust"
-                            :key="item.title"
-                            class="rounded-xl border bg-card p-5"
-                        >
-                            <component
-                                :is="item.icon"
-                                class="mb-3 size-6 text-success"
-                                aria-hidden="true"
-                            />
-                            <h3 class="font-semibold">{{ item.title }}</h3>
-                            <p class="mt-1 text-sm text-muted-foreground">
-                                {{ item.text }}
-                            </p>
-                        </li>
-                    </ul>
-
-                    <ul
-                        v-if="testimonials.length"
-                        class="mt-12 grid gap-4 md:grid-cols-3"
-                    >
-                        <li
-                            v-for="item in testimonials"
-                            :key="item.name"
-                            class="rounded-xl border bg-card p-5"
-                        >
-                            <blockquote class="text-sm">
-                                « {{ item.quote }} »
-                            </blockquote>
-                            <p class="mt-3 text-sm font-semibold">
-                                {{ item.name
-                                }}<span
-                                    v-if="item.business"
-                                    class="font-normal text-muted-foreground"
-                                >
-                                    · {{ item.business }}</span
-                                >
-                            </p>
-                        </li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- Questions fréquentes -->
-            <section id="faq" class="scroll-mt-20">
-                <div class="mx-auto max-w-3xl px-4 py-16">
-                    <h2
-                        class="mb-8 text-center text-2xl font-bold tracking-tight md:text-3xl"
-                    >
-                        Questions fréquentes
-                    </h2>
-                    <div class="divide-y rounded-xl border">
-                        <details
-                            v-for="item in faq"
-                            :key="item.q"
-                            class="group p-4"
-                        >
-                            <summary
-                                class="flex min-h-8 cursor-pointer list-none items-center justify-between gap-3 font-medium"
-                            >
-                                {{ item.q }}
-                                <span
-                                    class="text-xl text-muted-foreground transition group-open:rotate-45"
-                                    aria-hidden="true"
-                                    >+</span
-                                >
-                            </summary>
-                            <p class="mt-2 text-sm text-muted-foreground">
-                                {{ item.a }}
-                            </p>
-                        </details>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Contact -->
             <section
-                id="contact"
-                class="scroll-mt-20 bg-[var(--color-brand-navy)] text-white"
+                id="questions"
+                class="mx-auto max-w-3xl scroll-mt-20 px-4 py-16 sm:px-6 md:py-22"
             >
-                <div class="mx-auto max-w-4xl px-4 py-16 text-center">
-                    <h2 class="text-2xl font-bold tracking-tight md:text-3xl">
-                        Une question ? Parlons-en.
+                <h2
+                    class="text-center text-3xl font-extrabold tracking-tight md:text-4xl"
+                >
+                    Vos questions
+                </h2>
+                <div class="mt-8 space-y-3">
+                    <details
+                        v-for="([question, answer], index) in faq"
+                        :key="question"
+                        class="rounded-2xl bg-white p-5 shadow-sm"
+                        :open="index === 0"
+                    >
+                        <summary class="cursor-pointer text-lg font-extrabold">
+                            {{ question }}
+                        </summary>
+                        <p class="mt-3 leading-7 text-[#4a5a56]">
+                            {{ answer }}
+                        </p>
+                    </details>
+                </div>
+            </section>
+
+            <section id="essai" class="bg-[#0a3f37] text-white">
+                <div
+                    class="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 md:py-22"
+                >
+                    <h2
+                        class="text-3xl font-extrabold tracking-tight md:text-5xl"
+                    >
+                        Ce soir, sachez exactement combien vous avez gagné.
                     </h2>
-                    <p class="mx-auto mt-3 max-w-xl text-white/80">
-                        Nous vous aidons à démarrer : import de vos articles,
-                        réglages, formation de vos vendeurs.
+                    <p class="mt-4 text-lg text-[#d7eee7]">
+                        Créez votre compte en 2 minutes. On vous aide à mettre
+                        vos articles.
                     </p>
-                    <div
-                        class="mt-8 flex flex-col justify-center gap-3 sm:flex-row"
+                    <form
+                        v-if="contact.whatsapp"
+                        class="mx-auto mt-7 flex max-w-2xl flex-col gap-3 sm:flex-row sm:items-end"
+                        @submit.prevent="sendWhatsAppLead"
                     >
-                        <Button
-                            v-if="whatsappUrl"
-                            as-child
-                            size="lg"
-                            class="h-12 bg-[#1f9d55] text-base text-white hover:bg-[#1a8549]"
+                        <label class="flex-1 text-left"
+                            ><span
+                                class="mb-2 block text-sm font-bold text-[#bfe6dc]"
+                                >Votre numéro WhatsApp</span
+                            ><input
+                                v-model="whatsappNumber"
+                                type="tel"
+                                inputmode="tel"
+                                autocomplete="tel"
+                                placeholder="77 000 00 00"
+                                class="min-h-16 w-full rounded-2xl px-5 text-lg text-[#10201c] outline-offset-2" /></label
+                        ><button
+                            type="submit"
+                            class="min-h-16 rounded-2xl bg-[#34b89c] px-6 text-lg font-extrabold text-[#04201a]"
                         >
-                            <a
-                                :href="whatsappUrl"
-                                target="_blank"
-                                rel="noopener"
-                                ><MessageCircle
-                                    class="size-5"
-                                    aria-hidden="true"
-                                />Écrire sur WhatsApp</a
-                            >
-                        </Button>
-                        <Button
-                            v-if="contact.email"
-                            as-child
-                            size="lg"
-                            variant="outline"
-                            class="h-12 border-white/40 bg-transparent text-base text-white hover:bg-white/10 hover:text-white"
-                        >
-                            <a :href="`mailto:${contact.email}`"
-                                ><Mail class="size-5" aria-hidden="true" />{{
-                                    contact.email
-                                }}</a
-                            >
-                        </Button>
-                    </div>
+                            Commencer gratuitement
+                        </button>
+                    </form>
+                    <a
+                        v-else-if="contact.email"
+                        :href="`mailto:${contact.email}`"
+                        class="mx-auto mt-7 inline-flex min-h-16 items-center rounded-2xl bg-[#34b89c] px-6 text-lg font-extrabold text-[#04201a]"
+                    >
+                        Nous écrire par e-mail
+                    </a>
+                    <p v-else class="mt-7 text-[#d7eee7]">
+                        Contactez-nous bientôt pour démarrer votre essai.
+                    </p>
                     <p
-                        v-if="!signedIn"
-                        class="mt-8 inline-flex items-center gap-2 text-sm text-white/80"
+                        v-if="formMessage"
+                        class="mt-3 text-sm text-[#bfe6dc]"
+                        aria-live="polite"
                     >
-                        <CircleCheck class="size-4" aria-hidden="true" />
-                        Ou essayez tout de suite :
-                        <Link
-                            :href="register()"
-                            class="font-semibold text-white underline underline-offset-4"
-                            >créer mon compte</Link
-                        >
+                        {{ formMessage }}
                     </p>
+                    <p class="mt-4 text-sm font-bold text-[#bfe6dc]">
+                        {{ trialDays }} jours gratuits · Sans engagement ·
+                        Aucune carte bancaire
+                    </p>
+                    <a
+                        v-if="whatsappUrl"
+                        :href="whatsappUrl"
+                        target="_blank"
+                        rel="noopener"
+                        class="mx-auto mt-6 inline-flex min-h-14 items-center gap-2 rounded-2xl border-2 border-[#5be0b0] px-5 font-bold"
+                        ><MessageCircle class="size-5" />Une question ? WhatsApp
+                        {{ formatWhatsappNumber(contact.whatsapp) }}</a
+                    >
                 </div>
             </section>
         </main>
 
-        <footer class="border-t">
+        <footer class="bg-[#062a25] pb-22 text-[#bfe6dc] md:pb-0">
             <div
-                class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
+                class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6"
             >
-                <p>© {{ new Date().getFullYear() }} DIABA GESCOM · Sénégal</p>
-                <nav class="flex flex-wrap gap-4" aria-label="Informations">
-                    <Link :href="privacy()" class="hover:text-foreground"
-                        >Confidentialité</Link
-                    >
-                    <Link :href="terms()" class="hover:text-foreground"
-                        >Conditions d’utilisation</Link
-                    >
-                    <Link
-                        v-if="!signedIn"
-                        :href="login()"
-                        class="hover:text-foreground"
-                        >Se connecter</Link
-                    >
+                <p class="font-extrabold text-white">DIABA GESCOM</p>
+                <p>
+                    Vos données sauvegardées chaque jour, chiffrées, jamais
+                    vendues.
+                </p>
+                <nav class="flex gap-4">
+                    <Link :href="privacy()">Confidentialité</Link
+                    ><Link :href="terms()">Conditions</Link>
                 </nav>
             </div>
         </footer>
+
+        <div
+            class="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-[#d5dedb] bg-white p-3 shadow-2xl md:hidden"
+        >
+            <Link
+                :href="ctaHref"
+                class="flex min-h-14 flex-1 items-center justify-center rounded-2xl bg-[#34b89c] px-3 text-center font-extrabold text-[#04201a]"
+                >Essayer gratuitement</Link
+            ><a
+                v-if="whatsappUrl"
+                :href="whatsappUrl"
+                target="_blank"
+                rel="noopener"
+                aria-label="Écrire sur WhatsApp"
+                class="grid size-14 place-items-center rounded-2xl border-2 border-[#0a3f37] text-[#0a3f37]"
+                ><MessageCircle class="size-6"
+            /></a>
+        </div>
     </div>
 </template>

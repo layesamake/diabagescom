@@ -8,9 +8,11 @@
         "dev": "vp dev",
         "check": "vp check",
         "check:fix": "vp check --fix",
-        "types:check": "vue-tsc --noEmit"
+        "types:check": "vue-tsc --noEmit",
+        "test:js": "node --test \"tests/js/**/*.test.*\""
     },
     "dependencies": {
+        "@fontsource/atkinson-hyperlegible-next": "^5.3.0",
         "@inertiajs/vite": "^3.0.0",
         "@inertiajs/vue3": "^3.0.0",
         "@laravel/passkeys": "^0.2.0",

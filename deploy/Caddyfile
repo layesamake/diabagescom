@@ -11,5 +11,5 @@
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		-Server
 	}
-	reverse_proxy nginx:8080
+	reverse_proxy {$DIABA_ENV}-nginx:8080
 }

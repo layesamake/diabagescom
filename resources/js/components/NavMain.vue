@@ -4,13 +4,14 @@ import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
+    SidebarMenuBadge,
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import type { NavItem } from '@/types';
 
-export type NavGroup = { label?: string; items: NavItem[] };
+export type NavGroup = { label?: string; tour?: string; items: NavItem[] };
 
 defineProps<{
     groups: NavGroup[];
@@ -26,6 +27,7 @@ const { isCurrentUrl } = useCurrentUrl();
         :key="group.label ?? 'main'"
         class="px-2 py-2"
         :class="{ 'border-t border-sidebar-foreground/15': index > 0 }"
+        :data-tour="group.tour"
     >
         <SidebarGroupLabel
             v-if="group.label"
@@ -39,13 +41,26 @@ const { isCurrentUrl } = useCurrentUrl();
                     size="lg"
                     class="h-10"
                     :is-active="isCurrentUrl(item.href)"
-                    :tooltip="item.title"
+                    :tooltip="item.tooltip ?? item.title"
+                    :data-tour="item.tour"
                 >
-                    <Link :href="item.href">
+                    <a
+                        v-if="item.external"
+                        :href="String(item.href)"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <component :is="item.icon" />
+                        <span>{{ item.title }}</span>
+                    </a>
+                    <Link v-else :href="item.href">
                         <component :is="item.icon" />
                         <span>{{ item.title }}</span>
                     </Link>
                 </SidebarMenuButton>
+                <SidebarMenuBadge v-if="item.badge">{{
+                    item.badge
+                }}</SidebarMenuBadge>
             </SidebarMenuItem>
         </SidebarMenu>
     </SidebarGroup>

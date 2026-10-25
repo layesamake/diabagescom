@@ -3,8 +3,10 @@ import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
+import SimpleLayout from '@/layouts/SimpleLayout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 import { initializeRequestErrors } from '@/lib/requestErrors';
+import { watchIdentity } from '@/offline/identity';
 import { registerServiceWorker } from '@/offline/serviceWorker';
 import { vAmount } from '@/lib/amountDirective';
 
@@ -23,6 +25,14 @@ void createInertiaApp({
             case name.startsWith('onboarding/'):
             case name.startsWith('auth/'):
                 return AuthLayout;
+            // La page de comparaison des composants garde le cadre expert :
+            // elle sert à valider le mode simple, elle n'en fait pas partie.
+            case name === 'simple/Demo':
+                return AppLayout;
+            case name.startsWith('simple/'):
+                return SimpleLayout;
+            case name === 'settings/Index':
+                return AppLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:
@@ -55,3 +65,7 @@ initializeRequestErrors();
 
 // PWA : cache de l'application pour la vente hors connexion.
 registerServiceWorker();
+
+// Déclare l'identité courante au service worker : partitionne et purge
+// strictement le cache des pages privées par compte et entreprise.
+watchIdentity();

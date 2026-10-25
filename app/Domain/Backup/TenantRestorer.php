@@ -150,6 +150,9 @@ final class TenantRestorer
 
         try {
             return DB::transaction(function () use ($zip, $manifest, $owner, $plan): array {
+                // La base refuse tout ajout à une caisse fermée ; la restauration réinsère un historique
+                // déjà clos et le déclare, pour cette transaction seulement.
+                DB::statement("SELECT set_config('diaba.restore', 'on', true)");
                 $source = (array) $manifest['tenant'];
                 $this->oldTenantId = (string) $source['id'];
                 $this->ownerId = $owner->id;
@@ -303,6 +306,13 @@ final class TenantRestorer
         foreach ($rows as $row) {
             $row = $this->remapRow($table, $row);
 
+            // Le slug d'une boutique est unique globalement (pas par entreprise) :
+            // une restauration doit s'en donner un nouveau, jamais reprendre
+            // celui de l'entreprise d'origine (toujours active en parallèle).
+            if ($table === 'storefronts' && isset($row['slug'])) {
+                $row['slug'] = $this->uniqueStorefrontSlug((string) $row['slug']);
+            }
+
             if (isset(self::STAGED[$table]) && $row['status'] !== self::STAGED[$table]) {
                 $staged[$row['status']][] = $row['id'];
                 $row['status'] = self::STAGED[$table];
@@ -381,6 +391,24 @@ final class TenantRestorer
         $row['tenant_id'] = $this->newTenantId;
 
         return $row;
+    }
+
+    /**
+     * Le slug d'origine reste la base lisible (ex. « boutique-diallo-2 ») :
+     * seul le suffixe change, pour ne pas dérouter l'administrateur qui
+     * restaure.
+     */
+    private function uniqueStorefrontSlug(string $base): string
+    {
+        $slug = $base;
+        $suffix = 2;
+
+        while (DB::table('storefronts')->where('slug', $slug)->exists()) {
+            $slug = "{$base}-{$suffix}";
+            $suffix++;
+        }
+
+        return $slug;
     }
 
     private function remapValue(mixed $value): mixed

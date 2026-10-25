@@ -15,6 +15,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
@@ -64,6 +65,26 @@ final class ProductService
 
             return $product;
         });
+    }
+
+    /**
+     * Création depuis le mode simple : la référence interne est attribuée dans
+     * la transaction, pour ne jamais exposer ni dupliquer un SKU à l'écran.
+     *
+     * @param  array{name: string, sale_price: int, unit_id: string, category_id?: string|null}  $data
+     */
+    public function createSimple(array $data, User $actor): Product
+    {
+        $this->access->assertCanWrite($this->context->tenant());
+
+        return DB::transaction(fn (): Product => $this->create([
+            'sku' => $this->sequences->formatted('simple_product_sku', 'ART'),
+            'name' => $data['name'],
+            'type' => 'stockable',
+            'category_id' => $data['category_id'] ?? null,
+            'unit_id' => $data['unit_id'],
+            'sale_price' => $data['sale_price'],
+        ], $actor));
     }
 
     /**
@@ -238,6 +259,40 @@ final class ProductService
     }
 
     /**
+     * Copie un article existant : nouvelle fiche, nouveau SKU unique et photo
+     * dupliquée. Les codes-barres ne sont jamais recopiés (un code ne désigne
+     * qu'un seul article). Pensé pour accélérer la saisie d'articles voisins
+     * (variantes de conditionnement, de couleur…).
+     */
+    public function duplicate(Product $source, User $actor): Product
+    {
+        $this->access->assertCanWrite($this->context->tenant());
+
+        return DB::transaction(function () use ($source): Product {
+            $copy = new Product;
+            $copy->sku = $this->uniqueSku($source->sku);
+            $copy->name = trim($source->name.' '.__('catalog.product.duplicate_suffix'));
+            $copy->description = $source->description;
+            $copy->type = $source->type;
+            $copy->category_id = $source->category_id;
+            $copy->unit_id = $source->unit_id;
+            $copy->tax_rate_id = $source->tax_rate_id;
+            $copy->sale_price = $source->sale_price;
+            $copy->standard_cost = $source->standard_cost;
+            $copy->image_path = $source->image_path !== null
+                ? $this->images->copy($source->image_path, "tenants/{$source->tenant_id}/products")
+                : null;
+
+            $this->saveUnique($copy);
+
+            $this->audit->record('product.duplicated', $copy,
+                after: [...$copy->only(self::AUDITED), 'source_product_id' => $source->id]);
+
+            return $copy;
+        });
+    }
+
+    /**
      * Le SKU est unique par entreprise sans tenir compte de la casse (index PostgreSQL) :
      * un doublon, même concurrent, devient une erreur de saisie compréhensible.
      */
@@ -254,5 +309,24 @@ final class ProductService
     {
         return (string) (TaxRate::query()->where('is_default', true)->value('id')
             ?? throw ValidationException::withMessages(['tax_rate_id' => __('catalog.product.no_default_tax')]));
+    }
+
+    /**
+     * SKU-COPIE, puis SKU-COPIE-2, SKU-COPIE-3… en respectant la limite de 40
+     * caractères et l'unicité (sans tenir compte de la casse).
+     */
+    private function uniqueSku(string $base): string
+    {
+        $base = Str::upper(trim($base));
+        $suffix = '-COPIE';
+        $attempt = 1;
+
+        do {
+            $currentSuffix = $attempt === 1 ? $suffix : "{$suffix}-{$attempt}";
+            $candidate = substr($base, 0, 40 - strlen($currentSuffix)).$currentSuffix;
+            $attempt++;
+        } while (Product::query()->whereRaw('upper(sku) = upper(?)', [$candidate])->exists());
+
+        return $candidate;
     }
 }

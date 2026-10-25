@@ -1,0 +1,17 @@
+{
+	email {$ACME_EMAIL}
+	servers {
+		protocols h1 h2 h3
+	}
+}
+
+# Utilisé uniquement lorsque dev et production partagent le même VPS.
+dev.diaba.cloud {
+	encode zstd gzip
+	reverse_proxy dev-nginx:8080
+}
+
+diaba.cloud {
+	encode zstd gzip
+	reverse_proxy production-nginx:8080
+}

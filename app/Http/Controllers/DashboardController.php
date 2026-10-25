@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Domain\Inventory\StockAccess;
 use App\Domain\Notifications\AlertCenter;
 use App\Domain\Notifications\NotificationPreferences;
+use App\Domain\Onboarding\StartGuide;
+use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -16,12 +19,38 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Accueil : chiffres du jour, raccourcis et alertes adaptés aux permissions.
+ * Accueil : chiffres du jour, actions du rôle et alertes adaptés aux permissions.
  */
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, TenantContext $context, StockAccess $access, AlertCenter $center, NotificationPreferences $preferences): Response
+    /**
+     * Actions rapides de l'accueil : celles que le rôle utilise le plus, dans
+     * l'ordre de son métier, limitées à ce que ses permissions autorisent.
+     */
+    private const array ACTION_ORDER = [
+        'admin' => ['sell', 'quote', 'cash', 'purchase', 'product', 'stock', 'reports', 'accounting'],
+        'cashier' => ['sell', 'quote', 'cash', 'customer', 'reports'],
+        'warehouse' => ['stock', 'receive', 'transfer', 'count', 'product'],
+        'purchaser' => ['purchase', 'request', 'supplier', 'stock', 'reports'],
+        'accountant' => ['accounting', 'reports', 'cash', 'purchase'],
+        'management' => ['reports', 'sell', 'stock', 'cash', 'accounting'],
+        'member' => ['sell', 'quote', 'cash', 'purchase', 'product', 'stock', 'reports', 'accounting'],
+    ];
+
+    private const int MAX_ACTIONS = 6;
+
+    public function __invoke(Request $request, TenantContext $context, StockAccess $access, AlertCenter $center, NotificationPreferences $preferences, StartGuide $guide, FeatureAccess $features): Response|RedirectResponse
     {
+        $membership = $context->membership();
+        abort_if($membership === null, 403);
+
+        // Fortify et les liens historiques arrivent sur /dashboard. Cette
+        // redirection centrale garantit qu'une appartenance en mode simple
+        // n'ouvre jamais involontairement l'interface experte.
+        if ($membership->homeRoute() === 'simple.home') {
+            return to_route('simple.home');
+        }
+
         /** @var User $user */
         $user = $request->user();
         $pending = $center->pending($user);
@@ -30,15 +59,38 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'figures' => $this->figures($context, $access),
-            'checklist' => $this->checklist($context),
             'alerts' => $alerts,
-            'shortcuts' => [
-                'sell' => Gate::allows('sale.create') && Gate::allows('sale.validate'),
-                'quote' => Gate::allows('sale.create'),
-                'cash' => Gate::any(['cash.view_own', 'cash.view_all']),
-                'purchase' => Gate::allows('purchase.view'),
-            ],
+            'actions' => $this->actions($guide->track(), $features->hasFeature($context->tenant(), FeatureAccess::FEATURE_ACCOUNTING)),
         ]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function actions(string $track, bool $accounting): array
+    {
+        $allowed = [
+            'sell' => Gate::allows('sale.create') && Gate::allows('sale.validate'),
+            'quote' => Gate::allows('sale.create'),
+            'cash' => Gate::any(['cash.view_own', 'cash.view_all']),
+            'purchase' => Gate::allows('purchase.view'),
+            'product' => Gate::allows('catalog.create'),
+            'stock' => Gate::allows('inventory.view'),
+            'reports' => Gate::any(['report.view_own', 'report.view_all']),
+            'accounting' => $accounting && Gate::allows('accounting.view'),
+            'customer' => Gate::allows('customer.manage'),
+            'supplier' => Gate::allows('supplier.manage'),
+            'receive' => Gate::allows('purchase.receive'),
+            'transfer' => Gate::allows('inventory.transfer_create'),
+            'count' => Gate::allows('inventory.count_create'),
+            'request' => Gate::allows('purchase_request.create'),
+        ];
+
+        return array_slice(
+            array_values(array_filter(self::ACTION_ORDER[$track] ?? self::ACTION_ORDER['member'], fn (string $key): bool => $allowed[$key])),
+            0,
+            self::MAX_ACTIONS,
+        );
     }
 
     /**
@@ -82,33 +134,5 @@ class DashboardController extends Controller
                 ->where('type', 'invoice')->where('status', 'validated')->whereIn('warehouse_id', $access->accessibleIds())
                 ->sum(DB::raw('GREATEST(total - amount_paid - amount_credited, 0)')) : null,
         ];
-    }
-
-    /**
-     * Premiers pas d'une nouvelle entreprise (administrateur) : chaque étape
-     * se coche d'elle-même dès qu'elle est réalisée. Null une fois tout fait.
-     *
-     * @return list<array{key: string, done: bool}>|null
-     */
-    private function checklist(TenantContext $context): ?array
-    {
-        if (! Gate::allows('organization.manage')) {
-            return null;
-        }
-
-        $tenant = $context->tenantId();
-        $exists = fn (string $table, ?callable $where = null): bool => DB::table($table)->where('tenant_id', $tenant)
-            ->when($where !== null, fn (Builder $q) => $where($q))->exists();
-
-        $steps = [
-            ['key' => 'product', 'done' => $exists('products')],
-            ['key' => 'stock', 'done' => $exists('inventory_movements')],
-            ['key' => 'cash', 'done' => $exists('cash_sessions')],
-            ['key' => 'sale', 'done' => $exists('sales_documents', fn (Builder $q) => $q->where('status', '<>', 'draft'))],
-            ['key' => 'team', 'done' => DB::table('tenant_memberships')->where('tenant_id', $tenant)->count() > 1],
-            ['key' => 'backup', 'done' => $exists('tenant_exports', fn (Builder $q) => $q->whereIn('status', ['ready', 'expired'])) || $exists('cloud_backup_connections')],
-        ];
-
-        return collect($steps)->every(fn (array $s) => $s['done']) ? null : $steps;
     }
 }

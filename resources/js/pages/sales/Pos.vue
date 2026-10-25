@@ -151,6 +151,16 @@ const total = computed(() =>
     cart.value.reduce((sum, line) => sum + lineTotal(line), 0),
 );
 const itemCount = computed(() => cart.value.length);
+/** Quantité d'un produit déjà présente dans le panier, ou 0 s'il n'y est pas. */
+function quantiteDansPanier(productId: string): number {
+    const ligne = cart.value.find((l) => l.product.id === productId);
+    if (!ligne) {
+        return 0;
+    }
+    const milli = parseQuantity(ligne.quantity) ?? 0n;
+
+    return Math.round(Number(milli) / 1000);
+}
 const invalidQuantity = computed(() =>
     cart.value.some((l) => {
         const q = parseQuantity(l.quantity);
@@ -483,32 +493,106 @@ function checkout(): void {
                         v-for="product in frequent"
                         :key="product.id"
                         type="button"
-                        class="flex min-h-20 flex-col justify-between rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/60 hover:bg-accent active:scale-[0.98]"
+                        class="relative flex min-h-20 flex-col items-start gap-1 rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/60 hover:bg-accent active:scale-[0.98]"
+                        :class="
+                            quantiteDansPanier(product.id) > 0
+                                ? 'border-primary ring-1 ring-primary/40'
+                                : ''
+                        "
                         @click="addProduct(product)"
                     >
+                        <span
+                            v-if="quantiteDansPanier(product.id) > 0"
+                            class="absolute top-2 right-2 grid size-7 place-items-center rounded-full text-xs font-extrabold tabular-nums"
+                            :style="{
+                                backgroundColor: 'var(--s-vert)',
+                                color: 'var(--s-sur-vert)',
+                            }"
+                            aria-hidden="true"
+                            >{{ quantiteDansPanier(product.id) }}</span
+                        >
+                        <img
+                            v-if="product.image_url"
+                            :src="product.image_url"
+                            :alt="''"
+                            class="size-12 shrink-0 rounded-md object-cover"
+                        />
+                        <span
+                            v-else
+                            class="grid size-12 shrink-0 place-items-center rounded-md bg-muted text-base font-bold text-muted-foreground"
+                            aria-hidden="true"
+                            >{{ product.name.slice(0, 1).toUpperCase() }}</span
+                        >
                         <span class="line-clamp-2 text-sm font-medium">{{
                             product.name
                         }}</span>
+                        <span class="font-semibold text-primary tabular-nums">{{
+                            formatXof(product.sale_price ?? 0)
+                        }}</span>
                         <span
-                            class="mt-1 flex items-baseline justify-between gap-2"
+                            v-if="
+                                product.available !== null &&
+                                product.available !== undefined
+                            "
+                            class="text-xs text-muted-foreground"
+                            >{{
+                                t('pos.tile_stock', {
+                                    quantity: product.available,
+                                })
+                            }}</span
                         >
-                            <span
-                                class="font-semibold text-primary tabular-nums"
-                                >{{ formatXof(product.sale_price ?? 0) }}</span
-                            >
-                            <span
-                                v-if="
-                                    product.available !== null &&
-                                    product.available !== undefined
-                                "
-                                class="text-xs text-muted-foreground"
-                                >{{
-                                    t('pos.tile_stock', {
-                                        quantity: product.available,
+                        <div
+                            v-if="quantiteDansPanier(product.id) > 0"
+                            class="mt-auto flex w-full items-center gap-1 pt-1"
+                        >
+                            <button
+                                type="button"
+                                class="grid size-9 shrink-0 place-items-center rounded-full border"
+                                :style="{
+                                    borderColor: 'var(--s-bordure)',
+                                    backgroundColor: 'var(--s-surface)',
+                                    color: 'var(--s-texte)',
+                                }"
+                                :aria-label="
+                                    t('pos.tile_decrement', {
+                                        name: product.name,
                                     })
-                                }}</span
+                                "
+                                @click.stop="
+                                    step(
+                                        cart.find(
+                                            (l) => l.product.id === product.id,
+                                        ) as CartLine,
+                                        -1,
+                                    )
+                                "
                             >
-                        </span>
+                                <Minus :size="18" :stroke-width="2.5" />
+                            </button>
+                            <button
+                                type="button"
+                                class="ml-auto grid size-9 shrink-0 place-items-center rounded-full"
+                                :style="{
+                                    backgroundColor: 'var(--s-vert)',
+                                    color: 'var(--s-sur-vert)',
+                                }"
+                                :aria-label="
+                                    t('pos.tile_increment', {
+                                        name: product.name,
+                                    })
+                                "
+                                @click.stop="
+                                    step(
+                                        cart.find(
+                                            (l) => l.product.id === product.id,
+                                        ) as CartLine,
+                                        1,
+                                    )
+                                "
+                            >
+                                <Plus :size="18" :stroke-width="2.5" />
+                            </button>
+                        </div>
                     </button>
                 </div>
             </section>

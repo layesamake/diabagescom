@@ -142,6 +142,15 @@ class TenantRestoreTest extends TestCase
         $this->assertStringStartsWith("tenants/{$restored->id}/", $image);
         Storage::disk('local')->assertExists($image);
 
+        // La boutique en ligne (créée par la réception de marchandise) garde
+        // un slug différent de l'originale : il est unique pour tout le serveur,
+        // pas seulement pour l'entreprise.
+        $originalSlug = DB::table('storefronts')->where('tenant_id', $setup['tenant']->id)->value('slug');
+        $restoredSlug = DB::table('storefronts')->where('tenant_id', $restored->id)->value('slug');
+        $this->assertNotNull($originalSlug);
+        $this->assertNotNull($restoredSlug);
+        $this->assertNotSame($originalSlug, $restoredSlug);
+
         // Accès : seul l'utilisateur qui restaure, comme administrateur.
         $this->assertSame([$setup['user']->id], DB::table('tenant_memberships')->where('tenant_id', $restored->id)->pluck('user_id')->all());
 

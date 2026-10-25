@@ -74,6 +74,9 @@ class BillingTest extends TestCase
     public function test_an_invoice_needs_a_price_and_only_one_can_be_open(): void
     {
         $setup = $this->createTenantWithMember(plan: 'business');
+        // Toutes les formules ont un tarif validé depuis la restructuration du
+        // 17/10/2026 : on simule ici une formule sans tarif pour ce cas précis.
+        Plan::query()->where('code', 'essential')->update(['price_monthly' => null, 'price_yearly' => null]);
 
         $this->actingAs($setup['user'])->post(route('billing.invoices.store'), ['plan' => 'essential', 'cycle' => 'monthly'])
             ->assertSessionHasErrors('business');

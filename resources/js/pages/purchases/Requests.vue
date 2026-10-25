@@ -106,6 +106,15 @@ const badge: Record<Status, string> = {
 
         <EmptyState v-if="requests.data.length === 0">
             {{ t('purchases.requests.empty') }}
+            <template v-if="can.create" #action>
+                <Button as-child class="h-11"
+                    ><Link :href="requestCreate()"
+                        ><Plus class="size-4" />{{
+                            t('purchases.requests.new')
+                        }}</Link
+                    ></Button
+                >
+            </template>
         </EmptyState>
         <ul v-else class="divide-y rounded-lg border">
             <li v-for="r in requests.data" :key="r.id">

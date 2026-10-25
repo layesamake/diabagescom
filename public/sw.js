@@ -2,23 +2,32 @@
  * Service worker DIABA GESCOM (docs/08).
  *
  * - Ressources de build (noms hachés, immuables) : cache d'abord.
- * - Pages utiles hors connexion (vente comptoir, file de synchronisation,
- *   accueil, vitrine publique d'une boutique) : réseau d'abord, dernière
- *   version en cache sinon. Les photos des articles de la vitrine sont
- *   gardées pour être revues hors ligne.
+ * - Vitrine publique d'une boutique : réseau d'abord, dernière version en
+ *   cache sinon. Les photos des articles de la vitrine sont gardées pour
+ *   être revues hors ligne.
+ * - Vente comptoir (/sales/pos) et file de synchronisation (/sync) : réseau
+ *   d'abord, dernière version en cache sinon — mais le cache est partitionné
+ *   par identité (compte + entreprise) et jamais restitué pour une identité
+ *   différente ou inconnue (audit 2026-10-15, « Pages authentifiées mises en
+ *   cache sans isolation utilisateur/tenant »).
+ * - `/dashboard` et toute autre page privée ne sont jamais mises en cache
+ *   avec des props authentifiées : en cas d'échec réseau, seul le shell
+ *   neutre `/offline.html` (sans donnée de compte) est restitué.
  * - Aucune réponse d'API ni requête Inertia n'est mise en cache ; aucune
  *   requête autre que GET n'est interceptée.
  * - Les ventes hors ligne sont dans IndexedDB, pas ici : une mise à jour du
  *   service worker ne les touche jamais.
  */
-const VERSION = 'diaba-v2';
+importScripts('/sw-helpers.js');
+
+const Sw = self.SwHelpers;
+
+// Invalide les anciens bundles hachés après le déploiement du 19 octobre 2026.
+const VERSION = 'diaba-v4';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const PAGE_CACHE = `${VERSION}-pages`;
-const OFFLINE_PAGES = ['/sales/pos', '/sync', '/dashboard'];
-// Vitrine publique : /boutique/{slug} (page seule, jamais la confirmation d'une commande).
-const STOREFRONT_PAGE = /^\/boutique\/[^/]+\/?$/;
-const STOREFRONT_IMAGE = /^\/boutique\/[^/]+\/products\/[0-9a-f-]{36}\/image$/;
+const IDENTITY_KEY_URL = '/__identity__';
 const SHELL = [
     '/offline.html',
     '/manifest.webmanifest',
@@ -51,6 +60,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('message', (event) => {
     if (event.data === 'skip-waiting') {
         self.skipWaiting();
+
+        return;
+    }
+
+    if (event.data && event.data.type === 'diaba-identity') {
+        event.waitUntil(setIdentity(event.data.key ?? null));
     }
 });
 
@@ -68,7 +83,9 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    if (STOREFRONT_IMAGE.test(url.pathname)) {
+    if (
+        /^\/boutique\/[^/]+\/products\/[0-9a-f-]{36}\/image$/.test(url.pathname)
+    ) {
         event.respondWith(staleWhileRevalidate(request));
 
         return;
@@ -111,27 +128,96 @@ async function staleWhileRevalidate(request) {
     return cached ?? (await network) ?? Response.error();
 }
 
+/** Identité (compte + entreprise) connue du service worker, ou `null`. */
+async function getIdentity() {
+    const cache = await caches.open(PAGE_CACHE);
+    const match = await cache.match(IDENTITY_KEY_URL);
+
+    if (!match) {
+        return null;
+    }
+
+    const data = await match.json();
+
+    return data.identity ?? null;
+}
+
+/**
+ * Déclarée par le client à chaque navigation et à la déconnexion. Purge
+ * strictement toute page privée mise en cache sous une autre identité (ou
+ * toutes, à la déconnexion où `identity` est `null`) — jamais seulement par
+ * chemin.
+ */
+async function setIdentity(identity) {
+    const cache = await caches.open(PAGE_CACHE);
+    await cache.put(
+        IDENTITY_KEY_URL,
+        new Response(JSON.stringify({ identity })),
+    );
+
+    const keys = await cache.keys();
+    await Promise.all(
+        keys
+            .filter((request) => Sw.shouldPurgeEntry(request.url, identity))
+            .map((request) => cache.delete(request)),
+    );
+}
+
 async function navigation(request, url) {
-    const storefront = STOREFRONT_PAGE.test(url.pathname) && url.search === '';
-    const offlineCapable = storefront || OFFLINE_PAGES.includes(url.pathname);
+    const storefront = Sw.isStorefrontPage(url.pathname, url.search);
+    const privatePage = Sw.isPrivateOfflinePage(url.pathname);
 
     try {
         const response = await fetch(request);
 
         // Seules les pages utiles hors ligne sont conservées, et seulement si
         // c'est bien la page demandée (pas une redirection vers la connexion).
-        if (offlineCapable && response.ok && !response.redirected) {
-            (await caches.open(PAGE_CACHE)).put(url.pathname, response.clone());
+        if (response.ok && !response.redirected) {
+            if (storefront) {
+                (await caches.open(PAGE_CACHE)).put(
+                    url.pathname,
+                    response.clone(),
+                );
+            } else if (privatePage) {
+                const identity = await getIdentity();
+
+                // Jamais de page privée en cache sans identité connue : une
+                // clé fondée sur le seul chemin resterait valable pour tout
+                // compte qui se connecterait ensuite sur cet appareil.
+                if (identity) {
+                    (await caches.open(PAGE_CACHE)).put(
+                        Sw.privatePageCacheKey(url.pathname, identity),
+                        response.clone(),
+                    );
+                }
+            }
         }
 
         return response;
     } catch {
-        const cached = offlineCapable
-            ? await caches.match(url.pathname)
-            : undefined;
+        if (storefront) {
+            return (
+                (await caches.match(url.pathname)) ??
+                (await caches.match('/offline.html')) ??
+                Response.error()
+            );
+        }
 
-        return (
-            cached ?? (await caches.match('/offline.html')) ?? Response.error()
-        );
+        if (privatePage) {
+            const identity = await getIdentity();
+            const cached = identity
+                ? await caches.match(
+                      Sw.privatePageCacheKey(url.pathname, identity),
+                  )
+                : undefined;
+
+            if (cached) {
+                return cached;
+            }
+        }
+
+        // `/dashboard` et toute page privée sans identité confirmée : jamais
+        // de contenu authentifié figé hors ligne, seulement le shell neutre.
+        return (await caches.match('/offline.html')) ?? Response.error();
     }
 }

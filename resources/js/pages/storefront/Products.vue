@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { t } from '@/i18n';
+import { formatXof } from '@/lib/money';
 import {
     index as storefrontIndex,
     products as storefrontProducts,
@@ -111,7 +112,7 @@ defineOptions({
                 </p>
                 <p class="text-sm text-muted-foreground">
                     {{ product.sku }} · {{ product.category ?? '—' }} ·
-                    {{ product.sale_price }} XOF / {{ product.unit }}
+                    {{ formatXof(product.sale_price) }} / {{ product.unit }}
                 </p>
             </div>
             <div class="grid gap-2">

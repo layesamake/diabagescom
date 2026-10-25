@@ -7,10 +7,17 @@ return [
         'feature_not_included' => 'La fonction « :feature » n’est pas incluse dans votre formule.',
         'limit_warehouses' => 'Votre formule permet :limit dépôt(s) actif(s). Passez à une formule supérieure ou ajoutez une option pour en créer davantage.',
         'limit_users' => 'Votre formule permet :limit utilisateur(s). Passez à une formule supérieure ou ajoutez une option pour en inviter davantage.',
+        'feature_has_data' => [
+            'accounting' => 'Impossible de désactiver la comptabilité : des écritures existent déjà. Elles restent consultables, mais le module ne peut pas être désactivé.',
+            'online_store' => 'Impossible de désactiver la boutique en ligne : des commandes existent déjà. Elles restent consultables, mais le module ne peut pas être désactivé.',
+        ],
     ],
     'features' => [
         'accounting' => 'Comptabilité',
+        'online_store' => 'Boutique en ligne',
     ],
+    'feature_activated' => 'Fonction activée.',
+    'feature_deactivated' => 'Fonction désactivée.',
     'notices' => [
         'ending' => [
             'subject' => 'Votre essai DIABA GESCOM se termine dans :days jour(s)',

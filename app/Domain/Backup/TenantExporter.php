@@ -43,13 +43,13 @@ final class TenantExporter
         'sales_documents', 'sales_document_lines', 'payments', 'cash_movements',
         'chart_accounts', 'accounting_settings', 'accounting_journals', 'account_mappings', 'fiscal_years', 'accounting_periods',
         'journal_entries', 'journal_entry_lines', 'journal_entry_attachments', 'accounting_postings', 'bank_reconciliations', 'bank_reconciliation_lines',
-        'audit_events',
+        'audit_events', 'audio_clips',
     ];
 
     /** Tables volontairement exclues (voir le commentaire de la classe). */
     public const array EXCLUDED = [
         'subscriptions', 'subscription_addons', 'saas_invoices', 'saas_payments', 'saas_credit_notes', 'support_grants',
-        'offline_devices', 'sync_commands', 'notification_preferences', 'alert_digests', 'catalog_imports', 'tenant_exports', 'tenant_restores', 'cloud_backup_connections',
+        'offline_devices', 'sync_commands', 'notification_preferences', 'alert_digests', 'guide_states', 'guide_steps', 'catalog_imports', 'tenant_exports', 'tenant_restores', 'cloud_backup_connections',
     ];
 
     private const string DISK = 'local';

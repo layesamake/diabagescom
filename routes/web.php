@@ -18,6 +18,7 @@ use App\Http\Controllers\Catalog\ProductImportController;
 use App\Http\Controllers\Catalog\ReferenceDataController;
 use App\Http\Controllers\ContextController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GuideController;
 use App\Http\Controllers\Inventory\CountController;
 use App\Http\Controllers\Inventory\StockController;
 use App\Http\Controllers\Inventory\TransferController;
@@ -38,11 +39,23 @@ use App\Http\Controllers\Sales\DocumentShareController;
 use App\Http\Controllers\Sales\PosController;
 use App\Http\Controllers\Sales\SalesDocumentController;
 use App\Http\Controllers\SalesReportController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Settings\BackupController;
 use App\Http\Controllers\Settings\CompanyController;
+use App\Http\Controllers\Settings\FeatureController;
 use App\Http\Controllers\Settings\GoogleDriveController;
 use App\Http\Controllers\Settings\MemberController;
 use App\Http\Controllers\Settings\NotificationController;
+use App\Http\Controllers\Simple\SimpleCustomerController;
+use App\Http\Controllers\Simple\SimpleGuideController;
+use App\Http\Controllers\Simple\SimpleModeController;
+use App\Http\Controllers\Simple\SimpleProductController;
+use App\Http\Controllers\Simple\SimplePurchaseController;
+use App\Http\Controllers\Simple\SimpleResultsController;
+use App\Http\Controllers\Simple\SimpleSalesController;
+use App\Http\Controllers\Simple\SimpleSalesLedgerController;
+use App\Http\Controllers\Simple\SimpleStockController;
+use App\Http\Controllers\Simple\SimpleVoiceController;
 use App\Http\Controllers\Storefront\PublicStorefrontController;
 use App\Http\Controllers\Storefront\StorefrontController;
 use App\Http\Controllers\SubscriptionController;
@@ -88,8 +101,71 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('reports', [SalesReportController::class, 'index'])->name('reports.index');
 
+    // Centre d'aide : tâches courantes, questions fréquentes, glossaire.
+    Route::inertia('aide', 'help/Index')->name('help.index');
+
+    // Recherche globale (Ctrl+K) : articles, clients, fournisseurs, documents.
+    Route::get('search', SearchController::class)->middleware('throttle:120,1')->name('search.index');
+
+    // Guide de démarrage : propre à chaque utilisateur, sans permission particulière.
+    Route::get('guide', [GuideController::class, 'index'])->name('guide.index');
+    Route::put('guide', [GuideController::class, 'update'])->name('guide.update');
+    Route::post('guide/steps/{step}', [GuideController::class, 'step'])->where('step', '[a-z_]+')->name('guide.steps.update');
+
     Route::post('context/tenant', [ContextController::class, 'switchTenant'])->name('context.tenant');
     Route::post('context/warehouse', [ContextController::class, 'switchWarehouse'])->name('context.warehouse');
+
+    // Mode simple (lot 1 : bascule et page de comparaison). Les routes
+    // existent toujours — pour que le build génère leurs helpers — mais
+    // répondent 404 tant que DIABA_SIMPLE_MODE n'est pas activé.
+    Route::post('mode', [SimpleModeController::class, 'switch'])->name('simple.mode');
+    Route::get('simple', [SimpleModeController::class, 'home'])->name('simple.home');
+    Route::get('simple/guide', [SimpleGuideController::class, 'index'])->name('simple.guide');
+    Route::get('simple/composants', [SimpleModeController::class, 'demo'])->name('simple.demo');
+    Route::get('simple/maquettes/{fichier}', [SimpleModeController::class, 'mockup'])
+        ->where('fichier', '[0-9a-z-]+')
+        ->name('simple.mockup');
+
+    // Mode simple — lot 2 : vente et caisse simplifiées.
+    Route::get('simple/vendre', [SimpleSalesController::class, 'sell'])->name('simple.sell');
+    Route::post('simple/vendre', [SimpleSalesController::class, 'storeSale'])->name('simple.sell.store');
+    Route::get('simple/caisse', [SimpleSalesController::class, 'cash'])->name('simple.cash');
+    Route::post('simple/caisse/{register}/ouvrir', [SimpleSalesController::class, 'openRegister'])->name('simple.cash.open');
+    Route::post('simple/caisse/{session}/fermer', [SimpleSalesController::class, 'closeSession'])->name('simple.cash.close');
+    Route::post('simple/caisse/{session}/mouvement', [SimpleSalesController::class, 'movement'])->name('simple.cash.movement');
+
+    // Mode simple — lot 3 : Mes ventes (chiffres du jour, liste, annulation).
+    Route::get('simple/ventes', [SimpleSalesLedgerController::class, 'index'])->name('simple.sales');
+    Route::post('simple/ventes/{document}/annuler', [SimpleSalesLedgerController::class, 'cancel'])->whereUuid('document')->name('simple.sales.cancel');
+
+    // Mode simple — lot 5 : liste des dettes clients.
+    Route::get('simple/clients', [SimpleCustomerController::class, 'index'])->name('simple.customers');
+    Route::get('simple/clients/{customer}', [SimpleCustomerController::class, 'show'])->whereUuid('customer')->name('simple.customers.show');
+    Route::post('simple/clients/{customer}/factures/{document}/paiement', [SimpleCustomerController::class, 'pay'])
+        ->whereUuid('customer')->whereUuid('document')->middleware('throttle:60,1')->name('simple.customers.pay');
+
+    // Mode simple — lot 5 : stock visuel du dépôt autorisé.
+    Route::get('simple/stock', [SimpleStockController::class, 'index'])->name('simple.stock');
+    Route::post('simple/stock/ajuster', [SimpleStockController::class, 'adjust'])->name('simple.stock.adjust');
+
+    // Mode simple — lot 5 : ajout tactile d'un article.
+    Route::get('simple/articles/nouveau', [SimpleProductController::class, 'create'])->name('simple.products.create');
+    Route::post('simple/articles', [SimpleProductController::class, 'store'])->name('simple.products.store');
+
+    // Mode simple — lot 6 : commandes fournisseurs à réceptionner.
+    Route::get('simple/achats', [SimplePurchaseController::class, 'index'])->name('simple.purchases');
+    Route::get('simple/achats/{order}', [SimplePurchaseController::class, 'show'])->whereUuid('order')->name('simple.purchases.show');
+    Route::post('simple/achats/{order}/recevoir', [SimplePurchaseController::class, 'receive'])->whereUuid('order')->name('simple.purchases.receive');
+    Route::get('simple/resultats', [SimpleResultsController::class, 'index'])->name('simple.results');
+
+    // Mode simple — lot 4 : Messages audio, réservé à l'administrateur.
+    Route::get('simple/voix', [SimpleVoiceController::class, 'index'])->name('simple.voice.index');
+    Route::put('simple/voix/langue', [SimpleVoiceController::class, 'updateLanguage'])->name('simple.voice.language');
+    Route::post('simple/voix/{code}/{segment}', [SimpleVoiceController::class, 'storeSegment'])
+        ->where('code', '[A-Z]{3}-[0-9]{2}')->where('segment', '[0-9]+')->middleware('throttle:200,1')->name('simple.voice.segments.store');
+    Route::delete('simple/voix/{code}/{segment}', [SimpleVoiceController::class, 'destroySegment'])
+        ->where('code', '[A-Z]{3}-[0-9]{2}')->where('segment', '[0-9]+')->name('simple.voice.segments.destroy');
+    Route::get('simple/voix/clips/{clip}', [SimpleVoiceController::class, 'clip'])->whereUuid('clip')->name('simple.voice.clips.show');
 
     Route::get('settings/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
     // Facturation de l'abonnement (accessible même suspendu, pour régulariser).
@@ -107,6 +183,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::post('settings/company/images/{slot}', [CompanyController::class, 'uploadImage'])->whereIn('slot', ['logo', 'stamp', 'cover'])->middleware('throttle:20,1')->name('company.images.store');
     Route::delete('settings/company/images/{slot}', [CompanyController::class, 'removeImage'])->whereIn('slot', ['logo', 'stamp', 'cover'])->name('company.images.destroy');
     Route::get('settings/company/images/{slot}', [CompanyController::class, 'image'])->whereIn('slot', ['logo', 'stamp', 'cover'])->middleware('signed')->name('company.images.show');
+    Route::get('settings/features', [FeatureController::class, 'edit'])->name('features.edit');
+    Route::put('settings/features/{feature}', [FeatureController::class, 'update'])->name('features.update');
     Route::get('settings/notifications', [NotificationController::class, 'edit'])->name('notifications.edit');
     Route::put('settings/notifications', [NotificationController::class, 'update'])->name('notifications.update');
     Route::middleware('feature:online_store')->prefix('storefront')->name('storefront.')->group(function (): void {
@@ -145,6 +223,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('catalog/products/{product}', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('catalog/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::post('catalog/products/{product}/archive', [ProductController::class, 'archive'])->name('products.archive');
+    Route::post('catalog/products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
     Route::get('catalog/labels', [LabelController::class, 'show'])->middleware('throttle:30,1')->name('products.labels');
     Route::post('catalog/products/{product}/barcodes', [ProductController::class, 'addBarcode'])->name('products.barcodes.store');
     Route::delete('catalog/products/{product}/barcodes/{barcode}', [ProductController::class, 'removeBarcode'])->name('products.barcodes.destroy');

@@ -5,9 +5,11 @@ import {
     BookOpen,
     Building2,
     ChartColumn,
+    Compass,
     FileText,
     Layers,
     LayoutGrid,
+    LifeBuoy,
     Package,
     Receipt,
     Settings,
@@ -36,14 +38,17 @@ import {
 } from '@/components/ui/sidebar';
 import { t } from '@/i18n';
 import { useAppContext } from '@/composables/useAppContext';
+import { useGuide } from '@/composables/useGuide';
 import { dashboard } from '@/routes';
 import { index as accountingIndex } from '@/routes/accounting';
 import { index as cashIndex } from '@/routes/cash';
 import { index as customersIndex } from '@/routes/customers';
+import { index as guideIndex } from '@/routes/guide';
+import { index as helpIndex } from '@/routes/help';
 import { create as posCreate } from '@/routes/pos';
 import { index as productsIndex } from '@/routes/products';
-import { edit as editProfile } from '@/routes/profile';
 import { index as reportsIndex } from '@/routes/reports';
+import { index as settingsIndex } from '@/routes/settings';
 import { index as purchaseInvoicesIndex } from '@/routes/purchases/invoices';
 import { index as purchaseOrdersIndex } from '@/routes/purchases/orders';
 import { index as purchaseRequestsIndex } from '@/routes/purchases/requests';
@@ -59,6 +64,7 @@ import type { NavItem } from '@/types';
 
 const page = usePage();
 const { can } = useAppContext();
+const guide = useGuide();
 const { isMobile, setOpen, setOpenMobile } = useSidebar();
 
 // Après un choix dans le menu, le volet laisse la place à la page : fermé sur
@@ -82,7 +88,8 @@ const navGroups = computed<NavGroup[]>(() => {
         title: string,
         href: NavItem['href'],
         icon: NavItem['icon'],
-    ) => (show ? [{ title, href, icon }] : []);
+        extra: Pick<NavItem, 'badge' | 'tour' | 'external' | 'tooltip'> = {},
+    ) => (show ? [{ title, href, icon, ...extra }] : []);
     const accounting = Boolean(
         (
             page.props.subscription as {
@@ -93,15 +100,31 @@ const navGroups = computed<NavGroup[]>(() => {
 
     return [
         {
-            items: item(
-                Boolean(page.props.context),
-                t('nav.dashboard'),
-                dashboard(),
-                LayoutGrid,
-            ),
+            items: [
+                ...item(
+                    Boolean(page.props.context),
+                    t('nav.dashboard'),
+                    dashboard(),
+                    LayoutGrid,
+                ),
+                // Guide : progression visible tant qu'il reste des étapes à faire.
+                ...item(
+                    guide.total.value > 0,
+                    t('nav.guide'),
+                    guideIndex(),
+                    Compass,
+                    {
+                        tour: 'nav-guide',
+                        badge: guide.complete.value
+                            ? undefined
+                            : `${guide.handled.value}/${guide.total.value}`,
+                    },
+                ),
+            ],
         },
         {
             label: t('nav.group_sell'),
+            tour: 'nav-sell',
             items: [
                 ...item(
                     can('sale.create') && can('sale.validate'),
@@ -131,6 +154,7 @@ const navGroups = computed<NavGroup[]>(() => {
         },
         {
             label: t('nav.group_buy'),
+            tour: 'nav-buy',
             items: [
                 ...item(
                     can('purchase_request.view'),
@@ -160,6 +184,7 @@ const navGroups = computed<NavGroup[]>(() => {
         },
         {
             label: t('nav.group_stock'),
+            tour: 'nav-stock',
             items: [
                 ...item(
                     can('catalog.view'),
@@ -189,6 +214,7 @@ const navGroups = computed<NavGroup[]>(() => {
         },
         {
             label: t('nav.group_manage'),
+            tour: 'nav-manage',
             items: [
                 ...item(
                     can('report.view_own') || can('report.view_all'),
@@ -207,8 +233,25 @@ const navGroups = computed<NavGroup[]>(() => {
                 ...item(
                     Boolean(page.props.context),
                     t('nav.settings'),
-                    editProfile(),
+                    settingsIndex(),
                     Settings,
+                ),
+                ...item(
+                    Boolean(page.props.context),
+                    t('nav.help_center'),
+                    helpIndex(),
+                    LifeBuoy,
+                ),
+                ...item(
+                    Boolean(page.props.context),
+                    'Idées & signalements',
+                    'https://forms.gle/U7MjCuVzzAiTsXQX6',
+                    LifeBuoy,
+                    {
+                        external: true,
+                        tooltip:
+                            'Signalez un problème ou partagez une idée pour améliorer Diaba Cloud.',
+                    },
                 ),
             ],
         },

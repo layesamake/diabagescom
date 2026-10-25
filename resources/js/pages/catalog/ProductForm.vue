@@ -5,18 +5,28 @@ import {
     Archive,
     ArchiveRestore,
     Barcode,
+    Copy,
     Trash2,
 } from '@lucide/vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { t } from '@/i18n';
 import {
     archive as productArchive,
+    duplicate as productDuplicate,
     index as productsIndex,
     store as productStore,
     update as productUpdate,
@@ -30,6 +40,7 @@ import {
     destroy as imageDestroy,
     store as imageStore,
 } from '@/routes/products/image';
+import * as categoryRoutes from '@/routes/catalog/categories';
 import type { Option, ProductDetail, TaxRateOption, UnitOption } from '@/types';
 import { confirmAction } from '@/composables/useConfirm';
 
@@ -43,6 +54,7 @@ const props = defineProps<{
         update: boolean;
         archive: boolean;
         price_override: boolean;
+        cost: boolean;
     };
 }>();
 
@@ -63,11 +75,71 @@ const formAction = computed(() =>
     props.product ? productUpdate.form(props.product.id) : productStore.form(),
 );
 
+const createCategoryValue = '__create_category__';
+const categoryId = ref(props.product?.category_id ?? '');
+const previousCategoryId = ref(categoryId.value);
+const categoryDialogOpen = ref(false);
+const newCategoryName = ref('');
+const categoryError = ref<string | undefined>(undefined);
+const categoryCreating = ref(false);
+
 const selectClass =
     'flex h-11 w-full rounded-md border border-input bg-transparent px-3 text-base md:text-sm disabled:opacity-60';
 
 function formatRate(bp: number): string {
     return `${(bp / 100).toLocaleString('fr-FR')} %`;
+}
+
+function selectCategory(): void {
+    if (categoryId.value !== createCategoryValue) {
+        previousCategoryId.value = categoryId.value;
+
+        return;
+    }
+
+    categoryId.value = previousCategoryId.value;
+    categoryError.value = undefined;
+    categoryDialogOpen.value = true;
+}
+
+function createCategory(): void {
+    const name = newCategoryName.value.trim();
+
+    if (name === '') {
+        categoryError.value = t('catalog.category_name_required');
+
+        return;
+    }
+
+    categoryCreating.value = true;
+    categoryError.value = undefined;
+
+    router.post(
+        categoryRoutes.save.url(),
+        { name },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                const category = props.categories.find(
+                    (item) => item.name === name,
+                );
+
+                if (category) {
+                    categoryId.value = category.id;
+                    previousCategoryId.value = category.id;
+                }
+
+                newCategoryName.value = '';
+                categoryDialogOpen.value = false;
+            },
+            onError: (errors) => {
+                categoryError.value = errors.name ?? undefined;
+            },
+            onFinish: () => {
+                categoryCreating.value = false;
+            },
+        },
+    );
 }
 
 async function removeBarcode(id: string, code: string): Promise<void> {
@@ -96,6 +168,21 @@ function toggleArchive(): void {
             { archived: !props.product.archived },
             { preserveScroll: true },
         );
+    }
+}
+
+async function duplicateProduct(): Promise<void> {
+    if (!props.product) {
+        return;
+    }
+
+    if (
+        await confirmAction({
+            title: t('catalog.duplicate_confirm', { name: props.product.name }),
+            confirmLabel: t('catalog.duplicate'),
+        })
+    ) {
+        router.post(productDuplicate(props.product.id).url);
     }
 }
 </script>
@@ -206,17 +293,21 @@ function toggleArchive(): void {
                     <select
                         id="category_id"
                         name="category_id"
+                        v-model="categoryId"
                         :class="selectClass"
                         :disabled="!canSave"
+                        @change="selectCategory"
                     >
                         <option value="">{{ t('catalog.no_category') }}</option>
                         <option
                             v-for="c in categories"
                             :key="c.id"
                             :value="c.id"
-                            :selected="product?.category_id === c.id"
                         >
                             {{ c.name }}
+                        </option>
+                        <option v-if="can.update" :value="createCategoryValue">
+                            {{ t('catalog.add_category') }}
                         </option>
                     </select>
                     <InputError :message="errors.category_id" />
@@ -287,7 +378,7 @@ function toggleArchive(): void {
                     />
                     <InputError :message="errors.sale_price" />
                 </div>
-                <div class="grid gap-2">
+                <div v-if="can.cost" class="grid gap-2">
                     <Label for="standard_cost">{{
                         t('catalog.standard_cost')
                     }}</Label>
@@ -362,6 +453,51 @@ function toggleArchive(): void {
                 {{ product ? t('catalog.save') : t('catalog.create') }}
             </Button>
         </Form>
+
+        <Dialog v-model:open="categoryDialogOpen">
+            <DialogContent class="sm:max-w-md">
+                <form class="grid gap-5" @submit.prevent="createCategory">
+                    <DialogHeader class="gap-3 text-left">
+                        <DialogTitle>{{
+                            t('catalog.add_category')
+                        }}</DialogTitle>
+                        <DialogDescription>{{
+                            t('catalog.add_category_description')
+                        }}</DialogDescription>
+                    </DialogHeader>
+                    <div class="grid gap-2">
+                        <Label for="new-category-name">{{
+                            t('catalog.category_name')
+                        }}</Label>
+                        <Input
+                            id="new-category-name"
+                            v-model="newCategoryName"
+                            required
+                            maxlength="80"
+                            class="h-11"
+                            :disabled="categoryCreating"
+                        />
+                        <InputError :message="categoryError" />
+                    </div>
+                    <DialogFooter class="gap-2 sm:gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            class="h-11"
+                            :disabled="categoryCreating"
+                            @click="categoryDialogOpen = false"
+                            >{{ t('reference.cancel') }}</Button
+                        >
+                        <Button
+                            type="submit"
+                            class="h-11"
+                            :disabled="categoryCreating"
+                            >{{ t('reference.add') }}</Button
+                        >
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
 
         <template v-if="product">
             <section class="space-y-4 border-t pt-6">
@@ -471,6 +607,18 @@ function toggleArchive(): void {
                     :can-edit="can.update"
                     input-id="product-photo"
                 />
+            </section>
+
+            <section v-if="can.create" class="border-t pt-6">
+                <Button
+                    type="button"
+                    variant="outline"
+                    class="h-11"
+                    @click="duplicateProduct"
+                >
+                    <Copy class="size-4" />
+                    {{ t('catalog.duplicate') }}
+                </Button>
             </section>
 
             <section v-if="can.archive" class="border-t pt-6">

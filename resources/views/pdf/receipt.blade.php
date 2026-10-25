@@ -17,5 +17,6 @@
 </head>
 <body>
 @include('partials.receipt-body')
+@include('partials.trial-watermark')
 </body>
 </html>

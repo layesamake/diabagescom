@@ -30,7 +30,7 @@ export type ProductDetail = {
     unit_id: string;
     tax_rate_id: string;
     sale_price: number;
-    standard_cost: number;
+    standard_cost: number | null;
     version: number;
     archived: boolean;
     image_url: string | null;
@@ -67,4 +67,5 @@ export type PickedProduct = {
     sale_price?: number;
     tax_rate_basis_points?: number;
     available?: string | null;
+    image_url?: string | null;
 };

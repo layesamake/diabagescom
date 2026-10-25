@@ -107,5 +107,6 @@
 <div class="footer">
     <img src="{{ $logo }}" alt="DIABA GESCOM"> {{ $issuer['name'] ?? 'DIABA GESCOM' }} — {{ $number }}
 </div>
+@include('partials.trial-watermark')
 </body>
 </html>

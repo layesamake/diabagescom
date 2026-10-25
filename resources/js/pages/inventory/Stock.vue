@@ -41,6 +41,7 @@ type Row = {
     quantity: string;
     quantity_display: string;
     reorder_point: string | null;
+    lead_time_days: number;
     low: boolean;
     negative: boolean;
     average_cost: number | null;
@@ -149,16 +150,22 @@ function submit(): void {
 // Seuil d'alerte en ligne.
 const editingReorder = ref<string | null>(null);
 const reorderValue = ref('');
+const leadTimeValue = ref('7');
 
 function editReorder(row: Row): void {
     editingReorder.value = row.id;
     reorderValue.value = row.reorder_point ?? '';
+    leadTimeValue.value = String(row.lead_time_days || 7);
 }
 
 function saveReorder(row: Row): void {
     router.post(
         reorderRoute(row.id).url,
-        { warehouse_id: warehouse.value, reorder_point: reorderValue.value },
+        {
+            warehouse_id: warehouse.value,
+            reorder_point: reorderValue.value,
+            lead_time_days: Number(leadTimeValue.value),
+        },
         {
             preserveScroll: true,
             onSuccess: () => (editingReorder.value = null),
@@ -441,6 +448,16 @@ const formatQty = (raw: string | null) =>
                             class="h-11 w-24"
                             @keydown.enter.prevent="saveReorder(row)"
                         />
+                        <Input
+                            :id="`lead-time-${row.id}`"
+                            v-model="leadTimeValue"
+                            type="number"
+                            min="1"
+                            max="365"
+                            class="h-11 w-20"
+                            :aria-label="t('stock.lead_time')"
+                            @keydown.enter.prevent="saveReorder(row)"
+                        />
                         <Button class="h-11" @click="saveReorder(row)">{{
                             t('stock.save')
                         }}</Button>
@@ -455,6 +472,8 @@ const formatQty = (raw: string | null) =>
                     >
                         {{ t('stock.reorder_point') }} :
                         {{ formatQty(row.reorder_point) }}
+                        · {{ t('stock.lead_time') }} :
+                        {{ row.lead_time_days }} j.
                     </button>
                     <Link
                         :href="

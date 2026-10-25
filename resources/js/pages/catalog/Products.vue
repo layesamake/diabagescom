@@ -310,6 +310,27 @@ watch([category, status], search);
                     ? t('catalog.empty_search', { q: filters.q })
                     : t('catalog.empty')
             }}
+            <template v-if="!filters.q && (can.create || can.import)" #action>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <Button v-if="can.create" as-child class="h-11">
+                        <Link :href="productCreate()"
+                            ><Plus class="size-4" />{{ t('catalog.add') }}</Link
+                        >
+                    </Button>
+                    <Button
+                        v-if="can.import"
+                        as-child
+                        variant="outline"
+                        class="h-11"
+                    >
+                        <Link :href="importCreate()"
+                            ><Upload class="size-4" />{{
+                                t('catalog.import')
+                            }}</Link
+                        >
+                    </Button>
+                </div>
+            </template>
         </EmptyState>
 
         <!-- Liste en cartes : lisible sur smartphone, sans défilement horizontal. -->

@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Domain\Identity\Authorizer;
+use App\Domain\Onboarding\StartGuide;
 use App\Domain\Subscriptions\FeatureAccess;
 use App\Domain\Tenancy\TenantContext;
 use App\Domain\Tenancy\WarehouseAccess;
@@ -61,6 +62,9 @@ class HandleInertiaRequests extends Middleware
             'subscription' => fn () => app(TenantContext::class)->has()
                 ? app(FeatureAccess::class)->summary(app(TenantContext::class)->tenant())
                 : null,
+            'guide' => fn () => $request->user() instanceof User && app(TenantContext::class)->has()
+                ? app(StartGuide::class)->summary($request->user())
+                : null,
             'platform' => fn () => [
                 'can_access' => $request->user() instanceof User && Gate::forUser($request->user())->allows('platform.tenants.manage'),
             ],
@@ -87,6 +91,8 @@ class HandleInertiaRequests extends Middleware
             'tenant' => ['id' => $membership->tenant->id, 'name' => $membership->tenant->display_name],
             'warehouse' => $warehouse ? ['id' => $warehouse->id, 'code' => $warehouse->code, 'name' => $warehouse->name] : null,
             'role' => ['code' => $membership->role->code, 'name' => $membership->role->name],
+            'ui_mode' => $membership->ui_mode,
+            'simple_mode_available' => (bool) config('diaba.simple_mode.enabled'),
             'tenants' => TenantMembership::query()
                 ->with('tenant:id,display_name')
                 ->where('user_id', $user->id)

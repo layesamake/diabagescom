@@ -61,14 +61,14 @@ final class PermissionCatalog
             'permissions' => [
                 'organization.view', 'warehouse.view', 'catalog.view', 'customer.view', 'customer.manage',
                 'sale.view', 'sale.create', 'sale.update_draft', 'sale.validate', 'sale.discount_standard',
-                'cash.view_own', 'cash.open_close', 'cash.receive', 'report.view_own',
+                'cash.view_own', 'cash.open_close', 'cash.receive',
                 'purchase_request.view', 'purchase_request.create',
             ],
         ],
         'warehouse_manager' => [
             'name' => 'Gestionnaire de dépôt',
             'permissions' => [
-                'organization.view', 'warehouse.view', 'catalog.view', 'supplier.view', 'sale.view',
+                'organization.view', 'warehouse.view', 'catalog.view', 'catalog.create', 'supplier.view', 'sale.view',
                 'purchase.view', 'purchase.receive', 'purchase_request.view', 'purchase_request.create',
                 'inventory.view', 'inventory.transfer_create', 'inventory.transfer_ship', 'inventory.transfer_receive',
                 'inventory.count_create', 'inventory.count_validate', 'inventory.adjust',
