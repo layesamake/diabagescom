@@ -44,7 +44,7 @@ class SimpleCashCountTest extends TestCase
     }
 
     /** 10 000 + 2 × 2 000 + 500 + 3 × 100 = 14 800 F. */
-    private function count(): array
+    private function drawerCount(): array
     {
         return ['10000' => 1, '2000' => 2, '500' => 1, '100' => 3];
     }
@@ -55,7 +55,7 @@ class SimpleCashCountTest extends TestCase
         $register = $this->register($v);
 
         $this->act($v)
-            ->post("/simple/caisse/{$register->id}/ouvrir", ['count' => $this->count()])
+            ->post("/simple/caisse/{$register->id}/ouvrir", ['count' => $this->drawerCount()])
             ->assertRedirect('/simple/caisse');
 
         $session = CashSession::query()->where('register_id', $register->id)->where('status', 'open')->firstOrFail();
@@ -73,7 +73,7 @@ class SimpleCashCountTest extends TestCase
         $register = $this->register($v);
 
         $this->act($v)
-            ->post("/simple/caisse/{$register->id}/ouvrir", ['count' => $this->count(), 'opening_amount' => 999999])
+            ->post("/simple/caisse/{$register->id}/ouvrir", ['count' => $this->drawerCount(), 'opening_amount' => 999999])
             ->assertRedirect('/simple/caisse');
 
         $this->assertSame(14800, CashSession::query()->where('register_id', $register->id)->firstOrFail()->opening_amount);
@@ -113,11 +113,11 @@ class SimpleCashCountTest extends TestCase
     {
         $v = $this->vendeur();
         $register = $this->register($v);
-        $this->act($v)->post("/simple/caisse/{$register->id}/ouvrir", ['count' => $this->count()]);
+        $this->act($v)->post("/simple/caisse/{$register->id}/ouvrir", ['count' => $this->drawerCount()]);
         $session = CashSession::query()->where('register_id', $register->id)->firstOrFail();
 
         $this->act($v)
-            ->post("/simple/caisse/{$session->id}/fermer", ['count' => $this->count()])
+            ->post("/simple/caisse/{$session->id}/fermer", ['count' => $this->drawerCount()])
             ->assertRedirect('/simple/caisse');
 
         $session->refresh();
@@ -132,7 +132,7 @@ class SimpleCashCountTest extends TestCase
     {
         $v = $this->vendeur();
         $register = $this->register($v);
-        $this->act($v)->post("/simple/caisse/{$register->id}/ouvrir", ['count' => $this->count()]);
+        $this->act($v)->post("/simple/caisse/{$register->id}/ouvrir", ['count' => $this->drawerCount()]);
         $session = CashSession::query()->where('register_id', $register->id)->firstOrFail();
 
         // Il manque 4 800 F : 10 000 F comptés au lieu de 14 800 F attendus.
