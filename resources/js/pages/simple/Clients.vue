@@ -80,7 +80,7 @@ function money(amount: number): string {
                         }}</strong>
                         <span
                             v-if="customer.phone"
-                            class="text-sm font-semibold"
+                            class="text-[15px] font-semibold"
                             :style="{ color: 'var(--s-texte-doux)' }"
                             >{{ customer.phone }}</span
                         >
@@ -91,7 +91,7 @@ function money(amount: number): string {
                             >{{ money(customer.due) }}</strong
                         >
                         <span
-                            class="text-sm font-bold"
+                            class="text-[15px] font-bold"
                             :style="{ color: 'var(--s-texte-doux)' }"
                             >à récupérer</span
                         >
@@ -125,7 +125,7 @@ function money(amount: number): string {
                     />
                     <p class="text-[17px] font-bold">Aucune dette client</p>
                     <p
-                        class="mt-1 text-sm"
+                        class="mt-1 text-[15px]"
                         :style="{ color: 'var(--s-texte-doux)' }"
                     >
                         Les ventes à crédit apparaîtront ici.

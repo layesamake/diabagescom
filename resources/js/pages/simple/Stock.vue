@@ -161,7 +161,7 @@ function confirmerMotif(reason: string): void {
                     {{ counters[cle] }}
                 </span>
                 <span
-                    class="text-center text-[14px] leading-tight font-semibold"
+                    class="text-center text-[15px] leading-tight font-semibold"
                 >
                     {{ LIBELLES[cle] }}
                 </span>
@@ -181,7 +181,7 @@ function confirmerMotif(reason: string): void {
             >
                 <!-- Photo placeholder colorée selon statut -->
                 <span
-                    class="grid size-14 shrink-0 place-items-center rounded-[16px] text-[13px] font-extrabold"
+                    class="grid size-14 shrink-0 place-items-center rounded-[16px] text-[15px] font-extrabold"
                     :style="fondClair[COULEURS[produit.status]]"
                     aria-hidden="true"
                 >
@@ -220,7 +220,7 @@ function confirmerMotif(reason: string): void {
                 <div class="flex shrink-0 flex-col gap-1">
                     <button
                         type="button"
-                        class="inline-flex size-11 items-center justify-center rounded-[16px]"
+                        class="inline-flex size-12 items-center justify-center rounded-[16px]"
                         :style="fondClair.vert"
                         aria-label="Ajouter au stock"
                         @click="ajuster(produit, '+1')"
@@ -229,7 +229,7 @@ function confirmerMotif(reason: string): void {
                     </button>
                     <button
                         type="button"
-                        class="inline-flex size-11 items-center justify-center rounded-[16px]"
+                        class="inline-flex size-12 items-center justify-center rounded-[16px]"
                         :style="fondClair.rouge"
                         aria-label="Retirer du stock"
                         @click="ajuster(produit, '-1')"
@@ -251,7 +251,7 @@ function confirmerMotif(reason: string): void {
                     />
                     <p class="text-[17px] font-bold">Aucun article en stock</p>
                     <p
-                        class="mt-1 text-sm"
+                        class="mt-1 text-[15px]"
                         :style="{ color: 'var(--s-texte-doux)' }"
                     >
                         Ajoutez un article puis son arrivage pour le voir ici.

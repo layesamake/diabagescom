@@ -102,14 +102,14 @@ function datePrevue(order: Commande): string | null {
                             </p>
                             <p
                                 v-if="order.number"
-                                class="mt-0.5 text-sm font-semibold"
+                                class="mt-0.5 text-[15px] font-semibold"
                                 :style="{ color: 'var(--s-texte-doux)' }"
                             >
                                 {{ order.number }}
                             </p>
                         </div>
                         <span
-                            class="shrink-0 rounded-full px-3 py-1 text-sm font-extrabold"
+                            class="shrink-0 rounded-full px-3 py-1 text-[15px] font-extrabold"
                             :style="{
                                 backgroundColor: 'var(--s-orange-clair)',
                                 color: 'var(--s-sur-orange-clair)',
@@ -162,14 +162,14 @@ function datePrevue(order: Commande): string | null {
                             </p>
                             <p
                                 v-if="order.number"
-                                class="mt-0.5 text-sm font-semibold"
+                                class="mt-0.5 text-[15px] font-semibold"
                                 :style="{ color: 'var(--s-texte-doux)' }"
                             >
                                 {{ order.number }}
                             </p>
                         </div>
                         <span
-                            class="shrink-0 rounded-full px-3 py-1 text-sm font-extrabold"
+                            class="shrink-0 rounded-full px-3 py-1 text-[15px] font-extrabold"
                             :style="{
                                 backgroundColor: 'var(--s-vert-clair)',
                                 color: 'var(--s-sur-vert-clair)',

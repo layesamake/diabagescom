@@ -56,7 +56,7 @@ const emit = defineEmits<{ filtrer: [cle: string | null] }>();
             <span class="text-[26px] leading-none font-extrabold tabular-nums">
                 {{ item.valeur }}
             </span>
-            <span class="text-center text-[14px] leading-tight font-semibold">
+            <span class="text-center text-[15px] leading-tight font-semibold">
                 {{ item.libelle }}
             </span>
         </button>

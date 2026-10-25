@@ -274,7 +274,7 @@ function versModeExpert(): void {
                         :aria-label="`${libellesJours[jour.weekday % 7]} : ${formatFranc(jour.total)}`"
                     ></div>
                     <span
-                        class="text-[13px] font-semibold"
+                        class="text-[15px] font-semibold"
                         :style="{
                             color:
                                 index === week.length - 1

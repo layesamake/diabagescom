@@ -104,7 +104,7 @@ const afficherPastille = (
             </h1>
             <p
                 v-if="sousTitre"
-                class="flex items-center gap-1 text-[13px] font-semibold opacity-90"
+                class="flex items-center gap-1 text-[15px] font-semibold opacity-90"
             >
                 <Lock
                     v-if="sousTitreVerrouille"
@@ -118,7 +118,7 @@ const afficherPastille = (
 
         <span
             v-if="afficherPastille(etape, etapeTotal)"
-            class="inline-flex shrink-0 items-center rounded-full px-3 py-1 text-sm font-extrabold tabular-nums"
+            class="inline-flex shrink-0 items-center rounded-full px-3 py-1 text-[15px] font-extrabold tabular-nums"
             :style="{
                 backgroundColor: 'var(--s-orange)',
                 color: 'var(--s-sur-orange)',

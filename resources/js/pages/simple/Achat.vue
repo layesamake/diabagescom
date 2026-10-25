@@ -76,7 +76,7 @@ function recevoir(): void {
             <p class="text-[20px] font-extrabold">{{ order.supplier.name }}</p>
             <p
                 v-if="order.number"
-                class="mt-1 text-sm font-semibold"
+                class="mt-1 text-[15px] font-semibold"
                 :style="{ color: 'var(--s-texte-doux)' }"
             >
                 {{ order.number }}

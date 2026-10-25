@@ -356,7 +356,7 @@ function ouvrirTicket(): void {
                         />
                         <button
                             type="button"
-                            class="inline-flex size-11 items-center justify-center rounded-full"
+                            class="inline-flex size-12 items-center justify-center rounded-full"
                             aria-label="Retirer l'article"
                             @click="changerQuantite(ligne, 0)"
                         >

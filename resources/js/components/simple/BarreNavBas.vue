@@ -55,7 +55,7 @@ withDefaults(
                     :stroke-width="2.5"
                     aria-hidden="true"
                 />
-                <span class="text-[13px] font-extrabold">{{
+                <span class="text-[15px] font-extrabold">{{
                     entree.libelle
                 }}</span>
             </Link>
@@ -79,7 +79,7 @@ withDefaults(
                     aria-hidden="true"
                 />
                 <span
-                    class="text-[13px]"
+                    class="text-[15px]"
                     :class="
                         actif === entree.cle
                             ? 'font-extrabold'

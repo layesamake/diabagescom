@@ -157,7 +157,7 @@ function iconeEtape(key: string) {
                 </span>
                 <span
                     v-else
-                    class="grid size-9 shrink-0 place-items-center rounded-full text-sm font-semibold"
+                    class="grid size-9 shrink-0 place-items-center rounded-full text-[15px] font-semibold"
                     :style="{
                         backgroundColor: 'var(--s-bordure)',
                         color: 'var(--s-texte-doux)',
@@ -196,7 +196,7 @@ function iconeEtape(key: string) {
 
                 <span
                     v-if="estEnCours(etape)"
-                    class="rounded-full px-2 py-0.5 text-xs font-semibold"
+                    class="rounded-full px-2 py-0.5 text-[15px] font-semibold"
                     :style="{
                         backgroundColor: 'var(--s-orange-clair)',
                         color: 'var(--s-sur-orange-clair)',
@@ -206,7 +206,7 @@ function iconeEtape(key: string) {
                 </span>
                 <span
                     v-else-if="estPassee(etape)"
-                    class="rounded-full px-2 py-0.5 text-xs font-semibold"
+                    class="rounded-full px-2 py-0.5 text-[15px] font-semibold"
                     :style="{
                         backgroundColor: 'var(--s-vert-clair)',
                         color: 'var(--s-sur-vert-clair)',
@@ -238,14 +238,14 @@ function iconeEtape(key: string) {
                 </span>
                 <div class="flex min-w-0 flex-col gap-1">
                     <span
-                        class="text-xs font-bold tracking-wide text-muted-foreground uppercase"
+                        class="text-[15px] font-bold tracking-wide text-muted-foreground uppercase"
                     >
                         Étape {{ positionCourante }} sur {{ total }}
                     </span>
                     <strong class="text-lg">{{
                         stepText(enCours.key, 'title')
                     }}</strong>
-                    <span class="text-sm text-muted-foreground">
+                    <span class="text-[15px] text-muted-foreground">
                         {{ stepText(enCours.key, 'hint') }}
                     </span>
                 </div>
@@ -265,7 +265,7 @@ function iconeEtape(key: string) {
 
         <p
             v-else
-            class="rounded-2xl border p-4 text-center text-sm font-semibold"
+            class="rounded-2xl border p-4 text-center text-[15px] font-semibold"
             :style="{
                 borderColor: 'var(--s-vert)',
                 backgroundColor: 'var(--s-vert-clair)',
@@ -278,7 +278,7 @@ function iconeEtape(key: string) {
         <button
             v-if="restantes > 0"
             type="button"
-            class="inline-flex min-h-12 items-center justify-center gap-2 self-center rounded-full border border-dashed px-4 py-2 text-sm font-semibold"
+            class="inline-flex min-h-12 items-center justify-center gap-2 self-center rounded-full border border-dashed px-4 py-2 text-[15px] font-semibold"
             :style="{
                 borderColor: 'var(--s-bordure)',
                 color: 'var(--s-texte-doux)',
