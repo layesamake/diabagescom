@@ -42,6 +42,9 @@ class SimpleResultsTest extends TestCase
                 ->where('summary.spent', 3000)
                 ->where('summary.remaining', 2085)
                 ->where('top_products.0.label', 'Article RIZ')
+                ->where('by_day.0.day', '2026-10-24')
+                ->where('by_day.0.total', 6000)
+                ->where('by_day.0.sales', 1)
                 ->where('can.margin', true)
                 ->where('audio_code', 'PIL-01'));
 
