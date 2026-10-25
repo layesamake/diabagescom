@@ -26,6 +26,14 @@ class SimpleAudioController extends Controller
         abort_unless((bool) config('diaba.simple_mode.enabled'), 404);
     }
 
+    /** Fichiers à garder sur le téléphone pour écouter sans connexion (voir AudioLibrary::manifest). */
+    public function manifest(TenantContext $context): JsonResponse
+    {
+        return response()
+            ->json((new AudioLibrary($context->tenant()))->manifest())
+            ->header('Cache-Control', 'private, no-cache');
+    }
+
     /** Morceaux à jouer, dans l'ordre, pour une phrase ; 404 si elle n'est pas entièrement enregistrée. */
     public function phrase(Request $request, TenantContext $context, string $code): JsonResponse
     {

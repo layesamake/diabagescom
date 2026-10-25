@@ -1,6 +1,12 @@
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { lisible } from '@/lib/audioCache';
 import { LecteurAudio } from '@/lib/audioPlayer';
+import {
+    cachesDisponibles,
+    identiteCourante,
+    manifestPour,
+} from '@/composables/useAudioCache';
 
 // Un seul lecteur pour toute l'application : un appui sur un haut-parleur
 // coupe la phrase en cours, même venue d'un autre écran.
@@ -30,7 +36,45 @@ export function useAudio() {
         );
     }
 
+    /**
+     * Phrase sans variable déjà gardée sur le téléphone : lecture depuis le cache,
+     * immédiate et possible sans connexion. Renvoie faux si elle n'y est pas.
+     */
+    async function jouerDepuisLeCache(code: string): Promise<boolean> {
+        const identite = identiteCourante(page.props);
+        const stock = cachesDisponibles();
+
+        if (!identite || !stock) {
+            return false;
+        }
+
+        const adresses = (await manifestPour(identite))?.phrases[code];
+
+        if (!adresses) {
+            return false;
+        }
+
+        const morceaux = await Promise.all(
+            adresses.map((adresse) => lisible(stock, identite, adresse)),
+        );
+
+        try {
+            await lecteur.jouer(morceaux.map((morceau) => morceau.url));
+        } finally {
+            morceaux.forEach((morceau) => morceau.liberer());
+        }
+
+        return true;
+    }
+
     async function jouer(code: string, valeurs: Valeurs = {}): Promise<void> {
+        if (
+            Object.keys(valeurs).length === 0 &&
+            (await jouerDepuisLeCache(code).catch(() => false))
+        ) {
+            return;
+        }
+
         const requete = new URLSearchParams(
             Object.entries(valeurs).map(([cle, valeur]) => [
                 cle,

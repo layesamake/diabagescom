@@ -131,6 +131,68 @@ final class AudioLibrary
     }
 
     /**
+     * Fichiers à garder sur le téléphone pour écouter sans connexion : les phrases
+     * sans variable entièrement enregistrées, et les mots de chiffres (pour dire
+     * des montants). Chaque adresse porte la date de la prise (`?v=`) : réenregistrer
+     * un morceau change son adresse, donc le téléphone le télécharge de nouveau.
+     *
+     * @return array{version: string, phrases: array<string, list<string>>, digits: array<string, string>}
+     */
+    public function manifest(): array
+    {
+        if ($this->tenant->voice_language === null) {
+            return ['version' => '0', 'phrases' => [], 'digits' => []];
+        }
+
+        $clips = AudioClip::query()
+            ->where('tenant_id', $this->tenant->id)
+            ->where('language', $this->tenant->voice_language)
+            ->get(['id', 'code', 'segment_index', 'updated_at'])
+            ->keyBy(fn (AudioClip $clip): string => $clip->code.'#'.$clip->segment_index);
+
+        $url = fn (AudioClip $clip): string => route('simple.audio.clips.show', ['clip' => $clip->id], false)
+            .'?v='.($clip->updated_at?->getTimestamp() ?? 0);
+
+        $phrases = [];
+
+        foreach ($this->playableCodes() as $code) {
+            if (PhraseCatalog::tokens($code) !== []) {
+                continue;
+            }
+
+            $urls = [];
+
+            foreach (PhraseCatalog::requiredSegments($code) as $segment) {
+                $clip = $clips->get($code.'#'.$segment);
+
+                if ($clip === null) {
+                    continue 2;
+                }
+
+                $urls[] = $url($clip);
+            }
+
+            $phrases[$code] = $urls;
+        }
+
+        $digits = [];
+
+        foreach (PhraseCatalog::codesInGroup('Chiffres') as $code) {
+            $clip = $clips->get($code.'#0');
+
+            if ($clip !== null) {
+                $digits[$code] = $url($clip);
+            }
+        }
+
+        return [
+            'version' => md5((string) json_encode([$phrases, $digits])),
+            'phrases' => $phrases,
+            'digits' => $digits,
+        ];
+    }
+
+    /**
      * Identifiants des morceaux à jouer, dans l'ordre, pour lire une phrase.
      * Les variables sont dites avec les mots de chiffres (NumberWords) : montant
      * et nombre en entiers, heure au format « HH:MM ».

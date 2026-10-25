@@ -17,6 +17,7 @@ import {
     commands as commandsRoute,
 } from '@/routes/sync';
 import { register as registerRoute } from '@/routes/sync/devices';
+import { purgerLesAutres, type CachesLike } from '@/lib/audioCache';
 import { decideEnqueue } from '@/offline/commandGuard';
 import { clearIdentity } from '@/offline/identity';
 import { SyncContextRegistry, isSameBase } from '@/offline/syncContext';
@@ -773,6 +774,13 @@ export async function clearOfflineData(): Promise<void> {
     syncState.ready = false;
     syncState.pending = 0;
     syncState.attention = 0;
+
+    // Les messages audio gardés sur l'appareil partent aussi : rien de l'entreprise ne reste.
+    if (typeof caches !== 'undefined') {
+        await purgerLesAutres(caches as unknown as CachesLike, null).catch(
+            () => undefined,
+        );
+    }
 
     // Déclare au service worker qu'il n'y a plus de compte actif : purge
     // stricte de toute page privée mise en cache (audit 2026-10-15).
