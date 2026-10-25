@@ -28,7 +28,6 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import BarreNavBas from '@/components/simple/BarreNavBas.vue';
 import ChargementEcran from '@/components/simple/ChargementEcran.vue';
 import { useAppContext } from '@/composables/useAppContext';
-import { useAudioPrefetch } from '@/composables/useAudioCache';
 import { useOfflineStart } from '@/composables/useOfflineStart';
 import { syncState } from '@/offline/sync';
 import {
@@ -43,8 +42,6 @@ const props = withDefaults(defineProps<{ actif?: string }>(), {
 const { context, can } = useAppContext();
 // Base locale et envoi de la file : Vendre garde les ventes faites sans réseau.
 useOfflineStart();
-// Messages audio gardés sur le téléphone : écoutables sans connexion.
-useAudioPrefetch();
 const page = usePage();
 const enChargement = ref(false);
 let supprimerEvenements: Array<() => void> = [];

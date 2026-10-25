@@ -173,7 +173,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::get('simple/voix/clips/{clip}', [SimpleVoiceController::class, 'clip'])->whereUuid('clip')->name('simple.voice.clips.show');
 
     // Mode simple — lecture des messages audio par tous les membres (le haut-parleur).
-    Route::get('simple/audio/manifest', [SimpleAudioController::class, 'manifest'])->middleware('throttle:60,1')->name('simple.audio.manifest');
     Route::get('simple/audio/clips/{clip}', [SimpleAudioController::class, 'clip'])->whereUuid('clip')->name('simple.audio.clips.show');
     Route::get('simple/audio/{code}', [SimpleAudioController::class, 'phrase'])
         ->where('code', '[A-Z]{3}-[0-9]{2}')->middleware('throttle:120,1')->name('simple.audio.phrase');
