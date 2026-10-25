@@ -5,8 +5,8 @@
  *
  * La vibration accompagne le retour visuel (règle 5), si l'appareil la gère.
  */
-import { Check, X } from '@lucide/vue';
-import { onMounted } from 'vue';
+import { Check, CircleAlert, X } from '@lucide/vue';
+import { computed, onMounted } from 'vue';
 import { formatFranc } from '@/lib/money';
 import BoutonHautParleur from './BoutonHautParleur.vue';
 
@@ -15,6 +15,8 @@ const props = withDefaults(
         /** « reussi » : fond vert ; « probleme » : fond rouge. */
         etat: 'reussi' | 'probleme';
         titre: string;
+        /** Pictogramme : par défaut une coche (réussi) ou une croix (problème) ; « alerte » pour un écart. */
+        pictogramme?: 'coche' | 'croix' | 'alerte';
         montant?: number | null;
         /** Phrase courte sous le montant. */
         detail?: string | null;
@@ -24,6 +26,7 @@ const props = withDefaults(
         audioDisponible?: boolean;
     }>(),
     {
+        pictogramme: undefined,
         montant: null,
         detail: null,
         actionPrincipale: null,
@@ -37,6 +40,13 @@ const emit = defineEmits<{
     secondaire: [];
     jouer: [code: string];
 }>();
+
+const icone = computed(() => {
+    const choix =
+        props.pictogramme ?? (props.etat === 'reussi' ? 'coche' : 'croix');
+
+    return choix === 'coche' ? Check : choix === 'alerte' ? CircleAlert : X;
+});
 
 onMounted(() => {
     navigator.vibrate?.(props.etat === 'reussi' ? 120 : [80, 60, 80]);
@@ -58,7 +68,7 @@ onMounted(() => {
             style="background-color: rgb(255 255 255 / 0.22)"
         >
             <component
-                :is="etat === 'reussi' ? Check : X"
+                :is="icone"
                 :size="80"
                 :stroke-width="2.5"
                 aria-hidden="true"

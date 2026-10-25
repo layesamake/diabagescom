@@ -197,7 +197,14 @@ class SimpleSalesController extends Controller
 
         $count = isset($data['count']) ? CashCount::normalize($data['count']) : null;
 
-        $cash->close($session, $count !== null ? CashCount::total($count) : (int) $data['counted_amount'], $data['note'] ?? null, $user, $count);
+        $closed = $cash->close($session, $count !== null ? CashCount::total($count) : (int) $data['counted_amount'], $data['note'] ?? null, $user, $count);
+
+        // Écran de résultat (maquette 06d) : juste, manque ou trop, avec le compté et l'attendu.
+        Inertia::flash('cash_closed', [
+            'expected' => $closed->expected_amount,
+            'counted' => $closed->counted_amount,
+            'difference' => $closed->difference,
+        ]);
 
         return to_route('simple.cash');
     }

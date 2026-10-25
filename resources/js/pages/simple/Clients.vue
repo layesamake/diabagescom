@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { ChevronRight, Phone, UsersRound } from '@lucide/vue';
+import { Check, ChevronRight, Phone, Plus, UsersRound } from '@lucide/vue';
+import Avatar from '@/components/simple/Avatar.vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 
 type Client = {
@@ -10,9 +11,14 @@ type Client = {
     due: number;
 };
 
+type ClientSansDette = { id: string; name: string; phone: string | null };
+
 defineProps<{
     total_due: number;
     customers: Client[];
+    /** Clients qui ne doivent rien : sans eux, un client créé n'apparaîtrait pas. */
+    settled: ClientSansDette[];
+    can: { create: boolean };
 }>();
 
 function money(amount: number): string {
@@ -133,5 +139,69 @@ function money(amount: number): string {
                 </div>
             </div>
         </section>
+
+        <section v-if="settled.length > 0" aria-labelledby="clients-sans-dette">
+            <h2 id="clients-sans-dette" class="mb-2 text-[20px] font-extrabold">
+                Ne doivent rien
+            </h2>
+            <ul
+                class="overflow-hidden rounded-[24px]"
+                :style="{ border: '1px solid var(--s-bordure)' }"
+            >
+                <li
+                    v-for="client in settled"
+                    :key="client.id"
+                    class="flex min-h-20 items-center gap-4 border-b px-4 py-3 last:border-b-0"
+                    :style="{ borderColor: 'var(--s-bordure)' }"
+                >
+                    <Avatar :nom="client.name" :taille="48" />
+                    <span class="min-w-0 flex-1">
+                        <strong class="block truncate text-[17px]">{{
+                            client.name
+                        }}</strong>
+                        <span
+                            class="inline-flex items-center gap-1 text-[15px] font-bold"
+                            :style="{ color: 'var(--s-vert-fonce)' }"
+                        >
+                            <Check
+                                :size="18"
+                                :stroke-width="3"
+                                aria-hidden="true"
+                            />
+                            ne doit rien
+                        </span>
+                    </span>
+                    <a
+                        v-if="client.phone"
+                        :href="`tel:${client.phone}`"
+                        class="inline-flex size-12 shrink-0 items-center justify-center rounded-full"
+                        :style="{
+                            backgroundColor: 'var(--s-vert-clair)',
+                            color: 'var(--s-sur-vert-clair)',
+                        }"
+                        :aria-label="`Appeler ${client.name}`"
+                    >
+                        <Phone
+                            :size="22"
+                            :stroke-width="2"
+                            aria-hidden="true"
+                        />
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <a
+            v-if="can.create"
+            href="/simple/clients/nouveau"
+            class="inline-flex h-16 items-center justify-center gap-3 rounded-[24px] text-[20px] font-extrabold"
+            :style="{
+                backgroundColor: 'var(--s-violet)',
+                color: 'var(--s-sur-violet)',
+            }"
+        >
+            <Plus :size="26" :stroke-width="3" aria-hidden="true" />
+            Nouveau client
+        </a>
     </div>
 </template>
