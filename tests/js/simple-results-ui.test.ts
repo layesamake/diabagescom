@@ -19,6 +19,12 @@ void test('Mes résultats permet de choisir semaine, mois ou année', () => {
     assert.match(source, /label: 'Année'/);
 });
 
+void test('Mes résultats indique la variation des ventes depuis la période précédente', () => {
+    assert.match(source, /comparison: \{ total:/);
+    assert.match(template, /Par rapport à avant/);
+    assert.match(template, /comparison\.total\.change/);
+});
+
 void test('Mes résultats liste les meilleures ventes avec quantités et montants', () => {
     assert.match(template, /v-for="product in top_products"/);
     assert.match(template, /\{\{ product\.label \}\}/);
