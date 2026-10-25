@@ -18,9 +18,16 @@ void test('dashboard is never a privately cacheable offline page', () => {
     assert.equal(helpers.isPrivateOfflinePage('/dashboard'), false);
 });
 
-void test('pos and sync are the only private offline-capable pages', () => {
-    assert.deepEqual(helpers.PRIVATE_OFFLINE_PAGES, ['/sales/pos', '/sync']);
+void test('pos, simple sell and sync are the only private offline-capable pages', () => {
+    assert.deepEqual(helpers.PRIVATE_OFFLINE_PAGES, [
+        '/sales/pos',
+        '/simple/vendre',
+        '/sync',
+    ]);
     assert.equal(helpers.isPrivateOfflinePage('/sales/pos'), true);
+    assert.equal(helpers.isPrivateOfflinePage('/simple/vendre'), true);
+    assert.equal(helpers.isPrivateOfflinePage('/simple/caisse'), false);
+    assert.equal(helpers.isPrivateOfflinePage('/simple/ventes'), false);
     assert.equal(helpers.isPrivateOfflinePage('/sync'), true);
     assert.equal(helpers.isPrivateOfflinePage('/settings'), false);
 });

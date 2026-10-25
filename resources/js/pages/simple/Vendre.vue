@@ -23,6 +23,8 @@ import Compteur from '@/components/simple/Compteur.vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 import EcranResultat from '@/components/simple/EcranResultat.vue';
 import { formatFranc } from '@/lib/money';
+import { buildSimpleSalePayload } from '@/offline/simpleSale';
+import { enqueueSale, syncState } from '@/offline/sync';
 
 type Method = 'cash' | 'wave' | 'orange_money';
 type Product = {
@@ -65,9 +67,12 @@ const saleResult = computed(
             | SaleFlash
             | undefined,
 );
-const etat = ref<'catalogue' | 'resultat'>(
+const etat = ref<'catalogue' | 'resultat' | 'gardee'>(
     saleResult.value ? 'resultat' : 'catalogue',
 );
+// Vente faite sans réseau : gardée sur le téléphone, envoyée au retour d'internet.
+const venteGardee = ref<{ total: number } | null>(null);
+const erreurLocale = ref('');
 const panier = ref<CartLine[]>([]);
 const paiement = ref<Method | 'credit'>('cash');
 const client = ref<PickedCustomer | null>(null);
@@ -142,11 +147,59 @@ function choisirPaiement(method: Method | 'credit'): void {
     montantRecu.value = method === 'cash' ? total.value : 0;
 }
 
+/**
+ * Sans réseau (ou réseau coupé pendant l'envoi), la vente part en file locale
+ * avec la même clé que l'envoi en ligne : si le serveur l'avait déjà reçue, la
+ * synchronisation renvoie son résultat d'origine, jamais un doublon.
+ */
+async function garderHorsLigne(): Promise<void> {
+    if (!props.warehouse || props.sessions.length === 0) {
+        return;
+    }
+    const montant = total.value;
+    erreurLocale.value = '';
+    try {
+        await enqueueSale(
+            buildSimpleSalePayload({
+                warehouseId: props.warehouse.id,
+                cashSessionId: props.sessions[0].id,
+                customerId: client.value?.id ?? null,
+                lines: panier.value.map((ligne) => ({
+                    productId: ligne.product.id,
+                    quantity: ligne.quantity,
+                    unitPrice: ligne.product.sale_price,
+                })),
+                method: paiement.value,
+            }),
+            {
+                total: montant,
+                labels: panier.value.map(
+                    (ligne) => `${ligne.quantity} × ${ligne.product.name}`,
+                ),
+                customer: client.value?.name ?? null,
+            },
+            cleVente.value,
+        );
+        venteGardee.value = { total: montant };
+        etat.value = 'gardee';
+    } catch {
+        erreurLocale.value =
+            'La vente n’a pas pu être gardée sur ce téléphone. Réessayez.';
+    }
+}
+
 function validerVente(): void {
     if (!peutValider.value || !props.warehouse) {
         return;
     }
     cleVente.value ||= crypto.randomUUID();
+
+    if (!syncState.online || !navigator.onLine) {
+        void garderHorsLigne();
+
+        return;
+    }
+
     const tenders =
         paiement.value === 'credit'
             ? []
@@ -175,6 +228,11 @@ function validerVente(): void {
             preserveScroll: true,
             onStart: () => (traitement.value = true),
             onFinish: () => (traitement.value = false),
+            onNetworkError: () => {
+                void garderHorsLigne();
+
+                return false;
+            },
         },
     );
 }
@@ -185,6 +243,8 @@ function nouvelleVente(): void {
     montantRecu.value = 0;
     client.value = null;
     cleVente.value = '';
+    venteGardee.value = null;
+    erreurLocale.value = '';
     etat.value = 'catalogue';
 }
 
@@ -198,7 +258,18 @@ function ouvrirTicket(): void {
 <template>
     <Head title="Vendre" />
 
-    <template v-if="etat === 'resultat' && saleResult">
+    <template v-if="etat === 'gardee' && venteGardee">
+        <EcranResultat
+            etat="reussi"
+            titre="Vente gardée"
+            :montant="venteGardee.total"
+            detail="Pas d’internet. Elle sera envoyée dès que le réseau revient."
+            action-principale="Nouvelle vente"
+            @principale="nouvelleVente"
+        />
+    </template>
+
+    <template v-else-if="etat === 'resultat' && saleResult">
         <EcranResultat
             etat="reussi"
             titre="Vente faite"
@@ -457,14 +528,23 @@ function ouvrirTicket(): void {
                         />
                     </div>
                     <p
-                        v-if="errors.business || errors.lines || errors.tenders"
+                        v-if="
+                            erreurLocale ||
+                            errors.business ||
+                            errors.lines ||
+                            errors.tenders
+                        "
+                        role="alert"
                         class="rounded-[16px] p-3 font-bold"
                         :style="{
                             backgroundColor: 'var(--s-rouge-clair)',
                             color: 'var(--s-sur-rouge-clair)',
                         }"
                     >
-                        {{ errors.business ?? errors.lines ?? errors.tenders }}
+                        {{
+                            erreurLocale ||
+                            (errors.business ?? errors.lines ?? errors.tenders)
+                        }}
                     </p>
                     <button
                         type="button"

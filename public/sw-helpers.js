@@ -6,12 +6,12 @@
  * isolation utilisateur/tenant") :
  * - `/dashboard` n'est plus une page privée mise en cache hors ligne : jamais
  *   de props authentifiées figées, seulement le shell neutre `/offline.html`.
- * - `/sales/pos` et `/sync` restent utilisables hors ligne (besoin réel de
- *   vente comptoir sans réseau), mais leur cache est partitionné par identité
+ * - `/sales/pos`, `/simple/vendre` (mode simple) et `/sync` restent utilisables
+ *   hors ligne (besoin réel de vente comptoir sans réseau), mais leur cache est partitionné par identité
  *   (compte + entreprise) et jamais restitué pour une identité différente ou
  *   inconnue.
  */
-const PRIVATE_OFFLINE_PAGES = ['/sales/pos', '/sync'];
+const PRIVATE_OFFLINE_PAGES = ['/sales/pos', '/simple/vendre', '/sync'];
 const STOREFRONT_PAGE = /^\/boutique\/[^/]+\/?$/;
 const PRIVATE_PAGE_PREFIX = '/__private-page__';
 

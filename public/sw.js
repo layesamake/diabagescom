@@ -5,8 +5,8 @@
  * - Vitrine publique d'une boutique : réseau d'abord, dernière version en
  *   cache sinon. Les photos des articles de la vitrine sont gardées pour
  *   être revues hors ligne.
- * - Vente comptoir (/sales/pos) et file de synchronisation (/sync) : réseau
- *   d'abord, dernière version en cache sinon — mais le cache est partitionné
+ * - Vente comptoir (/sales/pos, /simple/vendre) et file de synchronisation
+ *   (/sync) : réseau d'abord, dernière version en cache sinon — mais le cache est partitionné
  *   par identité (compte + entreprise) et jamais restitué pour une identité
  *   différente ou inconnue (audit 2026-10-15, « Pages authentifiées mises en
  *   cache sans isolation utilisateur/tenant »).
@@ -22,8 +22,8 @@ importScripts('/sw-helpers.js');
 
 const Sw = self.SwHelpers;
 
-// Invalide les anciens bundles hachés après le déploiement du 19 octobre 2026.
-const VERSION = 'diaba-v4';
+// Invalide les anciens bundles hachés : v5 ajoute Vendre du mode simple (/simple/vendre) hors ligne.
+const VERSION = 'diaba-v5';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const PAGE_CACHE = `${VERSION}-pages`;
