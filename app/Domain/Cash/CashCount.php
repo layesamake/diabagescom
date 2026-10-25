@@ -35,16 +35,17 @@ final class CashCount
 
     /**
      * Comptage complet (toutes les valeurs, entiers) à partir d'une saisie déjà validée.
+     * Les clés sont les valeurs en francs : PHP range « 10000 » parmi les clés entières.
      *
      * @param  array<int|string, mixed>  $input
-     * @return array<string, int>
+     * @return array<int, int>
      */
     public static function normalize(array $input): array
     {
         $count = [];
 
         foreach (self::DENOMINATIONS as $value) {
-            $count[(string) $value] = max(0, (int) ($input[$value] ?? $input[(string) $value] ?? 0));
+            $count[$value] = max(0, (int) ($input[$value] ?? 0));
         }
 
         return $count;
@@ -53,14 +54,14 @@ final class CashCount
     /**
      * Total en francs d'un comptage.
      *
-     * @param  array<int|string, int>  $count
+     * @param  array<int, int>  $count
      */
     public static function total(array $count): int
     {
         $total = 0;
 
         foreach (self::DENOMINATIONS as $value) {
-            $total += $value * (int) ($count[$value] ?? $count[(string) $value] ?? 0);
+            $total += $value * (int) ($count[$value] ?? 0);
         }
 
         return $total;

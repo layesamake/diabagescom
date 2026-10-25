@@ -53,7 +53,7 @@ final class CashService
     }
 
     /**
-     * @param  array<string, int>|null  $countDetails  Billets comptés à l'ouverture (mode simple) ; le montant en est le total.
+     * @param  array<int, int>|null  $countDetails  Billets comptés à l'ouverture (mode simple) ; le montant en est le total.
      */
     public function open(CashRegister $register, int $openingAmount, User $actor, ?array $countDetails = null): CashSession
     {
@@ -222,7 +222,7 @@ final class CashService
     }
 
     /**
-     * @param  array<string, int>|null  $countDetails  Billets comptés à la fermeture (mode simple) ; le montant compté en est le total.
+     * @param  array<int, int>|null  $countDetails  Billets comptés à la fermeture (mode simple) ; le montant compté en est le total.
      */
     public function close(CashSession $session, int $countedAmount, ?string $note, User $actor, ?array $countDetails = null): CashSession
     {

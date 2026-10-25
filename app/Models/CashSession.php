@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $counted_amount
  * @property int|null $difference
  * @property string|null $closing_note
- * @property array{opening?: array<string, int>, closing?: array<string, int>}|null $count_details
+ * @property array{opening?: array<int, int>, closing?: array<int, int>}|null $count_details
  * @property int $version
  * @property-read CashRegister $register
  * @property-read User $opener
