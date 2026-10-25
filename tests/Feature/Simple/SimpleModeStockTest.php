@@ -54,4 +54,27 @@ class SimpleModeStockTest extends TestCase
                 ->where('products.0.quantity', '12.000')
                 ->where('products.0.status', 'enough'));
     }
+
+    public function test_simple_stock_gives_the_real_photo_address_of_an_article_that_has_one(): void
+    {
+        $tenant = $this->createTenantWithMember();
+        $manager = $this->member($tenant, 'warehouse_manager');
+        $withPhoto = $this->makeProduct($manager, 'RIZ', 'U', 1500);
+        $withoutPhoto = $this->makeProduct($manager, 'SEL', 'U', 500);
+        $withPhoto->forceFill(['image_path' => 'products/riz.webp'])->save();
+
+        $this->act($manager)
+            ->get('/simple/stock')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('products', function ($list) use ($withPhoto, $withoutPhoto): bool {
+                    $products = collect($list)->keyBy('id');
+                    $url = (string) $products[$withPhoto->id]['image_url'];
+
+                    // Adresse signée vers l'image de CET article ; null pour celui qui n'en a pas.
+                    return str_contains($url, "/products/{$withPhoto->id}/image")
+                        && str_contains($url, 'signature=')
+                        && $products[$withoutPhoto->id]['image_url'] === null;
+                }));
+    }
 }

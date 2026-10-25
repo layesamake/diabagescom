@@ -20,6 +20,7 @@ import {
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { useAppContext } from '@/composables/useAppContext';
+import Avatar from '@/components/simple/Avatar.vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 import { useAudio } from '@/composables/useAudio';
 import { fondClair, fondPlein } from '@/components/simple/palette';
@@ -30,6 +31,8 @@ type Produit = {
     id: string;
     name: string;
     sku: string;
+    /** Vraie photo de l'article, ou null : on montre alors ses initiales. */
+    image_url: string | null;
     unit: string;
     quantity: string;
     quantity_display: string;
@@ -182,13 +185,21 @@ function confirmerMotif(reason: string): void {
                 class="flex items-center gap-3 border-b px-4 py-3 last:border-b-0"
                 :style="{ borderColor: 'var(--s-bordure)' }"
             >
-                <!-- Photo placeholder colorée selon statut -->
+                <!-- Vraie photo de l'article ; sans photo, ses initiales sur la couleur du statut -->
+                <Avatar
+                    v-if="produit.image_url"
+                    :nom="produit.name"
+                    :photo-url="produit.image_url"
+                    :taille="56"
+                    forme="carre"
+                />
                 <span
-                    class="grid size-14 shrink-0 place-items-center rounded-[16px] text-[15px] font-extrabold"
+                    v-else
+                    class="grid size-14 shrink-0 place-items-center rounded-[16px] text-[17px] font-extrabold"
                     :style="fondClair[COULEURS[produit.status]]"
                     aria-hidden="true"
                 >
-                    photo
+                    {{ produit.name.slice(0, 2).toUpperCase() }}
                 </span>
 
                 <div class="min-w-0 flex-1">
