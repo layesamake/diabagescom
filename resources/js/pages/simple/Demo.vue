@@ -121,7 +121,7 @@ function maquetteUrl(fichier: string): string {
         <!-- Jetons de couleur -->
         <section class="space-y-3">
             <h2 class="text-lg font-semibold">Couleurs et police</h2>
-            <p class="text-sm text-muted-foreground">
+            <p class="text-[15px] text-muted-foreground">
                 Valeurs déclarées une seule fois dans app.css. Police Atkinson
                 Hyperlegible Next, déjà utilisée par Diaba.
             </p>
@@ -142,15 +142,15 @@ function maquetteUrl(fichier: string): string {
                         }"
                     />
                     <span class="min-w-0">
-                        <span class="block font-mono text-xs">{{
+                        <span class="block font-mono text-[15px]">{{
                             variable
                         }}</span>
                         <span
-                            class="block font-mono text-xs text-muted-foreground"
+                            class="block font-mono text-[15px] text-muted-foreground"
                         >
                             {{ hexa }}
                         </span>
-                        <span class="block text-sm">{{ usage }}</span>
+                        <span class="block text-[15px]">{{ usage }}</span>
                     </span>
                 </div>
             </div>
@@ -164,7 +164,7 @@ function maquetteUrl(fichier: string): string {
         >
             <h2 class="text-lg font-semibold">
                 {{ item.nom }}
-                <span class="text-sm font-normal text-muted-foreground">
+                <span class="text-[15px] font-normal text-muted-foreground">
                     — référence : {{ item.maquette }}
                 </span>
             </h2>
@@ -172,7 +172,7 @@ function maquetteUrl(fichier: string): string {
             <div class="grid gap-4 lg:grid-cols-2">
                 <!-- Composant réel -->
                 <div class="space-y-2">
-                    <p class="text-sm font-medium text-muted-foreground">
+                    <p class="text-[15px] font-medium text-muted-foreground">
                         Composant codé
                     </p>
                     <div
@@ -451,7 +451,7 @@ function maquetteUrl(fichier: string): string {
 
                 <!-- Maquette de référence -->
                 <div class="space-y-2">
-                    <p class="text-sm font-medium text-muted-foreground">
+                    <p class="text-[15px] font-medium text-muted-foreground">
                         Maquette de référence
                     </p>
                     <a

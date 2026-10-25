@@ -62,7 +62,7 @@ function ajouter(): void {
             </span>
             <span
                 v-if="unite"
-                class="block text-[14px] font-semibold"
+                class="block text-[15px] font-semibold"
                 :style="{ color: 'var(--s-texte-doux)' }"
             >
                 {{ unite }}

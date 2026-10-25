@@ -123,7 +123,7 @@ function enregistrer(): void {
                 />
                 <p
                     v-if="form.sale_price !== null"
-                    class="text-sm font-semibold"
+                    class="text-[15px] font-semibold"
                     :style="{ color: 'var(--s-texte-doux)' }"
                 >
                     {{ formatFranc(form.sale_price) }}
@@ -233,7 +233,7 @@ function enregistrer(): void {
                 </label>
             </div>
             <p
-                class="text-sm font-semibold"
+                class="text-[15px] font-semibold"
                 :style="{ color: 'var(--s-texte-doux)' }"
             >
                 Facultative, mais utile pour reconnaître l’article.

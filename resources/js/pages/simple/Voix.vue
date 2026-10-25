@@ -140,14 +140,14 @@ const pourcentage = computed(() =>
         >
             <Volume2 :size="26" :stroke-width="2" aria-hidden="true" />
             <div class="min-w-0 flex-1">
-                <p class="text-[13px] opacity-90">Langue de la voix</p>
+                <p class="text-[15px] opacity-90">Langue de la voix</p>
                 <p class="truncate text-[22px] leading-tight font-extrabold">
                     {{ language_name ?? 'À choisir' }}
                 </p>
             </div>
             <button
                 type="button"
-                class="min-h-11 shrink-0 rounded-full px-5 text-[15px] font-extrabold"
+                class="min-h-12 shrink-0 rounded-full px-5 text-[15px] font-extrabold"
                 :style="{
                     backgroundColor: 'var(--s-vert-clair)',
                     color: 'var(--s-vert-fonce)',
@@ -219,7 +219,7 @@ const pourcentage = computed(() =>
                 {{ groupe.name }}
                 <span
                     v-if="groupe.restants > 0"
-                    class="rounded-full px-2 text-[13px] font-extrabold tabular-nums"
+                    class="rounded-full px-2 text-[15px] font-extrabold tabular-nums"
                     :style="{
                         backgroundColor: 'var(--s-rouge)',
                         color: '#FFFFFF',
@@ -422,7 +422,7 @@ const pourcentage = computed(() =>
                 </h2>
                 <button
                     type="button"
-                    class="inline-flex size-11 shrink-0 items-center justify-center rounded-full"
+                    class="inline-flex size-12 shrink-0 items-center justify-center rounded-full"
                     :style="{
                         backgroundColor: 'var(--s-fond)',
                         color: 'var(--s-texte)',

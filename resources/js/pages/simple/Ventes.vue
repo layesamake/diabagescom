@@ -253,7 +253,7 @@ function confirmerAnnulation(): void {
                 }"
             >
                 <p
-                    class="w-12 shrink-0 text-[14px] font-semibold tabular-nums"
+                    class="w-12 shrink-0 text-[15px] font-semibold tabular-nums"
                     :style="{ color: 'var(--s-texte-doux)' }"
                 >
                     {{ vente.time }}
@@ -262,7 +262,7 @@ function confirmerAnnulation(): void {
                     <span
                         v-for="article in vente.products.slice(0, 2)"
                         :key="article.id"
-                        class="relative inline-flex h-9 items-center justify-center rounded-full px-2 text-[13px] font-extrabold"
+                        class="relative inline-flex h-9 items-center justify-center rounded-full px-2 text-[15px] font-extrabold"
                         :style="{
                             backgroundColor: 'var(--s-orange-clair)',
                             color: 'var(--s-sur-orange-clair)',
@@ -271,7 +271,7 @@ function confirmerAnnulation(): void {
                         {{ article.initials }}
                         <span
                             v-if="Number(article.quantity) > 1"
-                            class="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-extrabold"
+                            class="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full px-1 text-[15px] font-extrabold"
                             :style="{
                                 backgroundColor: 'var(--s-vert-fonce)',
                                 color: 'var(--s-sur-vert-fonce)',
@@ -301,7 +301,7 @@ function confirmerAnnulation(): void {
                 <button
                     v-if="can.cancel"
                     type="button"
-                    class="flex size-11 shrink-0 items-center justify-center rounded-full"
+                    class="flex size-12 shrink-0 items-center justify-center rounded-full"
                     aria-label="Annuler la vente"
                     :style="{
                         backgroundColor: 'var(--s-rouge-clair)',

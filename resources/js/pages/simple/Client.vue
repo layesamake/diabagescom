@@ -143,7 +143,7 @@ function pay(): void {
                             {{ invoice.number ?? 'Facture' }}
                         </strong>
                         <span
-                            class="text-sm font-semibold"
+                            class="text-[15px] font-semibold"
                             :style="{ color: 'var(--s-texte-doux)' }"
                         >
                             Reste à payer
@@ -176,7 +176,7 @@ function pay(): void {
                     />
                     <span
                         v-if="form.errors.amount"
-                        class="text-sm text-red-700"
+                        class="text-[15px] text-red-700"
                     >
                         {{ form.errors.amount }}
                     </span>
@@ -225,7 +225,10 @@ function pay(): void {
                             {{ session.register }} — {{ session.opened_by }}
                         </option>
                     </select>
-                    <span v-if="cashNeedsSession" class="text-sm text-red-700">
+                    <span
+                        v-if="cashNeedsSession"
+                        class="text-[15px] text-red-700"
+                    >
                         Ouvrez ou choisissez une caisse pour encaisser des
                         espèces.
                     </span>
@@ -233,7 +236,7 @@ function pay(): void {
 
                 <span
                     v-if="errors.business"
-                    class="text-sm font-bold text-red-700"
+                    class="text-[15px] font-bold text-red-700"
                 >
                     {{ errors.business }}
                 </span>

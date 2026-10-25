@@ -154,7 +154,7 @@ function fermer(): void {
                         color: 'var(--s-sur-vert-clair)',
                     }"
                 >
-                    <p class="text-[14px] font-semibold">Entrées</p>
+                    <p class="text-[15px] font-semibold">Entrées</p>
                     <p class="text-[22px] font-extrabold tabular-nums">
                         {{ formatFranc(session.summary.incomes) }}
                     </p>
@@ -166,7 +166,7 @@ function fermer(): void {
                         color: 'var(--s-sur-rouge-clair)',
                     }"
                 >
-                    <p class="text-[14px] font-semibold">Sorties</p>
+                    <p class="text-[15px] font-semibold">Sorties</p>
                     <p class="text-[22px] font-extrabold tabular-nums">
                         {{ formatFranc(session.summary.expenses) }}
                     </p>
