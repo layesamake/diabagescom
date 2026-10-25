@@ -58,6 +58,16 @@ const fermetureValide = computed(
         (ecartDeCaisse.value === 0 || closeForm.note.trim().length >= 3),
 );
 
+/** Première erreur du serveur sur le comptage : « count » ou « count.1000 ». */
+function erreurComptage(
+    erreurs: Record<string, string | undefined>,
+): string | undefined {
+    return (
+        erreurs.count ??
+        Object.entries(erreurs).find(([cle]) => cle.startsWith('count.'))?.[1]
+    );
+}
+
 function ouvrir(): void {
     if (props.register) {
         openForm.post(`/simple/caisse/${props.register.id}/ouvrir`, {
@@ -134,15 +144,11 @@ function fermer(): void {
                     }}</strong>
                 </div>
                 <p
-                    v-if="
-                        openForm.errors.count || openForm.errors.opening_amount
-                    "
+                    v-if="erreurComptage(openForm.errors)"
                     role="alert"
                     class="font-bold text-red-700"
                 >
-                    {{
-                        openForm.errors.count ?? openForm.errors.opening_amount
-                    }}
+                    {{ erreurComptage(openForm.errors) }}
                 </p>
                 <button
                     type="submit"
@@ -234,16 +240,14 @@ function fermer(): void {
 
                 <p
                     v-if="
-                        closeForm.errors.count ||
-                        closeForm.errors.counted_amount ||
+                        erreurComptage(closeForm.errors) ||
                         closeForm.errors.note
                     "
                     role="alert"
                     class="font-bold text-red-700"
                 >
                     {{
-                        closeForm.errors.count ??
-                        closeForm.errors.counted_amount ??
+                        erreurComptage(closeForm.errors) ??
                         closeForm.errors.note
                     }}
                 </p>

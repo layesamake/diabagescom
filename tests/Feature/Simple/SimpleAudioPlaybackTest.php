@@ -60,12 +60,15 @@ class SimpleAudioPlaybackTest extends TestCase
     {
         $listed = [];
 
-        $this->act($user)->get('/simple/voix')->assertInertia(fn ($page) => $page
-            ->where('audio.disponibles', function ($list) use (&$listed): bool {
+        // Fonction classique (pas fléchée) : une fonction fléchée capture $listed par valeur,
+        // et la liste resterait vide pour l'appelant.
+        $this->act($user)->get('/simple/voix')->assertInertia(function ($page) use (&$listed): void {
+            $page->where('audio.disponibles', function ($list) use (&$listed): bool {
                 $listed = collect($list)->all();
 
                 return true;
-            }));
+            });
+        });
 
         return $listed;
     }
