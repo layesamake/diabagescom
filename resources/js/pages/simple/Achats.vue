@@ -11,7 +11,6 @@ import { CheckCircle2, PackageOpen, Truck } from '@lucide/vue';
 import { computed } from 'vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
 import { useAudio } from '@/composables/useAudio';
-import { useAppContext } from '@/composables/useAppContext';
 import { formatFranc } from '@/lib/money';
 
 type Commande = {
@@ -27,11 +26,12 @@ const audio = useAudio();
 const props = defineProps<{
     open_orders: Commande[];
     received_orders: Commande[];
+    /** « order » : le serveur dit si l'utilisateur peut créer et confirmer une commande. */
+    can: { order: boolean };
     audio_code: string;
 }>();
 
-const { can } = useAppContext();
-const peutCommander = computed(() => can('purchase.create'));
+const peutCommander = computed(() => props.can.order);
 const aucuneCommande = computed(
     () => props.open_orders.length + props.received_orders.length === 0,
 );
@@ -63,7 +63,7 @@ function datePrevue(order: Commande): string | null {
             <h1 class="text-[32px] font-extrabold">Achats</h1>
             <a
                 v-if="peutCommander"
-                href="/purchases/orders/create"
+                href="/simple/achats/commander"
                 class="inline-flex min-h-12 items-center rounded-[18px] px-5 text-[17px] font-extrabold"
                 :style="{
                     backgroundColor: 'var(--s-bleu-clair)',
@@ -211,7 +211,7 @@ function datePrevue(order: Commande): string | null {
 
         <a
             v-if="peutCommander"
-            href="/purchases/orders/create"
+            href="/simple/achats/commander"
             class="min-h-16 rounded-[22px] px-5 py-4 text-center text-[20px] font-extrabold lg:hidden"
             :style="{
                 backgroundColor: 'var(--s-bleu)',

@@ -157,6 +157,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
 
     // Mode simple — lot 6 : commandes fournisseurs à réceptionner.
     Route::get('simple/achats', [SimplePurchaseController::class, 'index'])->name('simple.purchases');
+    Route::get('simple/achats/commander', [SimplePurchaseController::class, 'create'])->name('simple.purchases.create');
+    Route::post('simple/achats', [SimplePurchaseController::class, 'store'])->middleware('throttle:30,1')->name('simple.purchases.store');
     Route::get('simple/achats/{order}', [SimplePurchaseController::class, 'show'])->whereUuid('order')->name('simple.purchases.show');
     Route::post('simple/achats/{order}/recevoir', [SimplePurchaseController::class, 'receive'])->whereUuid('order')->name('simple.purchases.receive');
     Route::get('simple/resultats', [SimpleResultsController::class, 'index'])->name('simple.results');

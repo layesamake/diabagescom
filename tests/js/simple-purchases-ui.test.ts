@@ -25,8 +25,11 @@ void test('Achats presente les commandes en route et les commandes recues', () =
 void test('Achats ne propose une nouvelle commande quavec la permission metier', () => {
     const src = readFileSync(page, 'utf8');
 
-    assert.match(src, /can\('purchase\.create'\)/);
-    assert.match(src, /href="\/purchases\/orders\/create"/);
+    // Le droit est calculé par le serveur (créer ET confirmer, comme en mode expert) :
+    // le bouton mène au formulaire simple, plus à l'écran expert.
+    assert.match(src, /props\.can\.order/);
+    assert.match(src, /href="\/simple\/achats\/commander"/);
+    assert.doesNotMatch(src, /\/purchases\/orders\/create/);
     assert.match(src, /Commander/);
 });
 
