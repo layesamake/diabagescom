@@ -4,12 +4,14 @@
  * tiroir se compte billet par billet (maquette 06b) et tout écart exige une
  * justification.
  */
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { Wallet } from '@lucide/vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import CarteMontant from '@/components/simple/CarteMontant.vue';
 import ComptageBillets from '@/components/simple/ComptageBillets.vue';
+import EcranResultat from '@/components/simple/EcranResultat.vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
+import { closingResult, type ClosingFigures } from '@/lib/cashClosing';
 import { emptyCount, isEmpty, total } from '@/lib/cashCount';
 import { formatFranc } from '@/lib/money';
 
@@ -44,6 +46,16 @@ type Props = {
 };
 
 const props = defineProps<Props>();
+// Résultat de la fermeture (maquette 06d), renvoyé une seule fois par le serveur.
+const page = usePage();
+const termine = ref(false);
+const fermeture = computed(() => {
+    const figures = (page.flash as Record<string, unknown> | undefined)
+        ?.cash_closed as ClosingFigures | undefined;
+
+    return figures && !termine.value ? closingResult(figures) : null;
+});
+
 // Le serveur recalcule le total à partir du comptage : l'écran n'envoie que les billets.
 const openForm = useForm({ count: emptyCount() });
 const closeForm = useForm({ count: emptyCount(), note: '' });
@@ -88,181 +100,203 @@ function fermer(): void {
 <template>
     <Head title="Caisse" />
 
-    <EnTeteEcran
-        class="lg:hidden"
-        titre="Caisse"
-        :icone="Wallet"
-        :retour-visible="false"
+    <EcranResultat
+        v-if="fermeture"
+        :etat="fermeture.etat"
+        :pictogramme="fermeture.pictogramme"
+        :titre="fermeture.titre"
+        :detail="fermeture.detail"
+        action-principale="Terminer"
+        @principale="termine = true"
     />
 
-    <div
-        class="grid max-w-[880px] gap-4 p-4 pb-28 lg:grid-cols-2 lg:p-0 lg:pb-0"
-    >
-        <h1
-            class="sr-only lg:not-sr-only lg:col-span-2 lg:text-[32px] lg:font-extrabold"
-        >
-            Caisse
-        </h1>
-        <p
-            v-if="!register"
-            class="rounded-[24px] p-4 text-center text-[17px] font-semibold"
-            :style="{
-                backgroundColor: 'var(--s-orange-clair)',
-                color: 'var(--s-sur-orange-clair)',
-            }"
-        >
-            Aucune caisse configurée pour ce dépôt.
-        </p>
+    <template v-else>
+        <EnTeteEcran
+            class="lg:hidden"
+            titre="Caisse"
+            :icone="Wallet"
+            :retour-visible="false"
+        />
 
-        <template v-else-if="!session">
-            <p
-                class="text-center text-[17px] font-semibold"
-                :style="{ color: 'var(--s-texte-doux)' }"
+        <div
+            class="grid max-w-[880px] gap-4 p-4 pb-28 lg:grid-cols-2 lg:p-0 lg:pb-0"
+        >
+            <h1
+                class="sr-only lg:not-sr-only lg:col-span-2 lg:text-[32px] lg:font-extrabold"
             >
-                La caisse « {{ register?.name }} » est fermée.
+                Caisse
+            </h1>
+            <p
+                v-if="!register"
+                class="rounded-[24px] p-4 text-center text-[17px] font-semibold"
+                :style="{
+                    backgroundColor: 'var(--s-orange-clair)',
+                    color: 'var(--s-sur-orange-clair)',
+                }"
+            >
+                Aucune caisse configurée pour ce dépôt.
             </p>
 
-            <form v-if="can.open" class="grid gap-3" @submit.prevent="ouvrir">
-                <h2 class="text-[22px] font-extrabold">
-                    Comptez l’argent du tiroir
-                </h2>
+            <template v-else-if="!session">
                 <p
-                    class="text-[17px] font-semibold"
+                    class="text-center text-[17px] font-semibold"
                     :style="{ color: 'var(--s-texte-doux)' }"
                 >
-                    Touchez + pour chaque billet
+                    La caisse « {{ register?.name }} » est fermée.
                 </p>
-                <ComptageBillets v-model="openForm.count" />
-                <div class="flex items-baseline justify-between gap-3">
-                    <span
+
+                <form
+                    v-if="can.open"
+                    class="grid gap-3"
+                    @submit.prevent="ouvrir"
+                >
+                    <h2 class="text-[22px] font-extrabold">
+                        Comptez l’argent du tiroir
+                    </h2>
+                    <p
                         class="text-[17px] font-semibold"
                         :style="{ color: 'var(--s-texte-doux)' }"
-                        >Dans le tiroir</span
                     >
-                    <strong class="text-[32px] font-extrabold tabular-nums">{{
-                        formatFranc(totalOuverture)
-                    }}</strong>
-                </div>
-                <p
-                    v-if="erreurComptage(openForm.errors)"
-                    role="alert"
-                    class="font-bold text-red-700"
-                >
-                    {{ erreurComptage(openForm.errors) }}
-                </p>
-                <button
-                    type="submit"
-                    class="h-16 rounded-[24px] text-[20px] font-extrabold"
-                    :style="{
-                        backgroundColor: 'var(--s-vert)',
-                        color: 'var(--s-sur-vert)',
-                    }"
-                    :disabled="openForm.processing"
-                >
-                    Ouvrir avec {{ formatFranc(totalOuverture) }}
-                </button>
-            </form>
-        </template>
-
-        <template v-else>
-            <CarteMontant
-                class="lg:col-span-2"
-                libelle="Dans la caisse"
-                :montant="session.drawer"
-            />
-
-            <div class="grid grid-cols-2 gap-3">
-                <div
-                    class="rounded-[20px] p-3 text-center"
-                    :style="{
-                        backgroundColor: 'var(--s-vert-clair)',
-                        color: 'var(--s-sur-vert-clair)',
-                    }"
-                >
-                    <p class="text-[15px] font-semibold">Entrées</p>
-                    <p class="text-[22px] font-extrabold tabular-nums">
-                        {{ formatFranc(session.summary.incomes) }}
+                        Touchez + pour chaque billet
                     </p>
-                </div>
-                <div
-                    class="rounded-[20px] p-3 text-center"
-                    :style="{
-                        backgroundColor: 'var(--s-rouge-clair)',
-                        color: 'var(--s-sur-rouge-clair)',
-                    }"
-                >
-                    <p class="text-[15px] font-semibold">Sorties</p>
-                    <p class="text-[22px] font-extrabold tabular-nums">
-                        {{ formatFranc(session.summary.expenses) }}
-                    </p>
-                </div>
-            </div>
-
-            <form v-if="can.close" class="grid gap-3" @submit.prevent="fermer">
-                <h2 class="text-[22px] font-extrabold">
-                    Comptez l’argent du tiroir
-                </h2>
-                <ComptageBillets v-model="closeForm.count" />
-                <div class="flex items-baseline justify-between gap-3">
-                    <span
-                        class="text-[17px] font-semibold"
-                        :style="{ color: 'var(--s-texte-doux)' }"
-                        >Compté</span
+                    <ComptageBillets v-model="openForm.count" />
+                    <div class="flex items-baseline justify-between gap-3">
+                        <span
+                            class="text-[17px] font-semibold"
+                            :style="{ color: 'var(--s-texte-doux)' }"
+                            >Dans le tiroir</span
+                        >
+                        <strong
+                            class="text-[32px] font-extrabold tabular-nums"
+                            >{{ formatFranc(totalOuverture) }}</strong
+                        >
+                    </div>
+                    <p
+                        v-if="erreurComptage(openForm.errors)"
+                        role="alert"
+                        class="font-bold text-red-700"
                     >
-                    <strong class="text-[32px] font-extrabold tabular-nums">{{
-                        formatFranc(totalCompte)
-                    }}</strong>
-                </div>
-
-                <div
-                    v-if="ecartDeCaisse !== 0"
-                    class="grid gap-2 rounded-[20px] p-3"
-                    :style="{
-                        backgroundColor: 'var(--s-orange-clair)',
-                        color: 'var(--s-sur-orange-clair)',
-                    }"
-                >
-                    <p class="text-[17px] font-extrabold">
-                        Écart : {{ formatFranc(ecartDeCaisse) }}
+                        {{ erreurComptage(openForm.errors) }}
                     </p>
-                    <label for="closing-note" class="font-bold">
-                        Pourquoi y a-t-il un écart ?
-                    </label>
-                    <textarea
-                        id="closing-note"
-                        v-model="closeForm.note"
-                        rows="3"
-                        maxlength="500"
-                        class="rounded-[16px] border bg-white p-3 text-[17px] text-black"
-                        placeholder="Écrivez au moins 3 caractères"
-                    />
+                    <button
+                        type="submit"
+                        class="h-16 rounded-[24px] text-[20px] font-extrabold"
+                        :style="{
+                            backgroundColor: 'var(--s-vert)',
+                            color: 'var(--s-sur-vert)',
+                        }"
+                        :disabled="openForm.processing"
+                    >
+                        Ouvrir avec {{ formatFranc(totalOuverture) }}
+                    </button>
+                </form>
+            </template>
+
+            <template v-else>
+                <CarteMontant
+                    class="lg:col-span-2"
+                    libelle="Dans la caisse"
+                    :montant="session.drawer"
+                />
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div
+                        class="rounded-[20px] p-3 text-center"
+                        :style="{
+                            backgroundColor: 'var(--s-vert-clair)',
+                            color: 'var(--s-sur-vert-clair)',
+                        }"
+                    >
+                        <p class="text-[15px] font-semibold">Entrées</p>
+                        <p class="text-[22px] font-extrabold tabular-nums">
+                            {{ formatFranc(session.summary.incomes) }}
+                        </p>
+                    </div>
+                    <div
+                        class="rounded-[20px] p-3 text-center"
+                        :style="{
+                            backgroundColor: 'var(--s-rouge-clair)',
+                            color: 'var(--s-sur-rouge-clair)',
+                        }"
+                    >
+                        <p class="text-[15px] font-semibold">Sorties</p>
+                        <p class="text-[22px] font-extrabold tabular-nums">
+                            {{ formatFranc(session.summary.expenses) }}
+                        </p>
+                    </div>
                 </div>
 
-                <p
-                    v-if="
-                        erreurComptage(closeForm.errors) ||
-                        closeForm.errors.note
-                    "
-                    role="alert"
-                    class="font-bold text-red-700"
+                <form
+                    v-if="can.close"
+                    class="grid gap-3"
+                    @submit.prevent="fermer"
                 >
-                    {{
-                        erreurComptage(closeForm.errors) ??
-                        closeForm.errors.note
-                    }}
-                </p>
-                <button
-                    type="submit"
-                    class="h-16 rounded-[24px] text-[20px] font-extrabold disabled:opacity-40"
-                    :style="{
-                        backgroundColor: 'var(--s-rouge)',
-                        color: 'var(--s-sur-rouge)',
-                    }"
-                    :disabled="closeForm.processing || !fermetureValide"
-                >
-                    Fermer la caisse
-                </button>
-            </form>
-        </template>
-    </div>
+                    <h2 class="text-[22px] font-extrabold">
+                        Comptez l’argent du tiroir
+                    </h2>
+                    <ComptageBillets v-model="closeForm.count" />
+                    <div class="flex items-baseline justify-between gap-3">
+                        <span
+                            class="text-[17px] font-semibold"
+                            :style="{ color: 'var(--s-texte-doux)' }"
+                            >Compté</span
+                        >
+                        <strong
+                            class="text-[32px] font-extrabold tabular-nums"
+                            >{{ formatFranc(totalCompte) }}</strong
+                        >
+                    </div>
+
+                    <div
+                        v-if="ecartDeCaisse !== 0"
+                        class="grid gap-2 rounded-[20px] p-3"
+                        :style="{
+                            backgroundColor: 'var(--s-orange-clair)',
+                            color: 'var(--s-sur-orange-clair)',
+                        }"
+                    >
+                        <p class="text-[17px] font-extrabold">
+                            Écart : {{ formatFranc(ecartDeCaisse) }}
+                        </p>
+                        <label for="closing-note" class="font-bold">
+                            Pourquoi y a-t-il un écart ?
+                        </label>
+                        <textarea
+                            id="closing-note"
+                            v-model="closeForm.note"
+                            rows="3"
+                            maxlength="500"
+                            class="rounded-[16px] border bg-white p-3 text-[17px] text-black"
+                            placeholder="Écrivez au moins 3 caractères"
+                        />
+                    </div>
+
+                    <p
+                        v-if="
+                            erreurComptage(closeForm.errors) ||
+                            closeForm.errors.note
+                        "
+                        role="alert"
+                        class="font-bold text-red-700"
+                    >
+                        {{
+                            erreurComptage(closeForm.errors) ??
+                            closeForm.errors.note
+                        }}
+                    </p>
+                    <button
+                        type="submit"
+                        class="h-16 rounded-[24px] text-[20px] font-extrabold disabled:opacity-40"
+                        :style="{
+                            backgroundColor: 'var(--s-rouge)',
+                            color: 'var(--s-sur-rouge)',
+                        }"
+                        :disabled="closeForm.processing || !fermetureValide"
+                    >
+                        Fermer la caisse
+                    </button>
+                </form>
+            </template>
+        </div>
+    </template>
 </template>
