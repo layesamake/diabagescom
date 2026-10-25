@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\Audio\AudioLibrary;
 use App\Domain\Identity\Authorizer;
 use App\Domain\Onboarding\StartGuide;
 use App\Domain\Subscriptions\FeatureAccess;
@@ -64,6 +65,13 @@ class HandleInertiaRequests extends Middleware
                 : null,
             'guide' => fn () => $request->user() instanceof User && app(TenantContext::class)->has()
                 ? app(StartGuide::class)->summary($request->user())
+                : null,
+            // Haut-parleurs du mode simple : seules les phrases entièrement enregistrées
+            // sont listées, pour qu'aucun écran n'affiche une icône qui ne joue rien.
+            'audio' => fn () => config('diaba.simple_mode.enabled')
+                && $request->routeIs('simple.*')
+                && app(TenantContext::class)->has()
+                ? ['disponibles' => (new AudioLibrary(app(TenantContext::class)->tenant()))->playableCodes()]
                 : null,
             'platform' => fn () => [
                 'can_access' => $request->user() instanceof User && Gate::forUser($request->user())->allows('platform.tenants.manage'),

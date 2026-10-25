@@ -3,10 +3,12 @@ import { computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { BarChart3 } from '@lucide/vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
+import { useAudio } from '@/composables/useAudio';
 import { formatFranc } from '@/lib/money';
 
 type PeriodKey = 'week' | 'month' | 'year';
 
+const audio = useAudio();
 const props = defineProps<{
     period: { key: PeriodKey; from: string; to: string };
     summary: { sold: number; spent: number | null; remaining: number | null };
@@ -53,7 +55,10 @@ function methodLabel(method: string): string {
         titre="Mes résultats"
         :icone="BarChart3"
         :code-audio="audio_code"
-        :audio-disponible="true"
+        :audio-disponible="
+            period.key === 'month' && audio.disponible(audio_code)
+        "
+        @jouer="(code) => audio.jouer(code, { montant: summary.sold })"
         @retour="router.visit('/simple')"
     />
 
