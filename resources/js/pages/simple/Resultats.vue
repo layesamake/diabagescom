@@ -12,6 +12,7 @@ const props = defineProps<{
     summary: { sold: number; spent: number | null; remaining: number | null };
     comparison: Record<string, unknown>;
     by_method: { method: string; total: number }[];
+    by_day: { day: string; total: number; sales: number }[];
     top_products: { label: string; quantity: string; total: number }[];
     can: { margin: boolean };
     audio_code: string;
@@ -135,6 +136,24 @@ function methodLabel(method: string): string {
                     class="flex items-center justify-between gap-3 text-[17px] font-semibold"
                 >
                     <dt>{{ methodLabel(entry.method) }}</dt>
+                    <dd class="tabular-nums">{{ formatFranc(entry.total) }}</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section
+            v-if="by_day.length > 0"
+            class="rounded-[22px] border p-4"
+            :style="{ borderColor: 'var(--s-bordure)' }"
+        >
+            <h2 class="text-[20px] font-extrabold">Vendu par jour</h2>
+            <dl class="mt-3 grid gap-2">
+                <div
+                    v-for="entry in by_day"
+                    :key="entry.day"
+                    class="flex items-center justify-between gap-3 text-[17px] font-semibold"
+                >
+                    <dt>{{ entry.day }}</dt>
                     <dd class="tabular-nums">{{ formatFranc(entry.total) }}</dd>
                 </div>
             </dl>

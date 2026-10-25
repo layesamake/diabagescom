@@ -77,6 +77,7 @@ class SimpleResultsController extends Controller
             ],
             'comparison' => $data['comparison'],
             'by_method' => $data['byMethod']->values(),
+            'by_day' => $data['byDay']->values(),
             'top_products' => $data['topProducts']->values(),
             'can' => ['margin' => $margin],
             'audio_code' => 'PIL-01',
