@@ -52,7 +52,10 @@ final class CashService
         });
     }
 
-    public function open(CashRegister $register, int $openingAmount, User $actor): CashSession
+    /**
+     * @param  array<string, int>|null  $countDetails  Billets comptés à l'ouverture (mode simple) ; le montant en est le total.
+     */
+    public function open(CashRegister $register, int $openingAmount, User $actor, ?array $countDetails = null): CashSession
     {
         $this->access->assertCanWrite($this->context->tenant());
         $this->stockAccess->warehouse($register->warehouse_id);
@@ -66,15 +69,16 @@ final class CashService
         }
 
         try {
-            return DB::transaction(function () use ($register, $openingAmount, $actor): CashSession {
+            return DB::transaction(function () use ($register, $openingAmount, $actor, $countDetails): CashSession {
                 $session = new CashSession;
                 $session->register_id = $register->id;
                 $session->opening_amount = $openingAmount;
                 $session->opened_by = $actor->id;
                 $session->opened_at = now()->toImmutable();
+                $session->count_details = $countDetails === null ? null : ['opening' => $countDetails];
                 $session->save();
 
-                $this->audit->record('cash.session_opened', $session, after: ['register' => $register->name, 'opening_amount' => $openingAmount], actor: $actor);
+                $this->audit->record('cash.session_opened', $session, after: array_filter(['register' => $register->name, 'opening_amount' => $openingAmount, 'count' => $countDetails], fn ($value) => $value !== null), actor: $actor);
 
                 return $session;
             });
@@ -217,7 +221,10 @@ final class CashService
         return $existing;
     }
 
-    public function close(CashSession $session, int $countedAmount, ?string $note, User $actor): CashSession
+    /**
+     * @param  array<string, int>|null  $countDetails  Billets comptés à la fermeture (mode simple) ; le montant compté en est le total.
+     */
+    public function close(CashSession $session, int $countedAmount, ?string $note, User $actor, ?array $countDetails = null): CashSession
     {
         $this->access->assertCanWrite($this->context->tenant());
 
@@ -225,7 +232,7 @@ final class CashService
             throw new InvalidCashOperation(__('cash.errors.negative_amount'));
         }
 
-        return DB::transaction(function () use ($session, $countedAmount, $note, $actor): CashSession {
+        return DB::transaction(function () use ($session, $countedAmount, $note, $actor, $countDetails): CashSession {
             /** @var CashSession $locked */
             $locked = CashSession::query()->with('register')->lockForUpdate()->findOrFail($session->id);
             $this->stockAccess->warehouse($locked->register->warehouse_id);
@@ -249,11 +256,14 @@ final class CashService
             $locked->counted_amount = $countedAmount;
             $locked->difference = $difference;
             $locked->closing_note = filled($note) ? trim((string) $note) : null;
+            if ($countDetails !== null) {
+                $locked->count_details = [...($locked->count_details ?? []), 'closing' => $countDetails];
+            }
             $locked->version++;
             $locked->save();
 
             $this->audit->record('cash.session_closed', $locked,
-                after: ['expected' => $expected, 'counted' => $countedAmount, 'difference' => $difference],
+                after: array_filter(['expected' => $expected, 'counted' => $countedAmount, 'difference' => $difference, 'count' => $countDetails], fn ($value) => $value !== null),
                 metadata: array_filter(['reason' => $locked->closing_note]), actor: $actor);
 
             return $locked;

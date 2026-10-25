@@ -35,7 +35,10 @@ void test('Caisse utilise la route liée à la caisse et le contrat du résumé'
 });
 
 void test('Caisse accepte les grands montants et la justification des écarts', () => {
-    assert.match(caisse, /inputmode="numeric"/);
+    // L'argent se compte billet par billet (maquette 06b) : plus de montant tapé à la main.
+    assert.match(caisse, /<ComptageBillets v-model="closeForm\.count"/);
+    assert.match(caisse, /<ComptageBillets v-model="openForm\.count"/);
+    assert.doesNotMatch(caisse, /inputmode="numeric"/);
     assert.match(caisse, /v-model="closeForm\.note"/);
     assert.match(caisse, /ecartDeCaisse/);
 });
