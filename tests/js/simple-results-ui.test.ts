@@ -19,6 +19,13 @@ void test('Mes résultats permet de choisir semaine, mois ou année', () => {
     assert.match(source, /label: 'Année'/);
 });
 
+void test('Mes résultats liste les meilleures ventes avec quantités et montants', () => {
+    assert.match(template, /v-for="product in top_products"/);
+    assert.match(template, /\{\{ product\.label \}\}/);
+    assert.match(template, /\{\{ product\.quantity \}\}/);
+    assert.match(template, /formatFranc\(product\.total\)/);
+});
+
 void test('Mes résultats montre où sont les encaissements', () => {
     assert.match(template, /Où est l'argent \?/);
     assert.match(template, /v-for="entry in by_method"/);
