@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Simple;
 
+use App\Domain\Tenancy\TenantScope;
 use App\Http\Middleware\ResolveTenantContext;
+use App\Models\Subscription;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -93,6 +95,10 @@ class SimpleResultsTest extends TestCase
     {
         CarbonImmutable::setTestNow('2026-09-10 10:00:00');
         $setup = $this->createTenantWithMember();
+        // L'essai de 10 jours démarre le 10 septembre : sans prolongation, l'accès serait
+        // suspendu le 10 octobre et la vente de ce mois-là serait refusée.
+        Subscription::query()->withoutGlobalScope(TenantScope::class)->where('tenant_id', $setup['tenant']->id)->sole()
+            ->forceFill(['trial_ends_at' => CarbonImmutable::parse('2027-01-01')])->save();
         $rice = $this->makeProduct($setup, 'RIZ', 'U', 1000);
         $this->move($setup, 'initial', [[$setup['warehouse']->id, $rice->id, '10', 1000]]);
         $session = $this->openSession($setup);
