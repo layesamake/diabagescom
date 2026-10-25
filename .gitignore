@@ -53,3 +53,5 @@ yarn-error.log
 
 # Secrets locaux de développement (jamais versionnés)
 /codes-secrets/
+client_secret*.json
+*.googleusercontent.com.json
