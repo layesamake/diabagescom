@@ -10,6 +10,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { CheckCircle2, PackageOpen, Truck } from '@lucide/vue';
 import { computed } from 'vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
+import { useAudio } from '@/composables/useAudio';
 import { useAppContext } from '@/composables/useAppContext';
 import { formatFranc } from '@/lib/money';
 
@@ -22,6 +23,7 @@ type Commande = {
     expected_on: string | null;
 };
 
+const audio = useAudio();
 const props = defineProps<{
     open_orders: Commande[];
     received_orders: Commande[];
@@ -51,7 +53,8 @@ function datePrevue(order: Commande): string | null {
         titre="Achats"
         :icone="Truck"
         :code-audio="audio_code"
-        :audio-disponible="true"
+        :audio-disponible="audio.disponible(audio_code)"
+        @jouer="audio.jouer"
         @retour="router.visit('/simple')"
     />
 

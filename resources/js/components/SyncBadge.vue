@@ -1,32 +1,21 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import { CloudOff, RefreshCw, TriangleAlert, Wifi } from '@lucide/vue';
-import { computed, onMounted, watch } from 'vue';
+import { computed } from 'vue';
 import { useAppContext } from '@/composables/useAppContext';
+import { useOfflineStart } from '@/composables/useOfflineStart';
 import { t } from '@/i18n';
-import { initOffline, syncState } from '@/offline/sync';
+import { syncState } from '@/offline/sync';
 import { index as syncIndex } from '@/routes/sync';
 
 /**
  * État réseau permanent (docs/07) : en ligne, hors connexion, synchronisation,
  * attention requise ; avec le nombre de ventes en attente.
  */
-const page = usePage();
 const { context, can } = useAppContext();
 const enabled = computed(() => Boolean(context.value) && can('sale.create'));
 
-function start(): void {
-    if (enabled.value && context.value) {
-        void initOffline({
-            userId: page.props.auth.user.id,
-            tenantId: context.value.tenant.id,
-            warehouseId: context.value.warehouse?.id ?? null,
-        });
-    }
-}
-
-onMounted(start);
-watch(() => [context.value?.tenant.id, context.value?.warehouse?.id], start);
+useOfflineStart();
 
 const state = computed(() => {
     if (syncState.attention > 0 || syncState.problem) {

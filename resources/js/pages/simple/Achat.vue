@@ -4,6 +4,7 @@ import { PackageCheck, Truck } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import Compteur from '@/components/simple/Compteur.vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
+import { useAudio } from '@/composables/useAudio';
 
 type Ligne = {
     id: string;
@@ -15,6 +16,7 @@ type Ligne = {
     remaining: string;
 };
 
+const audio = useAudio();
 const props = defineProps<{
     order: {
         id: string;
@@ -64,7 +66,8 @@ function recevoir(): void {
         titre="Recevoir"
         :icone="Truck"
         :code-audio="audio_code"
-        :audio-disponible="true"
+        :audio-disponible="audio.disponible(audio_code)"
+        @jouer="audio.jouer"
         @retour="router.visit('/simple/achats')"
     />
 

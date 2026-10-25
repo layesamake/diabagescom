@@ -10,11 +10,15 @@ const dossiers = [
     'resources/js/pages/simple',
 ];
 
-const fichiers = dossiers.flatMap((dossier) =>
-    readdirSync(dossier)
-        .filter((nom) => nom.endsWith('.vue'))
-        .map((nom) => join(dossier, nom)),
-);
+// Le cadre commun (menu latéral, barre d'état) fait partie des écrans.
+const fichiers = [
+    ...dossiers.flatMap((dossier) =>
+        readdirSync(dossier)
+            .filter((nom) => nom.endsWith('.vue'))
+            .map((nom) => join(dossier, nom)),
+    ),
+    'resources/js/layouts/SimpleLayout.vue',
+];
 
 void test('le mode simple compte des écrans à contrôler', () => {
     assert.ok(fichiers.length >= 20);

@@ -13,7 +13,10 @@ const source = stock.replace(/\s+/g, ' ').replace(/’/g, "'");
 void test('Stock utilise EnTeteEcran et lui passe le code audio « Vous êtes sur Stock »', () => {
     assert.match(stock, /EnTeteEcran/);
     assert.match(source, /code-audio="audio_code"/);
-    assert.match(source, /audio-disponible="true"/);
+    // Le haut-parleur suit la disponibilité réelle de la phrase, jamais un « vrai » forcé.
+    assert.match(source, /audio-disponible="audio\.disponible\(audio_code\)"/);
+    assert.doesNotMatch(source, /audio-disponible="true"/);
+    assert.match(source, /@jouer="audio\.jouer"/);
 });
 
 void test('Stock affiche trois cartes compteur toujours en fond plein coloré', () => {

@@ -46,6 +46,7 @@ use App\Http\Controllers\Settings\FeatureController;
 use App\Http\Controllers\Settings\GoogleDriveController;
 use App\Http\Controllers\Settings\MemberController;
 use App\Http\Controllers\Settings\NotificationController;
+use App\Http\Controllers\Simple\SimpleAudioController;
 use App\Http\Controllers\Simple\SimpleCustomerController;
 use App\Http\Controllers\Simple\SimpleGuideController;
 use App\Http\Controllers\Simple\SimpleModeController;
@@ -166,6 +167,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'mfa.privileged', 'subscription
     Route::delete('simple/voix/{code}/{segment}', [SimpleVoiceController::class, 'destroySegment'])
         ->where('code', '[A-Z]{3}-[0-9]{2}')->where('segment', '[0-9]+')->name('simple.voice.segments.destroy');
     Route::get('simple/voix/clips/{clip}', [SimpleVoiceController::class, 'clip'])->whereUuid('clip')->name('simple.voice.clips.show');
+
+    // Mode simple — lecture des messages audio par tous les membres (le haut-parleur).
+    Route::get('simple/audio/clips/{clip}', [SimpleAudioController::class, 'clip'])->whereUuid('clip')->name('simple.audio.clips.show');
+    Route::get('simple/audio/{code}', [SimpleAudioController::class, 'phrase'])
+        ->where('code', '[A-Z]{3}-[0-9]{2}')->middleware('throttle:120,1')->name('simple.audio.phrase');
 
     Route::get('settings/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
     // Facturation de l'abonnement (accessible même suspendu, pour régulariser).

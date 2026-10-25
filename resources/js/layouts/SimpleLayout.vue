@@ -28,6 +28,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import BarreNavBas from '@/components/simple/BarreNavBas.vue';
 import ChargementEcran from '@/components/simple/ChargementEcran.vue';
 import { useAppContext } from '@/composables/useAppContext';
+import { useOfflineStart } from '@/composables/useOfflineStart';
+import { syncState } from '@/offline/sync';
 import {
     home as simpleHome,
     sell as simpleSell,
@@ -38,6 +40,8 @@ const props = withDefaults(defineProps<{ actif?: string }>(), {
     actif: 'accueil',
 });
 const { context, can } = useAppContext();
+// Base locale et envoi de la file : Vendre garde les ventes faites sans réseau.
+useOfflineStart();
 const page = usePage();
 const enChargement = ref(false);
 let supprimerEvenements: Array<() => void> = [];
@@ -288,7 +292,7 @@ const initialesUtilisateur = computed(() => {
                     <strong class="block truncate text-[15px] font-extrabold">{{
                         context?.tenant?.name ?? 'Mon entreprise'
                     }}</strong>
-                    <span class="block text-[12px] font-semibold opacity-80"
+                    <span class="block text-[15px] font-semibold opacity-80"
                         >Mode simple</span
                     >
                 </span>
@@ -332,19 +336,24 @@ const initialesUtilisateur = computed(() => {
                 </a>
             </nav>
             <div class="mt-auto grid gap-3">
-                <div class="flex items-center gap-2 text-[13px] font-semibold">
+                <div class="flex items-center gap-2 text-[15px] font-semibold">
                     <span
                         class="inline-block size-2 rounded-full"
                         :style="{
-                            backgroundColor: 'var(--s-vert-clair)',
+                            backgroundColor: syncState.online
+                                ? 'var(--s-vert-clair)'
+                                : 'var(--s-orange)',
                         }"
                         aria-hidden="true"
                     ></span>
-                    En ligne
+                    {{ syncState.online ? 'En ligne' : 'Pas d’internet' }}
+                    <span v-if="syncState.pending > 0" class="opacity-90"
+                        >· {{ syncState.pending }} à envoyer</span
+                    >
                 </div>
                 <div class="flex items-center gap-3">
                     <span
-                        class="grid size-10 shrink-0 place-items-center rounded-full text-[14px] font-extrabold"
+                        class="grid size-10 shrink-0 place-items-center rounded-full text-[15px] font-extrabold"
                         :style="{
                             backgroundColor: 'var(--s-orange-clair)',
                             color: 'var(--s-texte)',
@@ -353,11 +362,11 @@ const initialesUtilisateur = computed(() => {
                     >
                     <span class="min-w-0">
                         <strong
-                            class="block truncate text-[14px] font-extrabold"
+                            class="block truncate text-[15px] font-extrabold"
                             >{{ nomUtilisateur }}</strong
                         >
                         <span
-                            class="block text-[12px] font-semibold opacity-80"
+                            class="block text-[15px] font-semibold opacity-80"
                             >{{ roleUtilisateur }}</span
                         >
                     </span>

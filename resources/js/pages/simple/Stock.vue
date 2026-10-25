@@ -21,6 +21,7 @@ import {
 import { computed, ref } from 'vue';
 import { useAppContext } from '@/composables/useAppContext';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
+import { useAudio } from '@/composables/useAudio';
 import { fondClair, fondPlein } from '@/components/simple/palette';
 
 type Statut = 'enough' | 'low' | 'empty';
@@ -37,6 +38,7 @@ type Produit = {
     progress_max: number;
 };
 
+const audio = useAudio();
 const props = defineProps<{
     warehouse: { id: string; code: string; name: string };
     products: Produit[];
@@ -123,7 +125,8 @@ function confirmerMotif(reason: string): void {
         :icone="Package"
         :retour-visible="true"
         :code-audio="audio_code"
-        :audio-disponible="true"
+        :audio-disponible="audio.disponible(audio_code)"
+        @jouer="audio.jouer"
     />
 
     <h1

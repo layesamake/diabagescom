@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $counted_amount
  * @property int|null $difference
  * @property string|null $closing_note
+ * @property array{opening?: array<int, int>, closing?: array<int, int>}|null $count_details
  * @property int $version
  * @property-read CashRegister $register
  * @property-read User $opener
@@ -53,6 +54,7 @@ class CashSession extends Model
             'opened_at' => 'datetime',
             'closed_at' => 'datetime',
             'version' => 'integer',
+            'count_details' => 'array',
         ];
     }
 

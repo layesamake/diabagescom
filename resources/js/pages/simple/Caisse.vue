@@ -1,13 +1,16 @@
 <script setup lang="ts">
 /**
- * Écran Caisse du mode simple : ouverture, synthèse et fermeture. Les grands
- * montants sont saisis directement et tout écart exige une justification.
+ * Écran Caisse du mode simple : ouverture, synthèse et fermeture. L'argent du
+ * tiroir se compte billet par billet (maquette 06b) et tout écart exige une
+ * justification.
  */
 import { Head, useForm } from '@inertiajs/vue3';
 import { Wallet } from '@lucide/vue';
 import { computed } from 'vue';
 import CarteMontant from '@/components/simple/CarteMontant.vue';
+import ComptageBillets from '@/components/simple/ComptageBillets.vue';
 import EnTeteEcran from '@/components/simple/EnTeteEcran.vue';
+import { emptyCount, isEmpty, total } from '@/lib/cashCount';
 import { formatFranc } from '@/lib/money';
 
 type SessionData = {
@@ -41,17 +44,29 @@ type Props = {
 };
 
 const props = defineProps<Props>();
-const openForm = useForm({ opening_amount: 0 });
-const closeForm = useForm({
-    counted_amount: props.session?.drawer ?? 0,
-    note: '',
-});
+// Le serveur recalcule le total à partir du comptage : l'écran n'envoie que les billets.
+const openForm = useForm({ count: emptyCount() });
+const closeForm = useForm({ count: emptyCount(), note: '' });
+const totalOuverture = computed(() => total(openForm.count));
+const totalCompte = computed(() => total(closeForm.count));
 const ecartDeCaisse = computed(() =>
-    props.session ? closeForm.counted_amount - props.session.drawer : 0,
+    props.session ? totalCompte.value - props.session.drawer : 0,
 );
 const fermetureValide = computed(
-    () => ecartDeCaisse.value === 0 || closeForm.note.trim().length >= 3,
+    () =>
+        (!isEmpty(closeForm.count) || props.session?.drawer === 0) &&
+        (ecartDeCaisse.value === 0 || closeForm.note.trim().length >= 3),
 );
+
+/** Première erreur du serveur sur le comptage : « count » ou « count.1000 ». */
+function erreurComptage(
+    erreurs: Record<string, string | undefined>,
+): string | undefined {
+    return (
+        erreurs.count ??
+        Object.entries(erreurs).find(([cle]) => cle.startsWith('count.'))?.[1]
+    );
+}
 
 function ouvrir(): void {
     if (props.register) {
@@ -108,22 +123,32 @@ function fermer(): void {
             </p>
 
             <form v-if="can.open" class="grid gap-3" @submit.prevent="ouvrir">
-                <label for="opening-amount" class="text-[17px] font-semibold">
-                    Fond de caisse
-                </label>
-                <input
-                    id="opening-amount"
-                    v-model.number="openForm.opening_amount"
-                    type="number"
-                    min="0"
-                    inputmode="numeric"
-                    class="h-16 rounded-[20px] border px-4 text-center text-[26px] font-extrabold tabular-nums"
-                />
+                <h2 class="text-[22px] font-extrabold">
+                    Comptez l’argent du tiroir
+                </h2>
                 <p
-                    v-if="openForm.errors.opening_amount"
+                    class="text-[17px] font-semibold"
+                    :style="{ color: 'var(--s-texte-doux)' }"
+                >
+                    Touchez + pour chaque billet
+                </p>
+                <ComptageBillets v-model="openForm.count" />
+                <div class="flex items-baseline justify-between gap-3">
+                    <span
+                        class="text-[17px] font-semibold"
+                        :style="{ color: 'var(--s-texte-doux)' }"
+                        >Dans le tiroir</span
+                    >
+                    <strong class="text-[32px] font-extrabold tabular-nums">{{
+                        formatFranc(totalOuverture)
+                    }}</strong>
+                </div>
+                <p
+                    v-if="erreurComptage(openForm.errors)"
+                    role="alert"
                     class="font-bold text-red-700"
                 >
-                    {{ openForm.errors.opening_amount }}
+                    {{ erreurComptage(openForm.errors) }}
                 </p>
                 <button
                     type="submit"
@@ -134,7 +159,7 @@ function fermer(): void {
                     }"
                     :disabled="openForm.processing"
                 >
-                    Ouvrir avec {{ formatFranc(openForm.opening_amount) }}
+                    Ouvrir avec {{ formatFranc(totalOuverture) }}
                 </button>
             </form>
         </template>
@@ -174,17 +199,20 @@ function fermer(): void {
             </div>
 
             <form v-if="can.close" class="grid gap-3" @submit.prevent="fermer">
-                <label for="counted-amount" class="text-[17px] font-semibold">
-                    Montant compté
-                </label>
-                <input
-                    id="counted-amount"
-                    v-model.number="closeForm.counted_amount"
-                    type="number"
-                    min="0"
-                    inputmode="numeric"
-                    class="h-16 rounded-[20px] border px-4 text-center text-[26px] font-extrabold tabular-nums"
-                />
+                <h2 class="text-[22px] font-extrabold">
+                    Comptez l’argent du tiroir
+                </h2>
+                <ComptageBillets v-model="closeForm.count" />
+                <div class="flex items-baseline justify-between gap-3">
+                    <span
+                        class="text-[17px] font-semibold"
+                        :style="{ color: 'var(--s-texte-doux)' }"
+                        >Compté</span
+                    >
+                    <strong class="text-[32px] font-extrabold tabular-nums">{{
+                        formatFranc(totalCompte)
+                    }}</strong>
+                </div>
 
                 <div
                     v-if="ecartDeCaisse !== 0"
@@ -212,12 +240,15 @@ function fermer(): void {
 
                 <p
                     v-if="
-                        closeForm.errors.counted_amount || closeForm.errors.note
+                        erreurComptage(closeForm.errors) ||
+                        closeForm.errors.note
                     "
+                    role="alert"
                     class="font-bold text-red-700"
                 >
                     {{
-                        closeForm.errors.counted_amount ?? closeForm.errors.note
+                        erreurComptage(closeForm.errors) ??
+                        closeForm.errors.note
                     }}
                 </p>
                 <button

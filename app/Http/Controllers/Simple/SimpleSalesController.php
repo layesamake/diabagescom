@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Simple;
 
+use App\Domain\Cash\CashCount;
 use App\Domain\Cash\CashService;
 use App\Domain\Inventory\StockAccess;
 use App\Domain\Sales\FrequentProducts;
@@ -163,12 +164,16 @@ class SimpleSalesController extends Controller
     {
         Gate::authorize('cash.open_close');
         $data = $request->validate([
-            'opening_amount' => ['required', 'integer', 'min:0', 'max:999999999999'],
-        ], attributes: ['opening_amount' => 'fond de caisse']);
+            'opening_amount' => ['required_without:count', 'integer', 'min:0', 'max:999999999999'],
+            ...CashCount::rules('count'),
+        ], attributes: ['opening_amount' => 'fond de caisse', 'count' => 'comptage']);
+
+        // Billets comptés : le total est recalculé ici, jamais repris d'un montant envoyé par l'écran.
+        $count = isset($data['count']) ? CashCount::normalize($data['count']) : null;
 
         /** @var User $user */
         $user = $request->user();
-        $cash->open($register, (int) $data['opening_amount'], $user);
+        $cash->open($register, $count !== null ? CashCount::total($count) : (int) $data['opening_amount'], $user, $count);
 
         return to_route('simple.cash');
     }
@@ -185,11 +190,14 @@ class SimpleSalesController extends Controller
         );
 
         $data = $request->validate([
-            'counted_amount' => ['required', 'integer', 'min:0', 'max:999999999999'],
+            'counted_amount' => ['required_without:count', 'integer', 'min:0', 'max:999999999999'],
             'note' => ['nullable', 'string', 'max:500'],
-        ], attributes: ['counted_amount' => 'montant compté']);
+            ...CashCount::rules('count'),
+        ], attributes: ['counted_amount' => 'montant compté', 'count' => 'comptage']);
 
-        $cash->close($session, (int) $data['counted_amount'], $data['note'] ?? null, $user);
+        $count = isset($data['count']) ? CashCount::normalize($data['count']) : null;
+
+        $cash->close($session, $count !== null ? CashCount::total($count) : (int) $data['counted_amount'], $data['note'] ?? null, $user, $count);
 
         return to_route('simple.cash');
     }
