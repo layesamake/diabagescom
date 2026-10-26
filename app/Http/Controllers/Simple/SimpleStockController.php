@@ -6,6 +6,7 @@ use App\Domain\Inventory\AdjustmentService;
 use App\Domain\Inventory\Quantity;
 use App\Domain\Inventory\StockAccess;
 use App\Domain\Tenancy\TenantContext;
+use App\Http\Controllers\Catalog\CatalogImages;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
@@ -43,7 +44,7 @@ class SimpleStockController extends Controller
         abort_unless($warehouses->contains('id', $warehouseId), 403);
 
         $products = Product::query()
-            ->select('products.id', 'products.name', 'products.sku', 'products.unit_id')
+            ->select('products.id', 'products.name', 'products.sku', 'products.unit_id', 'products.image_path', 'products.version')
             ->selectRaw('COALESCE(b.quantity_on_hand, 0) AS quantity_on_hand, s.reorder_point')
             ->leftJoin('inventory_balances as b', fn ($join) => $join->on('b.product_id', '=', 'products.id')->where('b.warehouse_id', '=', $warehouseId))
             ->leftJoin('product_warehouse_settings as s', fn ($join) => $join->on('s.product_id', '=', 'products.id')->where('s.warehouse_id', '=', $warehouseId))
@@ -62,6 +63,8 @@ class SimpleStockController extends Controller
                     'id' => $product->id,
                     'name' => $product->name,
                     'sku' => $product->sku,
+                    // Vraie photo de l'article (adresse signée, valable 30 minutes) ; null s'il n'en a pas.
+                    'image_url' => CatalogImages::url('products.image', $product->image_path, ['product' => $product->id], $product->version),
                     'unit' => $product->unit->code,
                     'quantity' => $quantity->value,
                     'quantity_display' => $quantity->format(),
