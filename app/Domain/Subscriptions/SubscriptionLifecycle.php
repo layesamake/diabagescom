@@ -286,14 +286,17 @@ final class SubscriptionLifecycle
             $locked->save();
             $locked->load('plan');
 
+            // Resolve tenant once to avoid race conditions
+            $tenant = $this->tenantOf($locked);
+
             $this->audit->record($action, $locked,
                 before: $before,
                 after: $this->snapshot($locked),
                 metadata: ['reason' => $reason, 'via' => 'platform_console'],
                 actor: $actor,
-                tenant: $this->tenantOf($locked));
+                tenant: $tenant);
 
-            $this->access->forget($this->tenantOf($locked));
+            $this->access->forget($tenant);
 
             return $locked;
         });
