@@ -306,9 +306,9 @@ class TenantController extends Controller
         $data = $request->validate([
             'action' => ['required', Rule::in(['change_plan', 'extend_trial', 'activate', 'suspend', 'cancel_now', 'cancel_at_period_end', 'reactivate'])],
             'reason' => ['required', 'string', 'min:5', 'max:500'],
-            'plan_id' => ['required_if:action,change_plan', 'nullable', 'uuid', Rule::exists('plans', 'id')],
+            'plan_id' => ['required_if:action,change_plan', 'uuid', Rule::exists('plans', 'id')],
             'days' => ['required_if:action,extend_trial', 'integer', 'min:1', 'max:60'],
-            'billing_cycle' => ['required_if:action,activate', 'nullable', Rule::in(['monthly', 'yearly'])],
+            'billing_cycle' => ['required_if:action,activate', Rule::in(['monthly', 'yearly'])],
         ], attributes: [
             'reason' => __('platform.fields.reason'),
             'plan_id' => __('platform.fields.plan'),

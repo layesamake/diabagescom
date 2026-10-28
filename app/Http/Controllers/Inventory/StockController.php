@@ -133,7 +133,7 @@ class StockController extends Controller
             'mode' => ['required', Rule::in(['initial', 'adjustment'])],
             'warehouse_id' => ['required', 'uuid'],
             'idempotency_key' => ['required', 'uuid'],
-            'reason' => ['nullable', 'string', 'max:500', 'required_if:mode,adjustment'],
+            'reason' => ['string', 'max:500', 'required_if:mode,adjustment'],
             'lines' => ['required', 'array', 'min:1', 'max:200'],
             'lines.*.product_id' => ['required', 'uuid'],
             'lines.*.quantity' => ['required', 'string', 'max:20'],
