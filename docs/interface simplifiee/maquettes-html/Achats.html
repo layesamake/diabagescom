@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Achats</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0A3F37}a:hover{color:#062a25}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 900px; position: relative; overflow: hidden; background: #F1F4F3; color: #10201C; font-family: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column;">
+
+  <div style="background: #0A3F37; color: #FFFFFF; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+    <sc-if value="{{ isListe }}" hint-placeholder-val="{{ true }}">
+      <a href="Accueil.html" aria-label="Retour à l'accueil" style="width: 48px; height: 48px; border-radius: 24px; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+    </sc-if>
+    <sc-if value="{{ notListe }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ toList }}" aria-label="Retour aux achats" style="width: 48px; height: 48px; border-radius: 24px; border: none; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+      </button>
+    </sc-if>
+    <span style="flex-grow: 1; font-size: 26px; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7h12v10H2z"></path><path d="M14 10h4l4 4v3h-8"></path><circle cx="6" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>
+      {{ title }}
+    </span>
+    <button aria-label="Écouter l'aide" style="width: 48px; height: 48px; border-radius: 24px; border: 2px solid #5BE0B0; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>
+    </button>
+  </div>
+
+  <!-- Liste des commandes -->
+  <sc-if value="{{ isListe }}" hint-placeholder-val="{{ true }}">
+    <div style="flex-grow: 1; padding: 16px 16px 110px; display: flex; flex-direction: column; gap: 10px;">
+      <sc-for list="{{ orders }}" as="o" hint-placeholder-count="3">
+        <button onClick="{{ o.open }}" style="background: #FFFFFF; border: 2px solid {{o.ring}}; border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 10px; text-align: left; color: #10201C;">
+          <span style="display: flex; align-items: center; gap: 12px; width: 100%;">
+            <span style="width: 52px; height: 52px; border-radius: 26px; background: {{o.bg}}; color: #FFFFFF; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">{{ o.initials }}</span>
+            <span style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;">
+              <span style="font-size: 18px; font-weight: 700;">{{ o.supplier }}</span>
+              <span style="font-size: 15px; color: #4A5A56;">{{ o.summary }}</span>
+            </span>
+          </span>
+          <span style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <span style="font-size: 22px; font-weight: 800;">{{ o.amount }}</span>
+            <span style="display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border-radius: 999px; background: {{o.chipBg}}; color: {{o.chipFg}}; font-size: 16px; font-weight: 800;">
+              <sc-if value="{{ o.enRoute }}" hint-placeholder-val="{{ true }}">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7h12v10H2z"></path><path d="M14 10h4l4 4v3h-8"></path><circle cx="6" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>
+              </sc-if>
+              <sc-if value="{{ o.recue }}" hint-placeholder-val="{{ false }}">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+              </sc-if>
+              {{ o.status }}
+            </span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+    <button style="position: absolute; left: 16px; right: 16px; bottom: 20px; height: 72px; border-radius: 22px; border: none; background: #2563C9; color: #FFFFFF; font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 12px;">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      Commander
+    </button>
+  </sc-if>
+
+  <!-- Recevoir la marchandise -->
+  <sc-if value="{{ isRecevoir }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; display: flex; flex-direction: column;">
+      <div style="padding: 16px 16px 4px; display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 20px; font-weight: 800;">{{ cur.supplier }} est arrivé</span>
+        <span style="font-size: 16px; color: #4A5A56;">Comptez ce que vous avez reçu</span>
+      </div>
+      <div style="padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;">
+        <sc-for list="{{ lines }}" as="l" hint-placeholder-count="2">
+          <div style="background: #FFFFFF; border: 3px solid {{l.ring}}; border-radius: 20px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="width: 52px; height: 52px; border-radius: 14px; background: {{l.tint}}; color: {{l.ink}}; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">photo</span>
+              <span style="flex-grow: 1; display: flex; flex-direction: column;">
+                <span style="font-size: 18px; font-weight: 700;">{{ l.name }}</span>
+                <span style="font-size: 15px; color: #4A5A56;">commandé : {{ l.qty }}</span>
+              </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <button onClick="{{ l.sub }}" aria-label="Un de moins" style="width: 56px; height: 52px; border-radius: 14px; border: none; background: #FCE3DE; color: #A0261E; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg>
+              </button>
+              <span style="flex-grow: 1; text-align: center; font-size: 30px; font-weight: 800;">{{ l.got }}</span>
+              <button onClick="{{ l.add }}" aria-label="Un de plus" style="width: 56px; height: 52px; border-radius: 14px; border: none; background: #E3F6F0; color: #0A3F37; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+              </button>
+            </div>
+            <sc-if value="{{ l.missing }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 16px; font-weight: 800; color: #7A4B00; background: #FFF1D6; border-radius: 10px; padding: 6px 10px;">Il manque {{ l.missingN }}</span>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top: auto; background: #FFFFFF; border-top: 1px solid #D5DEDB; padding: 14px 16px 20px;">
+        <button onClick="{{ confirm }}" style="width: 100%; height: 72px; border-radius: 20px; border: none; background: #34B89C; color: #04201A; font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+          Ranger dans le stock
+        </button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Fait -->
+  <sc-if value="{{ isOk }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; background: #0A3F37; color: #FFFFFF; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center;">
+      <span style="width: 140px; height: 140px; border-radius: 70px; background: #5BE0B0; color: #04201A; display: flex; align-items: center; justify-content: center;">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l9-5 9 5-9 5-9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg>
+      </span>
+      <span style="font-size: 28px; font-weight: 800;">Stock mis à jour</span>
+      <span style="font-size: 19px; color: #BFE6DC;">{{ okDetail }}</span>
+      <button onClick="{{ toList }}" style="width: 100%; height: 72px; border-radius: 20px; border: none; background: #34B89C; color: #04201A; font-size: 22px; font-weight: 800; margin-top: 16px;">Terminer</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: 'liste', cur: '', got: {}, done: {} };
+  }
+  renderVals() {
+    var self = this;
+    var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' F'; };
+    var O = [
+      { id: 'c1', supplier: 'Ets Ndao', initials: 'EN', bg: '#B5602C', amount: 170000, recue: false,
+        lines: [{ id: 'al', name: 'Aliment 50 kg', qty: 10, tint: '#E7EEF9', ink: '#173E80' }, { id: 'fo', name: 'Fourrage', qty: 20, tint: '#E3F6F0', ink: '#0A3F37' }] },
+      { id: 'c2', supplier: 'Atelier Gueye', initials: 'AG', bg: '#2F5E9E', amount: 300000, recue: false,
+        lines: [{ id: 'cc', name: 'Case caille 2 niveaux', qty: 5, tint: '#E7EEF9', ink: '#173E80' }] },
+      { id: 'c3', supplier: 'Ets Ndao', initials: 'EN', bg: '#B5602C', amount: 85000, recue: true,
+        lines: [{ id: 'al', name: 'Aliment 50 kg', qty: 5, tint: '#E7EEF9', ink: '#173E80' }] }
+    ];
+    var done = this.state.done;
+    var orders = O.map(function (o) {
+      var rec = o.recue || !!done[o.id];
+      var n = o.lines.reduce(function (s, l) { return s + l.qty; }, 0);
+      return {
+        supplier: o.supplier, initials: o.initials, bg: o.bg, amount: fmt(o.amount),
+        summary: o.lines.length + (o.lines.length > 1 ? ' articles · ' : ' article · ') + n + ' pièces',
+        enRoute: !rec, recue: rec,
+        status: rec ? 'Reçue' : 'En route',
+        chipBg: rec ? '#E3F6F0' : '#FFF1D6', chipFg: rec ? '#0A3F37' : '#6B4300',
+        ring: rec ? '#FFFFFF' : '#F2A93B',
+        open: function () { if (!rec) self.setState({ view: 'recevoir', cur: o.id, got: {} }); }
+      };
+    });
+    var cur = O.filter(function (o) { return o.id === self.state.cur; })[0] || O[0];
+    var got = this.state.got;
+    var setGot = function (id, v) { var n = Object.assign({}, self.state.got); n[id] = Math.max(0, v); self.setState({ got: n }); };
+    var totalGot = 0;
+    var lines = cur.lines.map(function (l) {
+      var g = got[l.id] === undefined ? l.qty : got[l.id];
+      totalGot += g;
+      return Object.assign({}, l, {
+        got: g, missing: g < l.qty, missingN: l.qty - g,
+        ring: g < l.qty ? '#F2A93B' : '#1E9C80',
+        add: function () { setGot(l.id, g + 1); }, sub: function () { setGot(l.id, g - 1); }
+      });
+    });
+    var view = this.state.view;
+    return {
+      orders: orders, lines: lines, cur: cur,
+      isListe: view === 'liste', notListe: view !== 'liste', isRecevoir: view === 'recevoir', isOk: view === 'ok',
+      title: view === 'liste' ? 'Achats' : 'Recevoir',
+      okDetail: totalGot + ' pièces ajoutées',
+      toList: function () { self.setState({ view: 'liste' }); },
+      confirm: function () { var d = Object.assign({}, self.state.done); d[cur.id] = true; self.setState({ view: 'ok', done: d }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

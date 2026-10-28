@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Stock en couleurs</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0A3F37}a:hover{color:#062a25}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 900px; position: relative; overflow: hidden; background: #F1F4F3; color: #10201C; font-family: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column;">
+
+  <div style="background: #0A3F37; color: #FFFFFF; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="Accueil.html" aria-label="Retour à l'accueil" style="width: 48px; height: 48px; border-radius: 24px; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+      <span style="flex-grow: 1; font-size: 26px; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l9-5 9 5-9 5-9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg>
+        Stock
+      </span>
+      <button aria-label="Écouter l'aide" style="width: 48px; height: 48px; border-radius: 24px; border: 2px solid #5BE0B0; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>
+      </button>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+      <sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+        <button onClick="{{ f.pick }}" style="height: 72px; border-radius: 18px; border: 3px solid {{f.ring}}; background: {{f.bg}}; color: {{f.fg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;">
+          <span style="font-size: 28px; font-weight: 800; line-height: 1.1;">{{ f.count }}</span>
+          <span style="font-size: 15px; font-weight: 700;">{{ f.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+    <sc-for list="{{ items }}" as="it" hint-placeholder-count="6">
+      <div style="background: #FFFFFF; border-radius: 20px; padding: 10px 12px; display: flex; align-items: center; gap: 12px;">
+        <span style="width: 56px; height: 56px; border-radius: 14px; background: {{it.tint}}; color: {{it.ink}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; font-weight: 700;">photo</span>
+        <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ it.name }}</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="flex-grow: 1; height: 10px; border-radius: 5px; background: #E5EBE9; overflow: hidden; display: flex;">
+              <span style="width: {{it.pct}}; height: 10px; border-radius: 5px; background: {{it.color}};"></span>
+            </span>
+            <span style="font-size: 22px; font-weight: 800; color: {{it.textColor}}; min-width: 42px; text-align: right;">{{ it.q }}</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <button onClick="{{ it.add }}" aria-label="Arrivage : ajouter" style="width: 48px; height: 40px; border-radius: 12px; border: none; background: #E3F6F0; color: #0A3F37; display: flex; align-items: center; justify-content: center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          </button>
+          <button onClick="{{ it.askSub }}" aria-label="Retirer du stock" style="width: 48px; height: 40px; border-radius: 12px; border: none; background: #FCE3DE; color: #A0261E; display: flex; align-items: center; justify-content: center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg>
+          </button>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- Pourquoi on retire ? -->
+  <sc-if value="{{ showReason }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: rgba(6, 20, 17, 0.6); display: flex; flex-direction: column; justify-content: flex-end;">
+      <div style="background: #FFFFFF; border-radius: 28px 28px 0 0; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <span style="font-size: 22px; font-weight: 800;">Pourquoi ?</span>
+          <span style="font-size: 17px; font-weight: 600; color: #4A5A56; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">− 1 {{ reasonItem }}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+          <button onClick="{{ doSub }}" style="height: 120px; border-radius: 20px; border: none; background: #FCE3DE; color: #8A2A1F; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 800;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"></path><path d="M12 3l-2 6 4 3-2 9"></path></svg>
+            Abîmé
+          </button>
+          <button onClick="{{ doSub }}" style="height: 120px; border-radius: 20px; border: none; background: #E5EBE9; color: #10201C; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 800;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9 9l6 6M15 9l-6 6"></path></svg>
+            Mort
+          </button>
+          <button onClick="{{ doSub }}" style="height: 120px; border-radius: 20px; border: none; background: #FFF1D6; color: #6B4300; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 800;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path><path d="M9.5 9a1.5 1.5 0 1 1 2 1.4c-.5.2-.5.6-.5 1.1"></path><path d="M11 14h.01"></path></svg>
+            Perdu
+          </button>
+        </div>
+        <button onClick="{{ cancel }}" style="height: 52px; border-radius: 16px; border: 2px solid #D5DEDB; background: #FFFFFF; color: #10201C; font-size: 18px; font-weight: 700;">Retour</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      filter: 'tout', reason: '',
+      q: { cage: 2, lapin: 12, oeufs: 3, aliment: 1, fourrage: 25, poulet: 6 }
+    };
+  }
+  renderVals() {
+    var self = this;
+    var P = [
+      { id: 'cage', name: 'Case caille 2 niveaux', seuil: 3, tint: '#E7EEF9', ink: '#173E80' },
+      { id: 'lapin', name: 'Lapin', seuil: 5, tint: '#F6E7D3', ink: '#6B4300' },
+      { id: 'oeufs', name: 'Œufs (plateau)', seuil: 10, tint: '#FFF1D6', ink: '#6B4300' },
+      { id: 'aliment', name: 'Aliment 50 kg', seuil: 4, tint: '#E7EEF9', ink: '#173E80' },
+      { id: 'fourrage', name: 'Fourrage', seuil: 10, tint: '#E3F6F0', ink: '#0A3F37' },
+      { id: 'poulet', name: 'Poulet', seuil: 5, tint: '#FCE3DE', ink: '#8A2A1F' }
+    ];
+    var q = this.state.q;
+    var setQ = function (id, d) {
+      var next = Object.assign({}, self.state.q);
+      next[id] = Math.max(0, (next[id] || 0) + d);
+      self.setState({ q: next });
+    };
+    var level = function (p) {
+      var v = q[p.id] || 0;
+      if (v <= p.seuil / 2) return 'rouge';
+      if (v <= p.seuil) return 'orange';
+      return 'vert';
+    };
+    var COL = { vert: '#1E9C80', orange: '#E0912A', rouge: '#C8372D' };
+    var TXT = { vert: '#0A3F37', orange: '#7A4B00', rouge: '#A0261E' };
+    var counts = { vert: 0, orange: 0, rouge: 0 };
+    P.forEach(function (p) { counts[level(p)]++; });
+    var filter = this.state.filter;
+    var items = P.filter(function (p) { return filter === 'tout' || level(p) === filter; }).map(function (p) {
+      var v = q[p.id] || 0, l = level(p);
+      return {
+        name: p.name, q: v, tint: p.tint, ink: p.ink,
+        color: COL[l], textColor: TXT[l],
+        pct: Math.max(6, Math.min(100, Math.round(v / (p.seuil * 3) * 100))) + '%',
+        add: function () { setQ(p.id, 1); },
+        askSub: function () { self.setState({ reason: p.id }); }
+      };
+    });
+    var mk = function (key, label, bg, fg) {
+      var on = filter === key;
+      return { label: label, count: counts[key], bg: bg, fg: fg, ring: on ? '#FFFFFF' : bg,
+        pick: function () { self.setState({ filter: on ? 'tout' : key }); } };
+    };
+    var reasonP = P.filter(function (p) { return p.id === self.state.reason; })[0];
+    return {
+      filters: [
+        mk('vert', 'Assez', '#1E9C80', '#FFFFFF'),
+        mk('orange', 'Bientôt fini', '#F2A93B', '#2A1A00'),
+        mk('rouge', 'Presque fini', '#C8372D', '#FFFFFF')
+      ],
+      items: items,
+      showReason: !!reasonP,
+      reasonItem: reasonP ? reasonP.name : '',
+      doSub: function () { if (reasonP) setQ(reasonP.id, -1); self.setState({ reason: '' }); },
+      cancel: function () { self.setState({ reason: '' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

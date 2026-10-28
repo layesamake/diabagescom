@@ -55,3 +55,7 @@ yarn-error.log
 /codes-secrets/
 client_secret*.json
 *.googleusercontent.com.json
+
+# Sorties Playwright (captures et traces de test)
+/test-results/
+/playwright-report/

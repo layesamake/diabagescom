@@ -1,0 +1,32 @@
+/* Diaba Gescom — mode simple : variables de design (valeurs exactes des maquettes) */
+:root {
+  --fond: #F1F4F3;          /* fond des écrans */
+  --surface: #FFFFFF;       /* cartes, listes, panneaux */
+  --texte: #10201C;         /* texte principal */
+  --texte-doux: #4A5A56;    /* texte secondaire */
+  --bordure: #D5DEDB;
+  --marque: #0A3F37;        /* en-têtes, menu, carte « Aujourd'hui » — texte blanc */
+  --marque-2: #0F5247;      /* boutons dans l'en-tête */
+  --marque-clair: #BFE6DC;  /* texte secondaire sur fond marque */
+  --accent: #5BE0B0;        /* succès, coches sur fond marque */
+  --vert: #34B89C;          /* Vendre, Valider — texte #04201A */
+  --vert-texte: #04201A;
+  --vert-fonce: #1E9C80;    /* étapes faites, jauge « assez » */
+  --vert-clair: #E3F6F0;    /* bouton +, fonds d'icônes — texte #0A3F37 */
+  --orange: #F2A93B;        /* Caisse, crédit, « bientôt fini » — texte #2A1A00 */
+  --orange-texte: #2A1A00;
+  --orange-clair: #FFF1D6;  /* texte #6B4300 */
+  --bleu: #2563C9;          /* Stock, téléphone, Commander — texte blanc */
+  --bleu-clair: #DCE8FB;    /* texte #173E80 */
+  --violet: #6D3FB8;        /* Clients — texte blanc */
+  --violet-clair: #EDE4FA;  /* texte #3F2270 */
+  --rouge: #C8372D;         /* alertes, retirer, enregistrer — texte blanc */
+  --rouge-clair: #FCE3DE;   /* bouton −, texte #A0261E */
+
+  --police: 'Atkinson Hyperlegible Next', system-ui, sans-serif; /* 400 600 700 800 */
+  --t-etiquette: 14px; --t-texte: 17px; --t-bouton: 20px; --t-titre: 26px; --t-montant: 32px; --t-montant-xl: 46px;
+  --r-champ: 16px; --r-carte: 20px; --r-bouton: 20px;
+  --esp-1: 8px; --esp-2: 12px; --esp-3: 16px;
+  --tactile-min: 48px; --bouton-principal: 64px;
+  --menu-ordinateur: 248px; --panier-ordinateur: 400px;
+}

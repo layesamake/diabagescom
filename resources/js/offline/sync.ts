@@ -105,21 +105,71 @@ export const syncState = reactive({
     ready: false,
 });
 
-let db: IDBDatabase | null = null;
-let scope: Scope | null = null;
-let deviceKey: string | null = null;
 let timer: ReturnType<typeof setInterval> | undefined;
 let listening = false;
 const stock = new Map<string, string>();
 
 /**
  * Contexte de synchronisation (audit 2026-10-15, « Contamination IndexedDB
- * lors d'un changement de tenant ») : `syncNow`/`pushQueue`/`pullCatalog`
- * capturent toujours leur contexte au démarrage et n'écrivent que sur
- * `context.db`, jamais sur les variables `db`/`scope`/`deviceKey` ci-dessus
- * qui peuvent déjà pointer vers une autre entreprise à la fin de l'appel.
+ * lors d'un changement de tenant ») : il n'existe aucune variable mutable
+ * pour la base, le compte ou l'appareil. Chaque lecture passe par le contexte
+ * actif, et chaque push/pull écrit uniquement sur le contexte capturé.
  */
 const contextRegistry = new SyncContextRegistry<IDBDatabase>();
+
+/** Base active au moment de l'appel. */
+function activeDb(): IDBDatabase | null {
+    return contextRegistry.current()?.db ?? null;
+}
+
+/**
+ * Bases à supprimer dont la purge a échoué (base bloquée par un autre
+ * onglet) : on les reprend à la prochaine ouverture au lieu de les oublier.
+ */
+const PENDING_PURGE_KEY = 'diaba:pending-purge';
+
+function pendingPurges(): string[] {
+    try {
+        return JSON.parse(localStorage.getItem(PENDING_PURGE_KEY) ?? '[]');
+    } catch {
+        return [];
+    }
+}
+
+function rememberPendingPurge(name: string): void {
+    try {
+        localStorage.setItem(
+            PENDING_PURGE_KEY,
+            JSON.stringify([...new Set([...pendingPurges(), name])]),
+        );
+    } catch {
+        // Stockage indisponible : la base reste à purger manuellement.
+    }
+}
+
+async function purgePendingDatabases(keep: string): Promise<void> {
+    const remaining: string[] = [];
+
+    for (const name of pendingPurges()) {
+        if (name === keep) {
+            remaining.push(name);
+
+            continue;
+        }
+
+        try {
+            await deleteDatabase(name);
+        } catch {
+            remaining.push(name);
+        }
+    }
+
+    try {
+        localStorage.setItem(PENDING_PURGE_KEY, JSON.stringify(remaining));
+    } catch {
+        // Voir rememberPendingPurge.
+    }
+}
 
 function isCurrentContext(context: SyncContext<IDBDatabase>): boolean {
     return contextRegistry.isCurrent(context);
@@ -145,7 +195,10 @@ async function api(
     } = {},
     deviceKeyOverride?: string | null,
 ): Promise<Response> {
-    const key = deviceKeyOverride !== undefined ? deviceKeyOverride : deviceKey;
+    const key =
+        deviceKeyOverride !== undefined
+            ? deviceKeyOverride
+            : (contextRegistry.current()?.deviceKey ?? null);
 
     return fetch(url, {
         credentials: 'same-origin',
@@ -162,6 +215,8 @@ async function api(
 }
 
 async function refreshCounts(): Promise<void> {
+    const db = activeDb();
+
     if (!db) {
         return;
     }
@@ -184,10 +239,17 @@ export async function initOffline(next: Scope): Promise<void> {
         return;
     }
 
-    const sameBase = isSameBase(scope, next);
-    scope = next;
+    const current = contextRegistry.current();
+    let context: SyncContext<IDBDatabase>;
 
-    if (!sameBase) {
+    if (current && isSameBase(current.scope, next)) {
+        // Même compte et même entreprise : la base reste, seul le dépôt change.
+        context = contextRegistry.start(
+            current.db,
+            next,
+            current.deviceKey,
+        ).context;
+    } else {
         const nextDb = await openDatabase(
             databaseName(next.userId, next.tenantId),
         );
@@ -213,21 +275,22 @@ export async function initOffline(next: Scope): Promise<void> {
         // une opération de push/pull encore en cours pour l'ancienne entreprise
         // se requeue toute seule sur SA base (jamais sur `nextDb`) avant qu'on
         // ne ferme sa connexion ci-dessous.
-        const { previous } = contextRegistry.start(nextDb, next, nextDeviceKey);
-        db = nextDb;
-        deviceKey = nextDeviceKey;
+        const started = contextRegistry.start(nextDb, next, nextDeviceKey);
+        context = started.context;
 
-        if (previous) {
-            await previous.inFlight.catch(() => undefined);
-            previous.db.close();
+        if (started.previous) {
+            await started.previous.inFlight.catch(() => undefined);
+            started.previous.db.close();
         }
+
+        await purgePendingDatabases(databaseName(next.userId, next.tenantId));
     }
 
     syncState.lastSync = next.warehouseId
-        ? ((await getMeta<string>(db!, `synced_at:${next.warehouseId}`)) ??
+        ? ((await getMeta<string>(context.db, `synced_at:${next.warehouseId}`)) ??
           null)
         : null;
-    await loadStock();
+    await loadStock(context);
     await refreshCounts();
     syncState.ready = true;
 
@@ -244,14 +307,14 @@ export async function initOffline(next: Scope): Promise<void> {
     void syncNow();
 }
 
-async function loadStock(): Promise<void> {
+async function loadStock(context: SyncContext<IDBDatabase>): Promise<void> {
     stock.clear();
 
-    if (db && scope?.warehouseId) {
+    if (context.scope.warehouseId) {
         const saved =
             (await getMeta<Record<string, string>>(
-                db,
-                `stock:${scope.warehouseId}`,
+                context.db,
+                `stock:${context.scope.warehouseId}`,
             )) ?? {};
         Object.entries(saved).forEach(([id, qty]) => stock.set(id, qty));
     }
@@ -578,7 +641,7 @@ async function pullCatalog(context: SyncContext<IDBDatabase>): Promise<void> {
     // devenu obsolète (changement de tenant pendant l'appel).
     if (isCurrentContext(context)) {
         syncState.lastSync = new Date().toISOString();
-        await loadStock();
+        await loadStock(context);
     }
 }
 
@@ -595,6 +658,8 @@ export async function searchProductsOffline(
     query: string,
     stockedOnly = false,
 ): Promise<PickedProduct[]> {
+    const db = activeDb();
+
     if (!db) {
         return [];
     }
@@ -618,6 +683,8 @@ export async function searchProductsOffline(
 export async function lookupOffline(
     code: string,
 ): Promise<PickedProduct | null> {
+    const db = activeDb();
+
     if (!db) {
         return null;
     }
@@ -635,6 +702,8 @@ export async function lookupOffline(
 export async function searchCustomersOffline(
     query: string,
 ): Promise<OfflineCustomer[]> {
+    const db = activeDb();
+
     if (!db) {
         return [];
     }
@@ -656,6 +725,8 @@ export async function enqueueSale(
     summary: LocalCommand['summary'],
     commandId?: string,
 ): Promise<LocalCommand> {
+    const db = activeDb();
+
     if (!db) {
         throw new Error('Offline storage unavailable');
     }
@@ -692,6 +763,8 @@ export async function enqueueSale(
 }
 
 export async function listCommands(): Promise<LocalCommand[]> {
+    const db = activeDb();
+
     if (!db) {
         return [];
     }
@@ -726,6 +799,8 @@ export function saleTotal(payload: SalePayload): number {
 }
 
 export async function discard(command: LocalCommand): Promise<void> {
+    const db = activeDb();
+
     if (!db) {
         return;
     }
@@ -738,6 +813,7 @@ export async function currentPrices(
     productIds: string[],
 ): Promise<Map<string, number>> {
     const prices = new Map<string, number>();
+    const db = activeDb();
 
     if (db) {
         (await getAll<OfflineProduct>(db, 'products'))
@@ -746,6 +822,61 @@ export async function currentPrices(
     }
 
     return prices;
+}
+
+/** Bases IndexedDB de ce compte, toutes entreprises confondues. */
+async function accountDatabaseNames(userId: string | number): Promise<string[]> {
+    if (typeof indexedDB.databases !== 'function') {
+        return [];
+    }
+
+    const prefix = `diaba:${userId}:`;
+
+    return (await indexedDB.databases())
+        .map((info) => info.name ?? '')
+        .filter((name) => name.startsWith(prefix));
+}
+
+/** Vrai si la base contient encore une vente non envoyée ou à traiter. */
+async function hasUnsentCommands(name: string): Promise<boolean> {
+    let handle: IDBDatabase | null = null;
+
+    try {
+        handle = await openDatabase(name);
+
+        return (await getAll<LocalCommand>(handle, 'commands')).some((c) =>
+            ['queued', 'sending', 'rejected', 'conflict', 'requires_review'].includes(c.status),
+        );
+    } catch {
+        // Illisible : on la conserve plutôt que de risquer une perte de vente.
+        return true;
+    } finally {
+        handle?.close();
+    }
+}
+
+/**
+ * Efface la base active et les autres entreprises du même compte, sauf celles
+ * qui contiennent encore des ventes non envoyées. Une base bloquée est
+ * reprogrammée pour purge à la prochaine ouverture.
+ */
+async function purgeAccountDatabases(
+    userId: string | number,
+    activeName: string,
+): Promise<void> {
+    const names = new Set([activeName, ...(await accountDatabaseNames(userId))]);
+
+    for (const name of names) {
+        if (name !== activeName && (await hasUnsentCommands(name))) {
+            continue;
+        }
+
+        try {
+            await deleteDatabase(name);
+        } catch {
+            rememberPendingPurge(name);
+        }
+    }
 }
 
 /**
@@ -760,16 +891,13 @@ export async function clearOfflineData(): Promise<void> {
 
     if (previous) {
         await previous.inFlight.catch(() => undefined);
+        previous.db.close();
+        await purgeAccountDatabases(
+            previous.scope.userId,
+            databaseName(previous.scope.userId, previous.scope.tenantId),
+        );
     }
 
-    if (scope) {
-        db?.close();
-        await deleteDatabase(databaseName(scope.userId, scope.tenantId));
-    }
-
-    db = null;
-    scope = null;
-    deviceKey = null;
     syncState.ready = false;
     syncState.pending = 0;
     syncState.attention = 0;

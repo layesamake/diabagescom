@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Messages audio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0A3F37}a:hover{color:#062a25}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 900px; position: relative; overflow: hidden; background: #F1F4F3; color: #10201C; font-family: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column;">
+
+  <!-- En-tête -->
+  <div style="background: #0A3F37; color: #FFFFFF; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="PremiersPas.html" aria-label="Retour aux premiers pas" style="width: 48px; height: 48px; border-radius: 24px; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+      <span style="flex-grow: 1; display: flex; flex-direction: column;">
+        <span style="font-size: 24px; font-weight: 800;">Messages audio</span>
+        <span style="font-size: 14px; color: #BFE6DC; display: flex; align-items: center; gap: 4px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+          Administrateur
+        </span>
+      </span>
+    </div>
+
+    <!-- Langue de la voix -->
+    <button onClick="{{ openPicker }}" style="height: 64px; border-radius: 16px; border: none; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; gap: 12px; padding: 0 14px; text-align: left;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>
+      <span style="flex-grow: 1; display: flex; flex-direction: column;">
+        <span style="font-size: 14px; color: #BFE6DC;">Langue de la voix</span>
+        <span style="font-size: 21px; font-weight: 800;">{{ langName }}</span>
+      </span>
+      <span style="font-size: 15px; font-weight: 800; background: #34B89C; color: #04201A; border-radius: 999px; padding: 6px 12px;">Changer</span>
+    </button>
+
+    <!-- Progression -->
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 700;">
+        <span>Enregistrés</span>
+        <span>{{ doneCount }} sur {{ totalCount }}</span>
+      </div>
+      <span style="height: 12px; border-radius: 6px; background: #2C6157; display: flex; overflow: hidden;">
+        <span style="width: {{donePct}}; height: 12px; border-radius: 6px; background: #5BE0B0;"></span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Écrans -->
+  <div style="display: flex; gap: 8px; padding: 12px 16px 4px; overflow-x: auto; flex-shrink: 0;">
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="5">
+      <button onClick="{{ g.pick }}" style="height: 44px; padding: 0 14px; border-radius: 999px; border: 2px solid {{g.border}}; background: {{g.bg}}; color: {{g.fg}}; font-size: 16px; font-weight: 700; white-space: nowrap; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+        {{ g.label }}
+        <span style="font-size: 13px; font-weight: 800; border-radius: 999px; padding: 2px 7px; background: {{g.badgeBg}}; color: {{g.badgeFg}};">{{ g.count }}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <!-- Phrases -->
+  <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 10px 16px 16px; display: flex; flex-direction: column; gap: 10px;">
+    <span style="flex-shrink: 0; font-size: 15px; color: #4A5A56; background: #FFFFFF; border-radius: 12px; padding: 10px 12px;">Dites chaque phrase en {{ langName }}, à votre façon. Dans l'application, le haut-parleur n'apparaît qu'à côté des phrases enregistrées.</span>
+    <sc-for list="{{ items }}" as="m" hint-placeholder-count="5">
+      <div style="flex-shrink: 0; background: {{m.cardBg}}; border: 2px solid {{m.ring}}; border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: flex-start; gap: 10px;">
+          <span style="width: 28px; height: 28px; border-radius: 14px; background: {{m.dotBg}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+            <sc-if value="{{ m.done }}" hint-placeholder-val="{{ true }}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+            </sc-if>
+          </span>
+          <span style="flex-grow: 1; font-size: 17px; font-weight: 600; line-height: 1.35;">« {{ m.text }} »</span>
+        </div>
+        <sc-if value="{{ m.recording }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="flex-grow: 1; display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 800; color: #A0261E;">
+              <span style="width: 14px; height: 14px; border-radius: 7px; background: #C8372D;" aria-hidden="true"></span>
+              J'écoute… parlez maintenant
+            </span>
+            <button onClick="{{ m.stop }}" style="height: 56px; padding: 0 18px; border-radius: 16px; border: none; background: #C8372D; color: #FFFFFF; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+              Fini
+            </button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ m.idle }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; gap: 8px;">
+            <button onClick="{{ m.rec }}" style="flex-grow: 1; height: 56px; border-radius: 16px; border: none; background: {{m.recBg}}; color: {{m.recFg}}; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg>
+              {{ m.recLabel }}
+            </button>
+            <sc-if value="{{ m.done }}" hint-placeholder-val="{{ true }}">
+              <button aria-label="Réécouter" style="width: 64px; height: 56px; border-radius: 16px; border: none; background: #E3F6F0; color: #0A3F37; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M7 4l13 8-13 8z"></path></svg>
+              </button>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="background: #FFFFFF; border-top: 1px solid #D5DEDB; padding: 12px 16px 18px; flex-shrink: 0;">
+    <a href="PremiersPas.html" style="text-decoration: none; height: 60px; border-radius: 18px; background: #34B89C; color: #04201A; font-size: 19px; font-weight: 800; display: flex; align-items: center; justify-content: center;">Terminer pour l'instant</a>
+  </div>
+
+  <!-- Choix de la langue -->
+  <sc-if value="{{ picking }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: rgba(6, 20, 17, 0.6); display: flex; flex-direction: column; justify-content: flex-end;">
+      <div style="background: #FFFFFF; border-radius: 28px 28px 0 0; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 12px;">
+        <span style="font-size: 22px; font-weight: 800;">Quelle langue pour la voix ?</span>
+        <span style="font-size: 15px; color: #4A5A56;">Une seule langue pour toute l'entreprise. Les textes à l'écran restent en français.</span>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+          <sc-for list="{{ options }}" as="o" hint-placeholder-count="8">
+            <button onClick="{{ o.pick }}" aria-pressed="{{o.pressed}}" style="height: 60px; border-radius: 16px; border: 3px solid {{o.ring}}; background: {{o.bg}}; color: {{o.fg}}; font-size: 18px; font-weight: 800;">{{ o.label }}</button>
+          </sc-for>
+        </div>
+        <button onClick="{{ closePicker }}" style="height: 52px; border-radius: 16px; border: 2px solid #D5DEDB; background: #FFFFFF; color: #10201C; font-size: 18px; font-weight: 700;">Fermer</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      lang: 'wo', group: 'accueil', recording: '', picking: false,
+      done: { wo: { a1: 1, a2: 1, v1: 1, n1: 1, n2: 1 } }
+    };
+  }
+  renderVals() {
+    var self = this;
+    var G = [
+      { id: 'accueil', label: 'Accueil', m: [
+        ['a1', 'Bonjour. Voici l’argent gagné aujourd’hui.'],
+        ['a2', 'Touchez Vendre pour faire une vente.'],
+        ['a3', 'Touchez Caisse pour ouvrir ou fermer la caisse.'],
+        ['a4', 'Touchez Stock pour voir ce qui reste.'],
+        ['a5', 'Touchez Clients pour voir qui vous doit de l’argent.'],
+        ['a6', 'Attention : des articles sont presque finis.']] },
+      { id: 'vendre', label: 'Vendre', m: [
+        ['v1', 'Touchez un article pour l’ajouter.'],
+        ['v2', 'Touchez Encaisser quand le client a fini.'],
+        ['v3', 'Comment le client paie ?'],
+        ['v4', 'Vente faite.']] },
+      { id: 'caisse', label: 'Caisse', m: [
+        ['c1', 'Comptez les billets du tiroir.'],
+        ['c2', 'Le compte est bon.'],
+        ['c3', 'Il manque de l’argent dans la caisse.']] },
+      { id: 'chiffres', label: 'Chiffres', m: [
+        ['n1', 'un, deux, trois, quatre, cinq'],
+        ['n2', 'six, sept, huit, neuf, dix'],
+        ['n3', 'cent, mille'],
+        ['n4', 'francs']] }
+    ];
+    var lang = this.state.lang;
+    var done = this.state.done[lang] || {};
+    var total = 0, doneN = 0;
+    G.forEach(function (g) { g.m.forEach(function (x) { total++; if (done[x[0]]) doneN++; }); });
+    var setDone = function (id) {
+      var all = JSON.parse(JSON.stringify(self.state.done));
+      all[lang] = all[lang] || {};
+      all[lang][id] = 1;
+      self.setState({ done: all, recording: '' });
+    };
+    var groups = G.map(function (g) {
+      var on = g.id === self.state.group;
+      var left = g.m.filter(function (x) { return !done[x[0]]; }).length;
+      return { label: g.label, count: left === 0 ? '✓' : left,
+        bg: on ? '#0A3F37' : '#FFFFFF', fg: on ? '#FFFFFF' : '#10201C', border: on ? '#0A3F37' : '#D5DEDB',
+        badgeBg: left === 0 ? '#1E9C80' : '#C8372D', badgeFg: '#FFFFFF',
+        pick: function () { self.setState({ group: g.id, recording: '' }); } };
+    });
+    var cur = G.filter(function (g) { return g.id === self.state.group; })[0];
+    var items = cur.m.map(function (x) {
+      var d = !!done[x[0]], r = self.state.recording === x[0];
+      return { text: x[1], done: d, recording: r, idle: !r,
+        cardBg: r ? '#FCE3DE' : '#FFFFFF', ring: r ? '#C8372D' : (d ? '#B9E5D9' : '#D5DEDB'),
+        dotBg: d ? '#1E9C80' : '#C9D3D0',
+        recBg: d ? '#F1F4F3' : '#C8372D', recFg: d ? '#10201C' : '#FFFFFF',
+        recLabel: d ? 'Refaire' : 'Enregistrer',
+        rec: function () { self.setState({ recording: x[0] }); },
+        stop: function () { setDone(x[0]); } };
+    });
+    var L = [['wo', 'Wolof'], ['ff', 'Pulaar (peul)'], ['bm', 'Bambara'], ['srr', 'Sérère'], ['dyo', 'Diola'], ['snk', 'Soninké'], ['mnk', 'Mandinka'], ['autre', 'Autre langue']];
+    var langName = (L.filter(function (l) { return l[0] === lang; })[0] || L[0])[1];
+    var options = L.map(function (l) {
+      var on = l[0] === lang;
+      return { label: l[1], pressed: on ? 'true' : 'false', bg: on ? '#0A3F37' : '#FFFFFF', fg: on ? '#FFFFFF' : '#10201C', ring: on ? '#0A3F37' : '#D5DEDB',
+        pick: function () { self.setState({ lang: l[0], picking: false, recording: '' }); } };
+    });
+    return {
+      options: options, langName: langName, picking: this.state.picking,
+      openPicker: function () { self.setState({ picking: true }); },
+      closePicker: function () { self.setState({ picking: false }); },
+      groups: groups, items: items,
+      doneCount: doneN, totalCount: total,
+      donePct: Math.max(4, Math.round(doneN / total * 100)) + '%'
+    };
+  }
+}
+</script>
+</body>
+</html>

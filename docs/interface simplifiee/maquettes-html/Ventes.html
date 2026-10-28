@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Mes ventes du jour</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0A3F37}a:hover{color:#062a25}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 900px; position: relative; overflow: hidden; background: #F1F4F3; color: #10201C; font-family: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column;">
+
+  <!-- En-tête -->
+  <div style="background: #0A3F37; color: #FFFFFF; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="Accueil.html" aria-label="Retour à l'accueil" style="width: 48px; height: 48px; border-radius: 24px; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+      <span style="flex-grow: 1; font-size: 26px; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"></path><path d="M9 8h6M9 12h6"></path></svg>
+        Mes ventes
+      </span>
+      <button aria-label="Écouter le résumé du jour" style="width: 48px; height: 48px; border-radius: 24px; border: 2px solid #5BE0B0; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>
+      </button>
+    </div>
+
+    <!-- Choix du jour -->
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button aria-label="Jour d'avant" style="width: 48px; height: 48px; border-radius: 14px; border: none; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+      </button>
+      <span style="flex-grow: 1; height: 48px; border-radius: 14px; background: #FFFFFF; color: #0A3F37; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 19px; font-weight: 800;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+        Aujourd'hui
+      </span>
+      <button aria-label="Jour d'après" disabled style="width: 48px; height: 48px; border-radius: 14px; border: none; background: #0F5247; color: #4F8378; display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Résumé + filtres par paiement -->
+  <div style="padding: 14px 16px 6px; display: flex; flex-direction: column; gap: 10px;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between;">
+      <span style="font-size: 34px; font-weight: 800;">{{ totalLabel }}</span>
+      <span style="font-size: 18px; font-weight: 700; color: #4A5A56;">{{ countLabel }}</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+      <sc-for list="{{ pays }}" as="p" hint-placeholder-count="3">
+        <button onClick="{{ p.pick }}" aria-pressed="{{p.on}}" style="height: 76px; border-radius: 16px; border: 3px solid {{p.ring}}; background: {{p.bg}}; color: {{p.fg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;">
+          <sc-if value="{{ p.isCash }}" hint-placeholder-val="{{ true }}">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle></svg>
+          </sc-if>
+          <sc-if value="{{ p.isTel }}" hint-placeholder-val="{{ false }}">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path></svg>
+          </sc-if>
+          <sc-if value="{{ p.isCredit }}" hint-placeholder-val="{{ false }}">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+          </sc-if>
+          <span style="font-size: 16px; font-weight: 800;">{{ p.amount }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- Liste des ventes -->
+  <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 8px 16px 20px; display: flex; flex-direction: column; gap: 8px;">
+    <sc-for list="{{ sales }}" as="s" hint-placeholder-count="6">
+      <button onClick="{{ s.open }}" style="flex-shrink: 0; background: #FFFFFF; border: none; border-radius: 18px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; text-align: left; color: #10201C;">
+        <span style="width: 58px; display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+          <span style="font-size: 18px; font-weight: 800;">{{ s.time }}</span>
+        </span>
+        <span style="flex-grow: 1; display: flex; gap: 4px; min-width: 0;">
+          <sc-for list="{{ s.lines }}" as="l" hint-placeholder-count="1">
+            <span style="width: 40px; height: 40px; border-radius: 10px; background: {{l.tint}}; color: {{l.ink}}; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; position: relative;">
+              {{ l.letter }}
+              <sc-if value="{{ l.many }}" hint-placeholder-val="{{ false }}">
+                <span style="position: absolute; right: -4px; top: -6px; min-width: 20px; height: 20px; border-radius: 10px; background: #0A3F37; color: #FFFFFF; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">{{ l.q }}</span>
+              </sc-if>
+            </span>
+          </sc-for>
+        </span>
+        <span style="font-size: 19px; font-weight: 800; white-space: nowrap;">{{ s.amount }}</span>
+        <span style="width: 36px; height: 36px; border-radius: 18px; background: {{s.payBg}}; color: {{s.payFg}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" aria-label="{{s.payName}}">
+          <sc-if value="{{ s.isCash }}" hint-placeholder-val="{{ true }}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle></svg>
+          </sc-if>
+          <sc-if value="{{ s.isTel }}" hint-placeholder-val="{{ false }}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path></svg>
+          </sc-if>
+          <sc-if value="{{ s.isCredit }}" hint-placeholder-val="{{ false }}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+          </sc-if>
+        </span>
+      </button>
+    </sc-for>
+  </div>
+
+  <!-- Détail d'une vente -->
+  <sc-if value="{{ showSheet }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: rgba(6, 20, 17, 0.6); display: flex; flex-direction: column; justify-content: flex-end;">
+      <div style="background: #FFFFFF; border-radius: 28px 28px 0 0; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <span style="font-size: 22px; font-weight: 800;">Vente de {{ sel.time }}</span>
+          <span style="display: flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border-radius: 999px; background: {{sel.payBg}}; color: {{sel.payFg}}; font-size: 16px; font-weight: 800;">{{ sel.payName }}</span>
+        </div>
+        <sc-if value="{{ sel.hasClient }}" hint-placeholder-val="{{ false }}">
+          <span style="font-size: 17px; font-weight: 700; color: #6B4300; background: #FFF1D6; border-radius: 12px; padding: 8px 12px;">Client : {{ sel.client }}</span>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <sc-for list="{{ sel.lines }}" as="l" hint-placeholder-count="2">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="width: 48px; height: 48px; border-radius: 12px; background: {{l.tint}}; color: {{l.ink}}; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">{{ l.letter }}</span>
+              <span style="flex-grow: 1; display: flex; flex-direction: column;">
+                <span style="font-size: 18px; font-weight: 700;">{{ l.name }}</span>
+                <span style="font-size: 15px; color: #4A5A56;">{{ l.detail }}</span>
+              </span>
+              <span style="font-size: 18px; font-weight: 800;">{{ l.sum }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="border-top: 2px dashed #D5DEDB; padding-top: 10px; display: flex; align-items: baseline; justify-content: space-between;">
+          <span style="font-size: 18px; font-weight: 700; color: #4A5A56;">Total</span>
+          <span style="font-size: 32px; font-weight: 800;">{{ sel.amount }}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+          <button style="height: 64px; border-radius: 18px; border: none; background: #E3F6F0; color: #0A3F37; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"></path><path d="M9 8h6M9 12h6"></path></svg>
+            Ticket
+          </button>
+          <button style="height: 64px; border-radius: 18px; border: none; background: #FFF1D6; color: #6B4300; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 0 10h-3"></path></svg>
+            Retour
+          </button>
+        </div>
+        <button style="height: 56px; border-radius: 16px; border: 2px solid #F3C7C3; background: #FFFFFF; color: #A0261E; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+          Annuler la vente (chef)
+        </button>
+        <button onClick="{{ close }}" style="height: 52px; border-radius: 16px; border: 2px solid #D5DEDB; background: #FFFFFF; color: #10201C; font-size: 18px; font-weight: 700;">Fermer</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { pay: '', sel: -1 };
+  }
+  renderVals() {
+    var self = this;
+    var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' F'; };
+    var P = {
+      lapin: { name: 'Lapin', price: 5000, tint: '#F6E7D3', ink: '#6B4300', letter: 'L' },
+      poulet: { name: 'Poulet', price: 3500, tint: '#FCE3DE', ink: '#8A2A1F', letter: 'P' },
+      oeufs: { name: 'Œufs (plateau)', price: 2750, tint: '#FFF1D6', ink: '#6B4300', letter: 'Œ' },
+      fourrage: { name: 'Fourrage', price: 1500, tint: '#E3F6F0', ink: '#0A3F37', letter: 'F' },
+      lait: { name: 'Lait 1 L', price: 800, tint: '#EDF2F7', ink: '#2B3A55', letter: 'Lt' }
+    };
+    var S = [
+      { time: '17 h 45', pay: 'cash', l: [['poulet', 2], ['lait', 1]] },
+      { time: '16 h 30', pay: 'tel', l: [['oeufs', 1], ['lait', 1]] },
+      { time: '15 h 00', pay: 'cash', l: [['fourrage', 1]] },
+      { time: '14 h 20', pay: 'cash', l: [['poulet', 1]] },
+      { time: '12 h 05', pay: 'credit', client: 'Moussa Ndiaye', l: [['lapin', 1], ['fourrage', 1]] },
+      { time: '11 h 30', pay: 'cash', l: [['lait', 1]] },
+      { time: '10 h 50', pay: 'tel', l: [['oeufs', 2]] },
+      { time: '10 h 15', pay: 'cash', l: [['poulet', 1]] },
+      { time: '9 h 40', pay: 'cash', l: [['fourrage', 2]] },
+      { time: '9 h 10', pay: 'tel', l: [['lapin', 1]] },
+      { time: '8 h 45', pay: 'cash', l: [['lait', 2]] },
+      { time: '8 h 20', pay: 'cash', l: [['oeufs', 1]] }
+    ];
+    var PAY = {
+      cash: { name: 'Espèces', bg: '#E3F6F0', fg: '#0A3F37' },
+      tel: { name: 'Téléphone', bg: '#DCE8FB', fg: '#173E80' },
+      credit: { name: 'À crédit', bg: '#FFF1D6', fg: '#6B4300' }
+    };
+    var byPay = { cash: 0, tel: 0, credit: 0 };
+    var all = S.map(function (s, i) {
+      var amount = 0;
+      var lines = s.l.map(function (x) {
+        var p = P[x[0]], q = x[1]; amount += p.price * q;
+        return { name: p.name, tint: p.tint, ink: p.ink, letter: p.letter, q: q, many: q > 1,
+          detail: q + ' × ' + fmt(p.price), sum: fmt(p.price * q) };
+      });
+      byPay[s.pay] += amount;
+      var py = PAY[s.pay];
+      return { idx: i, time: s.time, lines: lines, amountN: amount, amount: fmt(amount), pay: s.pay,
+        payName: py.name, payBg: py.bg, payFg: py.fg,
+        isCash: s.pay === 'cash', isTel: s.pay === 'tel', isCredit: s.pay === 'credit',
+        client: s.client || '', hasClient: !!s.client,
+        open: function () { self.setState({ sel: i }); } };
+    });
+    var f = this.state.pay;
+    var shown = all.filter(function (s) { return !f || s.pay === f; });
+    var total = shown.reduce(function (a, s) { return a + s.amountN; }, 0);
+    var pays = ['cash', 'tel', 'credit'].map(function (k) {
+      var on = f === k, py = PAY[k];
+      return { amount: fmt(byPay[k]), bg: py.bg, fg: py.fg, ring: on ? py.fg : py.bg, on: on ? 'true' : 'false',
+        isCash: k === 'cash', isTel: k === 'tel', isCredit: k === 'credit',
+        pick: function () { self.setState({ pay: on ? '' : k }); } };
+    });
+    var sel = all[this.state.sel];
+    return {
+      sales: shown, pays: pays,
+      totalLabel: fmt(total),
+      countLabel: shown.length + (shown.length > 1 ? ' ventes' : ' vente'),
+      showSheet: !!sel,
+      sel: sel || { time: '', lines: [], amount: '', payName: '', payBg: '#FFFFFF', payFg: '#10201C', client: '', hasClient: false },
+      close: function () { self.setState({ sel: -1 }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

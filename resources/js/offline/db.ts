@@ -28,7 +28,14 @@ export function openDatabase(name: string): Promise<IDBDatabase> {
             });
             commands.createIndex('created_at', 'created_at');
         };
-        request.onsuccess = () => resolve(request.result);
+        request.onsuccess = () => {
+            const db = request.result;
+
+            // Un autre onglet qui veut supprimer ou migrer la base doit pouvoir
+            // passer : on libère cette connexion au lieu de bloquer la suppression.
+            db.onversionchange = () => db.close();
+            resolve(db);
+        };
         request.onerror = () => reject(request.error);
     });
 }
@@ -110,11 +117,15 @@ export function setMeta(
     return put(db, 'meta', [{ key, value }]);
 }
 
+/**
+ * Supprime une base. `onblocked` n'est jamais un succès : la base existe encore
+ * et l'appelant doit la reprogrammer pour purge (voir `sync.ts`).
+ */
 export function deleteDatabase(name: string): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         const request = indexedDB.deleteDatabase(name);
         request.onsuccess = () => resolve();
-        request.onerror = () => resolve();
-        request.onblocked = () => resolve();
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => reject(new Error(`database_blocked:${name}`));
     });
 }

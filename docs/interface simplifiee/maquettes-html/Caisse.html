@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Caisse</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0A3F37}a:hover{color:#062a25}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 900px; position: relative; overflow: hidden; background: #F1F4F3; color: #10201C; font-family: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column;">
+
+  <div style="background: #0A3F37; color: #FFFFFF; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+    <a href="Accueil.html" aria-label="Retour à l'accueil" style="width: 48px; height: 48px; border-radius: 24px; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <span style="flex-grow: 1; font-size: 26px; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h16v10H4z"></path><path d="M7 10V5h10v5"></path><path d="M10 15h4"></path></svg>
+      Caisse
+    </span>
+    <button aria-label="Écouter l'aide" style="width: 48px; height: 48px; border-radius: 24px; border: 2px solid #5BE0B0; background: #0F5247; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>
+    </button>
+  </div>
+
+  <!-- 1. Caisse fermée -->
+  <sc-if value="{{ isFermee }}" hint-placeholder-val="{{ true }}">
+    <div style="flex-grow: 1; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center;">
+      <span style="width: 160px; height: 160px; border-radius: 80px; background: #E5EBE9; color: #4A5A56; display: flex; align-items: center; justify-content: center;">
+        <svg width="88" height="88" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+      </span>
+      <span style="font-size: 30px; font-weight: 800;">Caisse fermée</span>
+      <span style="font-size: 19px; color: #4A5A56; max-width: 300px;">Comptez l'argent du tiroir pour ouvrir.</span>
+      <button onClick="{{ startOpen }}" style="width: 100%; height: 76px; border-radius: 22px; border: none; background: #34B89C; color: #04201A; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 7.5-2"></path></svg>
+        Ouvrir la caisse
+      </button>
+    </div>
+  </sc-if>
+
+  <!-- 2. Compter les billets -->
+  <sc-if value="{{ isCompter }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; display: flex; flex-direction: column;">
+      <div style="padding: 14px 16px 6px; display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 20px; font-weight: 800;">{{ countTitle }}</span>
+        <span style="font-size: 16px; color: #4A5A56;">Touchez + pour chaque billet</span>
+      </div>
+      <div style="padding: 8px 16px; display: flex; flex-direction: column; gap: 8px;">
+        <sc-for list="{{ bills }}" as="b" hint-placeholder-count="6">
+          <div style="background: #FFFFFF; border-radius: 16px; padding: 8px 10px; display: flex; align-items: center; gap: 10px;">
+            <span style="width: 92px; height: 48px; border-radius: 8px; background: {{b.bg}}; color: #FFFFFF; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">{{ b.label }}</span>
+            <button onClick="{{ b.sub }}" aria-label="Un billet de moins" style="width: 48px; height: 48px; border-radius: 24px; border: none; background: #FCE3DE; color: #A0261E; display: flex; align-items: center; justify-content: center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg>
+            </button>
+            <span style="width: 40px; text-align: center; font-size: 26px; font-weight: 800;">{{ b.n }}</span>
+            <button onClick="{{ b.add }}" aria-label="Un billet de plus" style="width: 48px; height: 48px; border-radius: 24px; border: none; background: #E3F6F0; color: #0A3F37; display: flex; align-items: center; justify-content: center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            </button>
+            <span style="flex-grow: 1; text-align: right; font-size: 17px; font-weight: 700; color: #4A5A56;">{{ b.sum }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top: auto; background: #FFFFFF; border-top: 1px solid #D5DEDB; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <span style="font-size: 18px; font-weight: 600; color: #4A5A56;">Dans le tiroir</span>
+          <span style="font-size: 34px; font-weight: 800;">{{ countedLabel }}</span>
+        </div>
+        <button onClick="{{ confirmCount }}" style="height: 72px; border-radius: 20px; border: none; background: #34B89C; color: #04201A; font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+          {{ confirmLabel }}
+        </button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- 3. Caisse ouverte -->
+  <sc-if value="{{ isOuverte }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; color: #0A3F37;">
+        <span style="width: 14px; height: 14px; border-radius: 7px; background: #1E9C80;" aria-hidden="true"></span>
+        Caisse ouverte · depuis 8 h 05
+      </div>
+      <div style="background: #0A3F37; color: #FFFFFF; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 18px; color: #BFE6DC; font-weight: 600;">Il doit y avoir</span>
+        <span style="font-size: 44px; font-weight: 800;">{{ expectedLabel }}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+        <div style="background: #FFFFFF; border-radius: 18px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4A5A56" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h16v10H4z"></path><path d="M7 10V5h10v5"></path></svg>
+          <span style="font-size: 14px; color: #4A5A56; font-weight: 600;">Au début</span>
+          <span style="font-size: 17px; font-weight: 800;">{{ fondLabel }}</span>
+        </div>
+        <div style="background: #E3F6F0; border-radius: 18px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0A3F37" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg>
+          <span style="font-size: 14px; color: #0A3F37; font-weight: 600;">Entré</span>
+          <span style="font-size: 17px; font-weight: 800; color: #0A3F37;">+ 45 000 F</span>
+        </div>
+        <div style="background: #FCE3DE; border-radius: 18px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A0261E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg>
+          <span style="font-size: 14px; color: #A0261E; font-weight: 600;">Sorti</span>
+          <span style="font-size: 17px; font-weight: 800; color: #A0261E;">− 3 000 F</span>
+        </div>
+      </div>
+      <button style="height: 72px; border-radius: 20px; border: 2px solid #F3C7C3; background: #FFFFFF; color: #A0261E; font-size: 21px; font-weight: 800; display: flex; align-items: center; gap: 14px; padding: 0 18px;">
+        <span style="width: 48px; height: 48px; border-radius: 24px; background: #C8372D; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M19 12l-7 7-7-7"></path></svg>
+        </span>
+        Sortir de l'argent
+      </button>
+      <button style="height: 72px; border-radius: 20px; border: 2px solid #B9E5D9; background: #FFFFFF; color: #0A3F37; font-size: 21px; font-weight: 800; display: flex; align-items: center; gap: 14px; padding: 0 18px;">
+        <span style="width: 48px; height: 48px; border-radius: 24px; background: #1E9C80; color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg>
+        </span>
+        Mettre de l'argent
+      </button>
+      <button onClick="{{ startClose }}" style="margin-top: auto; height: 76px; border-radius: 22px; border: none; background: #10201C; color: #FFFFFF; font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 12px;">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+        Fermer la caisse
+      </button>
+    </div>
+  </sc-if>
+
+  <!-- 4. Résultat de la fermeture -->
+  <sc-if value="{{ isResultat }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-grow: 1; background: {{resBg}}; color: #FFFFFF; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center;">
+      <span style="width: 140px; height: 140px; border-radius: 70px; background: #FFFFFF; color: {{resBg}}; display: flex; align-items: center; justify-content: center;">
+        <sc-if value="{{ isJuste }}" hint-placeholder-val="{{ true }}">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+        </sc-if>
+        <sc-if value="{{ isPasJuste }}" hint-placeholder-val="{{ false }}">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v6"></path><path d="M12 17h.01"></path><circle cx="12" cy="12" r="9"></circle></svg>
+        </sc-if>
+      </span>
+      <span style="font-size: 30px; font-weight: 800;">{{ resTitle }}</span>
+      <span style="font-size: 20px;">{{ resDetail }}</span>
+      <button onClick="{{ reset }}" style="width: 100%; height: 72px; border-radius: 20px; border: none; background: #FFFFFF; color: #10201C; font-size: 22px; font-weight: 800; margin-top: 16px;">Terminer</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 'fermee', mode: 'ouvrir', n: {}, fond: 0 };
+  }
+  renderVals() {
+    var self = this;
+    var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' F'; };
+    var B = [
+      { v: 10000, bg: '#2F5E9E', label: '10 000' },
+      { v: 5000, bg: '#2E7D57', label: '5 000' },
+      { v: 2000, bg: '#7A4CA8', label: '2 000' },
+      { v: 1000, bg: '#B5602C', label: '1 000' },
+      { v: 500, bg: '#5E7A1F', label: '500' },
+      { v: 100, bg: '#6B7280', label: 'pièces 100' }
+    ];
+    var n = this.state.n;
+    var setN = function (v, d) {
+      var next = Object.assign({}, self.state.n);
+      next[v] = Math.max(0, (next[v] || 0) + d);
+      self.setState({ n: next });
+    };
+    var counted = 0;
+    var bills = B.map(function (b) {
+      var c = n[b.v] || 0; counted += c * b.v;
+      return Object.assign({}, b, { n: c, sum: c ? fmt(c * b.v) : '', add: function () { setN(b.v, 1); }, sub: function () { setN(b.v, -1); } });
+    });
+    var st = this.state.step, mode = this.state.mode, fond = this.state.fond;
+    var expected = fond + 45000 - 3000;
+    var diff = counted - expected;
+    var juste = diff === 0;
+    return {
+      bills: bills,
+      isFermee: st === 'fermee', isCompter: st === 'compter', isOuverte: st === 'ouverte', isResultat: st === 'resultat',
+      countTitle: mode === 'ouvrir' ? 'Comptez l’argent du tiroir' : 'Comptez l’argent avant de fermer',
+      confirmLabel: mode === 'ouvrir' ? 'Ouvrir avec ' + fmt(counted) : 'Fermer avec ' + fmt(counted),
+      countedLabel: fmt(counted),
+      fondLabel: fmt(fond),
+      expectedLabel: fmt(expected),
+      isJuste: juste, isPasJuste: !juste,
+      resBg: juste ? '#0A3F37' : (diff < 0 ? '#A0261E' : '#8A5300'),
+      resTitle: juste ? 'Le compte est bon' : (diff < 0 ? 'Il manque ' + fmt(-diff) : 'Il y a ' + fmt(diff) + ' en trop'),
+      resDetail: 'Compté : ' + fmt(counted) + ' · Attendu : ' + fmt(expected),
+      startOpen: function () { self.setState({ step: 'compter', mode: 'ouvrir', n: {} }); },
+      startClose: function () { self.setState({ step: 'compter', mode: 'fermer', n: {} }); },
+      confirmCount: function () {
+        if (self.state.mode === 'ouvrir') self.setState({ step: 'ouverte', fond: counted });
+        else self.setState({ step: 'resultat' });
+      },
+      reset: function () { self.setState({ step: 'fermee', mode: 'ouvrir', n: {}, fond: 0 }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

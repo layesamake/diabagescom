@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Diaba Gescom — la caisse qui parle votre langue</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0A3F37}a:hover{color:#062a25}
+button,input{font-family:inherit}
+button{cursor:pointer}
+</style>
+</helmet>
+<div style="background: #F1F4F3; color: #10201C; font-family: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif; display: flex; flex-direction: column;">
+
+  <!-- Barre du haut -->
+  <header style="background: #FFFFFF; border-bottom: 1px solid #D5DEDB;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+      <a href="#haut" style="text-decoration: none; display: flex; align-items: center; gap: 10px; color: #0A3F37; flex-grow: 1;">
+        <span style="width: 44px; height: 44px; border-radius: 22px; background: #0A3F37; color: #5BE0B0; display: flex; align-items: center; justify-content: center;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"></path><path d="M5 21V10l7-5 7 5v11"></path><path d="M10 21v-5h4v5"></path></svg>
+        </span>
+        <span style="font-size: 22px; font-weight: 800; letter-spacing: 0.5px;">DIABA <span style="color: #1E9C80;">GESCOM</span></span>
+      </a>
+      <nav aria-label="Sections" style="display: flex; gap: 24px; flex-wrap: wrap; font-size: 17px; font-weight: 700;">
+        <a href="#comment" style="text-decoration: none; color: #10201C;">Comment ça marche</a>
+        <a href="#prix" style="text-decoration: none; color: #10201C;">Prix</a>
+        <a href="#questions" style="text-decoration: none; color: #10201C;">Questions</a>
+      </nav>
+      <a href="https://diaba.cloud/login" style="font-size: 17px; font-weight: 700; color: #0A3F37;">Se connecter</a>
+      <a href="#essai" style="text-decoration: none; height: 52px; padding: 0 22px; border-radius: 16px; background: #34B89C; color: #04201A; font-size: 18px; font-weight: 800; display: flex; align-items: center;">Essayer gratuitement</a>
+    </div>
+  </header>
+
+  <!-- Héro -->
+  <section id="haut" style="background: #0A3F37; color: #FFFFFF;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 72px 24px 80px; display: flex; gap: 56px; flex-wrap: wrap; align-items: center;">
+      <div style="flex: 1 1 520px; display: flex; flex-direction: column; gap: 24px;">
+        <span style="align-self: flex-start; font-size: 15px; font-weight: 800; letter-spacing: 1px; background: #0F5247; color: #BFE6DC; border-radius: 999px; padding: 8px 14px;">POUR LES COMMERÇANTS DU SÉNÉGAL ET DE L'UEMOA</span>
+        <h1 style="margin: 0; font-size: 60px; line-height: 1.05; font-weight: 800; letter-spacing: -1px;">Vendez en 3 gestes.<br><span style="color: #5BE0B0;">Même sans savoir bien lire.</span></h1>
+        <p style="margin: 0; font-size: 21px; line-height: 1.5; color: #D7EEE7; max-width: 560px;">Diaba Gescom remplace le cahier : chaque vente, chaque franc de la caisse et chaque article du stock sont suivis. Des images, des couleurs, et une voix qui parle votre langue. Même sans internet.</p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <a href="#essai" style="text-decoration: none; height: 64px; padding: 0 28px; border-radius: 18px; background: #34B89C; color: #04201A; font-size: 21px; font-weight: 800; display: flex; align-items: center; gap: 10px;">Essayer 10 jours gratuits
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>
+          </a>
+        </div>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 16px; font-weight: 700; color: #BFE6DC;">
+          <span style="display: flex; align-items: center; gap: 6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5BE0B0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Sans engagement</span>
+          <span style="display: flex; align-items: center; gap: 6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5BE0B0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Aucune carte bancaire</span>
+          <span style="display: flex; align-items: center; gap: 6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5BE0B0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Aide au démarrage sur WhatsApp</span>
+        </div>
+      </div>
+
+      <!-- Téléphone -->
+      <div style="flex: 1 1 360px; display: flex; justify-content: center; position: relative; padding: 20px 0;">
+        <div style="width: 300px; height: 600px; border-radius: 44px; background: #10201C; padding: 12px; box-sizing: border-box;">
+          <div style="width: 100%; height: 100%; border-radius: 34px; overflow: hidden; background: #F1F4F3; color: #10201C; display: flex; flex-direction: column;">
+            <div style="background: #0A3F37; color: #FFFFFF; padding: 18px 16px 14px; display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 800;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M2 3h3l2.7 12.2a1 1 0 0 0 1 .8h9.6a1 1 0 0 0 1-.8L21 7H6"></path></svg>
+              <span style="flex-grow: 1;">Vendre</span>
+              <span style="width: 34px; height: 34px; border-radius: 17px; border: 2px solid #5BE0B0; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg></span>
+            </div>
+            <div style="padding: 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; flex-grow: 1; align-content: start;">
+              <div style="background: #FFFFFF; border: 3px solid #1E9C80; border-radius: 14px; overflow: hidden;"><div style="height: 64px; background: #F6E7D3; position: relative;"><span style="position: absolute; right: 6px; top: 6px; width: 26px; height: 26px; border-radius: 13px; background: #0A3F37; color: #FFFFFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center;">2</span></div><div style="padding: 6px 8px; font-size: 13px; font-weight: 700;">Riz 5 kg<br><span style="font-size: 15px; font-weight: 800; color: #0A3F37;">8 500 F</span></div></div>
+              <div style="background: #FFFFFF; border: 3px solid #FFFFFF; border-radius: 14px; overflow: hidden;"><div style="height: 64px; background: #FFF1D6;"></div><div style="padding: 6px 8px; font-size: 13px; font-weight: 700;">Huile 1 L<br><span style="font-size: 15px; font-weight: 800; color: #0A3F37;">1 500 F</span></div></div>
+              <div style="background: #FFFFFF; border: 3px solid #1E9C80; border-radius: 14px; overflow: hidden;"><div style="height: 64px; background: #E7EEF9; position: relative;"><span style="position: absolute; right: 6px; top: 6px; width: 26px; height: 26px; border-radius: 13px; background: #0A3F37; color: #FFFFFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center;">1</span></div><div style="padding: 6px 8px; font-size: 13px; font-weight: 700;">Sucre 1 kg<br><span style="font-size: 15px; font-weight: 800; color: #0A3F37;">750 F</span></div></div>
+              <div style="background: #FFFFFF; border: 3px solid #FFFFFF; border-radius: 14px; overflow: hidden;"><div style="height: 64px; background: #E3F6F0;"></div><div style="padding: 6px 8px; font-size: 13px; font-weight: 700;">Lait 1 L<br><span style="font-size: 15px; font-weight: 800; color: #0A3F37;">800 F</span></div></div>
+            </div>
+            <div style="background: #FFFFFF; border-top: 1px solid #D5DEDB; padding: 12px; display: flex; align-items: center; gap: 10px;">
+              <span style="flex-grow: 1; display: flex; flex-direction: column;"><span style="font-size: 12px; font-weight: 700; color: #4A5A56;">3 articles</span><span style="font-size: 24px; font-weight: 800;">17 750 F</span></span>
+              <span style="height: 52px; padding: 0 14px; border-radius: 14px; background: #34B89C; color: #04201A; font-size: 16px; font-weight: 800; display: flex; align-items: center;">Encaisser</span>
+            </div>
+          </div>
+        </div>
+        <div style="position: absolute; left: 0; top: 160px; background: #FFFFFF; color: #10201C; border-radius: 18px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
+          <span style="width: 40px; height: 40px; border-radius: 20px; background: #5BE0B0; color: #04201A; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+          <span style="display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 700; color: #4A5A56;">Vente faite</span><span style="font-size: 20px; font-weight: 800;">17 750 F</span></span>
+        </div>
+        <div style="position: absolute; right: 0; bottom: 90px; background: #FFFFFF; color: #10201C; border-radius: 18px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
+          <span style="width: 40px; height: 40px; border-radius: 20px; background: #F2A93B; color: #2A1A00; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg></span>
+          <span style="display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 700; color: #4A5A56;">La voix parle</span><span style="font-size: 18px; font-weight: 800;">wolof, pulaar, bambara…</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bande de confiance -->
+  <section style="background: #FFFFFF; border-bottom: 1px solid #D5DEDB;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center;">
+      <span style="font-size: 17px; font-weight: 700; color: #4A5A56; margin-right: 8px;">Fait pour :</span>
+      <span style="font-size: 17px; font-weight: 700; background: #F1F4F3; border-radius: 999px; padding: 8px 16px;">Alimentation</span>
+      <span style="font-size: 17px; font-weight: 700; background: #F1F4F3; border-radius: 999px; padding: 8px 16px;">Quincaillerie</span>
+      <span style="font-size: 17px; font-weight: 700; background: #F1F4F3; border-radius: 999px; padding: 8px 16px;">Ferme et élevage</span>
+      <span style="font-size: 17px; font-weight: 700; background: #F1F4F3; border-radius: 999px; padding: 8px 16px;">Cosmétiques</span>
+      <span style="font-size: 17px; font-weight: 700; background: #F1F4F3; border-radius: 999px; padding: 8px 16px;">Pièces détachées</span>
+      <span style="font-size: 17px; font-weight: 700; background: #F1F4F3; border-radius: 999px; padding: 8px 16px;">Grossistes</span>
+    </div>
+  </section>
+
+  <!-- Problèmes -->
+  <section style="max-width: 1200px; margin: 0 auto; padding: 88px 24px 40px; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: 32px;">
+    <div style="display: flex; flex-direction: column; gap: 12px; max-width: 760px;">
+      <h2 style="margin: 0; font-size: 42px; line-height: 1.15; font-weight: 800;">Le soir, combien avez-vous vraiment gagné ?</h2>
+      <p style="margin: 0; font-size: 20px; line-height: 1.5; color: #4A5A56;">Avec un cahier, l'argent se perd sans qu'on sache où. Diaba Gescom répond à ces 4 soucis du quotidien.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+      <div style="background: #FFFFFF; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <span style="width: 56px; height: 56px; border-radius: 28px; background: #E3F6F0; color: #0A3F37; display: flex; align-items: center; justify-content: center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"></path><path d="M9 8h6M9 12h6"></path></svg></span>
+        <span style="font-size: 15px; font-weight: 800; color: #A0261E; text-decoration: line-through;">Le cahier de ventes</span>
+        <span style="font-size: 21px; font-weight: 800;">Chaque vente enregistrée, retrouvée en une seconde.</span>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <span style="width: 56px; height: 56px; border-radius: 28px; background: #FFF1D6; color: #6B4300; display: flex; align-items: center; justify-content: center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h16v10H4z"></path><path d="M7 10V5h10v5"></path><path d="M10 15h4"></path></svg></span>
+        <span style="font-size: 15px; font-weight: 800; color: #A0261E; text-decoration: line-through;">L'argent qui manque en caisse</span>
+        <span style="font-size: 21px; font-weight: 800;">On compte les billets, l'écran dit s'il manque quelque chose.</span>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <span style="width: 56px; height: 56px; border-radius: 28px; background: #DCE8FB; color: #173E80; display: flex; align-items: center; justify-content: center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l9-5 9 5-9 5-9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg></span>
+        <span style="font-size: 15px; font-weight: 800; color: #A0261E; text-decoration: line-through;">La rupture de stock</span>
+        <span style="font-size: 21px; font-weight: 800;">L'article devient rouge avant d'être fini.</span>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <span style="width: 56px; height: 56px; border-radius: 28px; background: #EDE4FA; color: #3F2270; display: flex; align-items: center; justify-content: center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"></circle><path d="M2 21c0-4 3-7 7-7s7 3 7 7"></path><path d="M16 4a4 4 0 0 1 0 8"></path></svg></span>
+        <span style="font-size: 15px; font-weight: 800; color: #A0261E; text-decoration: line-through;">Le crédit oublié</span>
+        <span style="font-size: 21px; font-weight: 800;">Vous voyez qui vous doit combien, et l'appelez en un geste.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comment ça marche -->
+  <section id="comment" style="max-width: 1200px; margin: 0 auto; padding: 48px 24px 88px; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: 32px;">
+    <div style="display: flex; flex-direction: column; gap: 12px; max-width: 760px;">
+      <span style="font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #1E9C80;">COMMENT ÇA MARCHE</span>
+      <h2 style="margin: 0; font-size: 42px; line-height: 1.15; font-weight: 800;">Une vente, c'est 3 gestes. Pas plus.</h2>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+      <div style="background: #FFFFFF; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 16px;">
+        <span style="width: 48px; height: 48px; border-radius: 24px; background: #0A3F37; color: #FFFFFF; font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center;">1</span>
+        <div style="height: 150px; border-radius: 20px; background: #E3F6F0; display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <span style="width: 84px; height: 96px; border-radius: 14px; background: #FFFFFF; border: 3px solid #1E9C80; display: flex; align-items: center; justify-content: center; color: #0A3F37; font-size: 30px; font-weight: 800;">+1</span>
+          <span style="width: 84px; height: 96px; border-radius: 14px; background: #FFFFFF; border: 3px solid #FFFFFF;"></span>
+        </div>
+        <span style="font-size: 24px; font-weight: 800;">Touchez la photo de l'article</span>
+        <span style="font-size: 18px; color: #4A5A56; line-height: 1.5;">Ou scannez son code-barres. Touchez encore pour en ajouter un.</span>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 16px;">
+        <span style="width: 48px; height: 48px; border-radius: 24px; background: #0A3F37; color: #FFFFFF; font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center;">2</span>
+        <div style="height: 150px; border-radius: 20px; background: #F1F4F3; display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 8px; padding: 0 28px;">
+          <span style="height: 40px; border-radius: 12px; background: #34B89C; color: #04201A; font-size: 17px; font-weight: 800; display: flex; align-items: center; padding: 0 14px;">Espèces</span>
+          <span style="height: 40px; border-radius: 12px; background: #2563C9; color: #FFFFFF; font-size: 17px; font-weight: 800; display: flex; align-items: center; padding: 0 14px;">Wave · Orange Money</span>
+          <span style="height: 40px; border-radius: 12px; background: #F2A93B; color: #2A1A00; font-size: 17px; font-weight: 800; display: flex; align-items: center; padding: 0 14px;">Paiera plus tard</span>
+        </div>
+        <span style="font-size: 24px; font-weight: 800;">Choisissez comment il paie</span>
+        <span style="font-size: 18px; color: #4A5A56; line-height: 1.5;">Espèces, téléphone ou crédit : chaque mode a sa couleur.</span>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 16px;">
+        <span style="width: 48px; height: 48px; border-radius: 24px; background: #0A3F37; color: #FFFFFF; font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center;">3</span>
+        <div style="height: 150px; border-radius: 20px; background: #0A3F37; display: flex; align-items: center; justify-content: center;">
+          <span style="width: 96px; height: 96px; border-radius: 48px; background: #5BE0B0; color: #04201A; display: flex; align-items: center; justify-content: center;"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+        </div>
+        <span style="font-size: 24px; font-weight: 800;">C'est fait</span>
+        <span style="font-size: 18px; color: #4A5A56; line-height: 1.5;">Le stock baisse, la caisse monte, le ticket s'imprime. Tout seul.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Différence -->
+  <section id="video" style="background: #0A3F37; color: #FFFFFF;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 88px 24px; display: flex; gap: 48px; flex-wrap: wrap; align-items: center;">
+      <div style="flex: 1 1 420px; display: flex; flex-direction: column; gap: 18px;">
+        <span style="font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #5BE0B0;">PENSÉ POUR TOUT LE MONDE</span>
+        <h2 style="margin: 0; font-size: 42px; line-height: 1.15; font-weight: 800;">Vos vendeurs l'utilisent dès le premier jour.</h2>
+        <p style="margin: 0; font-size: 20px; line-height: 1.5; color: #D7EEE7;">Pas besoin de bien lire ni d'être à l'aise avec un téléphone. Chaque action a sa couleur, son dessin et sa voix.</p>
+        <a href="#essai" style="align-self: flex-start; text-decoration: none; height: 60px; padding: 0 26px; border-radius: 18px; background: #34B89C; color: #04201A; font-size: 20px; font-weight: 800; display: flex; align-items: center;">Essayer avec mes vendeurs</a>
+      </div>
+      <div style="flex: 1 1 520px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+        <div style="background: #0F5247; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 10px;">
+          <span style="display: flex; gap: 6px;"><span style="width: 28px; height: 28px; border-radius: 8px; background: #34B89C;"></span><span style="width: 28px; height: 28px; border-radius: 8px; background: #F2A93B;"></span><span style="width: 28px; height: 28px; border-radius: 8px; background: #2563C9;"></span><span style="width: 28px; height: 28px; border-radius: 8px; background: #6D3FB8;"></span></span>
+          <span style="font-size: 21px; font-weight: 800;">Images et couleurs</span>
+          <span style="font-size: 17px; color: #D7EEE7; line-height: 1.45;">Vendre est vert, la caisse orange, le stock bleu. On ne se trompe pas.</span>
+        </div>
+        <div style="background: #0F5247; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 10px;">
+          <span style="width: 44px; height: 44px; border-radius: 22px; background: #F2A93B; color: #2A1A00; display: flex; align-items: center; justify-content: center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg></span>
+          <span style="font-size: 21px; font-weight: 800;">Une voix dans votre langue</span>
+          <span style="font-size: 17px; color: #D7EEE7; line-height: 1.45;">Vous enregistrez les messages en wolof, pulaar, bambara… L'application les fait écouter.</span>
+        </div>
+        <div style="background: #0F5247; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 10px;">
+          <span style="width: 44px; height: 44px; border-radius: 22px; background: #5BE0B0; color: #04201A; display: flex; align-items: center; justify-content: center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0"></path><path d="M5 12a10 10 0 0 1 14 0"></path><path d="M8.5 15.5a5 5 0 0 1 7 0"></path><path d="M3 3l18 18"></path></svg></span>
+          <span style="font-size: 21px; font-weight: 800;">Même sans internet</span>
+          <span style="font-size: 17px; color: #D7EEE7; line-height: 1.45;">Coupure ? Vous continuez à vendre. Tout se met à jour au retour du réseau.</span>
+        </div>
+        <div style="background: #0F5247; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 10px;">
+          <span style="width: 44px; height: 44px; border-radius: 22px; background: #2563C9; color: #FFFFFF; display: flex; align-items: center; justify-content: center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path></svg></span>
+          <span style="font-size: 21px; font-weight: 800;">Wave et Orange Money</span>
+          <span style="font-size: 17px; color: #D7EEE7; line-height: 1.45;">Espèces, téléphone, crédit : chaque paiement est rangé à sa place.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fonctions -->
+  <section style="max-width: 1200px; margin: 0 auto; padding: 88px 24px; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: 32px;">
+    <div style="display: flex; flex-direction: column; gap: 12px; max-width: 760px;">
+      <span style="font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #1E9C80;">TOUT DANS UNE SEULE APPLICATION</span>
+      <h2 style="margin: 0; font-size: 42px; line-height: 1.15; font-weight: 800;">Du comptoir au comptable, sans rien recopier.</h2>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;">
+      <div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;"><span style="width: 44px; height: 44px; border-radius: 22px; background: #E3F6F0; color: #0A3F37; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M2 3h3l2.7 12.2a1 1 0 0 0 1 .8h9.6a1 1 0 0 0 1-.8L21 7H6"></path></svg></span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 19px; font-weight: 800;">Vente et scan</span><span style="font-size: 16px; color: #4A5A56; line-height: 1.45;">Caméra du téléphone ou douchette.</span></span></div>
+      <div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;"><span style="width: 44px; height: 44px; border-radius: 22px; background: #FFF1D6; color: #6B4300; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h16v10H4z"></path><path d="M7 10V5h10v5"></path></svg></span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 19px; font-weight: 800;">Caisse</span><span style="font-size: 16px; color: #4A5A56; line-height: 1.45;">Ouverture, dépenses, fermeture billet par billet.</span></span></div>
+      <div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;"><span style="width: 44px; height: 44px; border-radius: 22px; background: #DCE8FB; color: #173E80; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l9-5 9 5-9 5-9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path></svg></span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 19px; font-weight: 800;">Stock sur plusieurs dépôts</span><span style="font-size: 16px; color: #4A5A56; line-height: 1.45;">Boutique, magasin, entrepôt, transferts.</span></span></div>
+      <div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;"><span style="width: 44px; height: 44px; border-radius: 22px; background: #E3F6F0; color: #0A3F37; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7h12v10H2z"></path><path d="M14 10h4l4 4v3h-8"></path></svg></span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 19px; font-weight: 800;">Achats et fournisseurs</span><span style="font-size: 16px; color: #4A5A56; line-height: 1.45;">Commandes, réceptions, dettes à payer.</span></span></div>
+      <div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;"><span style="width: 44px; height: 44px; border-radius: 22px; background: #EDE4FA; color: #3F2270; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"></path></svg></span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 19px; font-weight: 800;">Factures et reçus PDF</span><span style="font-size: 16px; color: #4A5A56; line-height: 1.45;">À votre logo, envoyés par WhatsApp.</span></span></div>
+      <div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;"><span style="width: 44px; height: 44px; border-radius: 22px; background: #FFF1D6; color: #6B4300; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"></path><path d="M5 21V10l7-5 7 5v11"></path></svg></span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 19px; font-weight: 800;">Boutique en ligne</span><span style="font-size: 16px; color: #4A5A56; line-height: 1.45;">Vos clients commandent depuis leur téléphone.</span></span></div>
+      <div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;"><span style="width: 44px; height: 44px; border-radius: 22px; background: #DCE8FB; color: #173E80; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"></path><path d="M6 16v-5"></path><path d="M11 16V7"></path><path d="M16 16v-7"></path></svg></span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 19px; font-weight: 800;">Comptabilité SYSCOHADA</span><span style="font-size: 16px; color: #4A5A56; line-height: 1.45;">Écritures faites toutes seules.</span></span></div>
+      <div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; gap: 14px; align-items: flex-start;"><span style="width: 44px; height: 44px; border-radius: 22px; background: #EDE4FA; color: #3F2270; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"></circle><path d="M2 21c0-4 3-7 7-7s7 3 7 7"></path></svg></span><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 19px; font-weight: 800;">Vendeurs et gérants</span><span style="font-size: 16px; color: #4A5A56; line-height: 1.45;">Chacun voit seulement ce qui le concerne.</span></span></div>
+    </div>
+  </section>
+
+  <!-- Prix -->
+  <section id="prix" style="background: #FFFFFF;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 88px 24px; display: flex; flex-direction: column; gap: 32px;">
+      <div style="display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center;">
+        <span style="font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #1E9C80;">PRIX</span>
+        <h2 style="margin: 0; font-size: 42px; line-height: 1.15; font-weight: 800;">Moins cher qu'une erreur de caisse par mois.</h2>
+        <p style="margin: 0; font-size: 19px; color: #4A5A56;">10 jours gratuits avec toutes les fonctions. Paiement par Wave ou virement. Prix en francs CFA.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; align-items: stretch;">
+        <div style="border: 2px solid #D5DEDB; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-size: 22px; font-weight: 800;">Essentiel</span>
+          <span style="font-size: 17px; color: #4A5A56;">Une boutique, un ou deux vendeurs</span>
+          <span><span style="font-size: 48px; font-weight: 800;">5 000 F</span><span style="font-size: 18px; color: #4A5A56;"> / mois</span></span>
+          <span style="display: flex; flex-direction: column; gap: 10px; font-size: 17px;">
+            <span style="display: flex; gap: 8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9C80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>2 utilisateurs, 1 dépôt</span>
+            <span style="display: flex; gap: 8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9C80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Ventes, caisse, stock, achats</span>
+            <span style="display: flex; gap: 8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9C80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Factures PDF et WhatsApp</span>
+            <span style="display: flex; gap: 8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9C80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Hors connexion</span>
+          </span>
+          <a href="#essai" style="margin-top: auto; text-decoration: none; height: 60px; border-radius: 18px; border: 2px solid #0A3F37; color: #0A3F37; font-size: 19px; font-weight: 800; display: flex; align-items: center; justify-content: center;">Essayer gratuitement</a>
+        </div>
+        <div style="border: 3px solid #34B89C; background: #F4FBF8; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 16px; position: relative;">
+          <span style="position: absolute; top: -16px; left: 28px; font-size: 14px; font-weight: 800; background: #34B89C; color: #04201A; border-radius: 999px; padding: 6px 12px;">Conseillé dès 2 boutiques</span>
+          <span style="font-size: 22px; font-weight: 800;">Business</span>
+          <span style="font-size: 17px; color: #4A5A56;">Plusieurs boutiques ou un entrepôt</span>
+          <span><span style="font-size: 48px; font-weight: 800;">12 500 F</span><span style="font-size: 18px; color: #4A5A56;"> / mois</span></span>
+          <span style="display: flex; flex-direction: column; gap: 10px; font-size: 17px;">
+            <span style="display: flex; gap: 8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9C80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>5 utilisateurs, 5 dépôts</span>
+            <span style="display: flex; gap: 8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9C80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Tout Essentiel</span>
+            <span style="display: flex; gap: 8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9C80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Boutique en ligne + comptabilité SYSCOHADA</span>
+          </span>
+          <a href="#essai" style="margin-top: auto; text-decoration: none; height: 60px; border-radius: 18px; background: #34B89C; color: #04201A; font-size: 19px; font-weight: 800; display: flex; align-items: center; justify-content: center;">Essayer gratuitement</a>
+        </div>
+        <div style="border: 2px solid #D5DEDB; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-size: 22px; font-weight: 800;">Premium</span>
+          <span style="font-size: 17px; color: #4A5A56;">Grande équipe, comptabilité complète</span>
+          <span><span style="font-size: 48px; font-weight: 800;">15 000 F</span><span style="font-size: 18px; color: #4A5A56;"> / mois</span></span>
+          <span style="display: flex; flex-direction: column; gap: 10px; font-size: 17px;">
+            <span style="display: flex; gap: 8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9C80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>8 utilisateurs, 5 dépôts</span>
+            <span style="display: flex; gap: 8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9C80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Tout Business</span>
+            <span style="display: flex; gap: 8px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E9C80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Comptabilité SYSCOHADA complète</span>
+          </span>
+          <a href="#essai" style="margin-top: auto; text-decoration: none; height: 60px; border-radius: 18px; border: 2px solid #0A3F37; color: #0A3F37; font-size: 19px; font-weight: 800; display: flex; align-items: center; justify-content: center;">Essayer gratuitement</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Questions -->
+  <section id="questions" style="max-width: 900px; margin: 0 auto; padding: 88px 24px; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: 20px;">
+    <h2 style="margin: 0 0 8px; font-size: 42px; line-height: 1.15; font-weight: 800; text-align: center;">Vos questions</h2>
+    <details open="" style="background: #FFFFFF; border-radius: 20px; padding: 20px 24px;"><summary style="font-size: 20px; font-weight: 800; cursor: pointer;">Faut-il internet tout le temps ?</summary><p style="margin: 12px 0 0; font-size: 18px; line-height: 1.5; color: #4A5A56;">Non. Vous vendez et ouvrez la caisse sans connexion. Tout se synchronise quand le réseau revient.</p></details>
+    <details style="background: #FFFFFF; border-radius: 20px; padding: 20px 24px;"><summary style="font-size: 20px; font-weight: 800; cursor: pointer;">Mes vendeurs ne lisent pas bien. Ça marche quand même ?</summary><p style="margin: 12px 0 0; font-size: 18px; line-height: 1.5; color: #4A5A56;">Oui. Tout se fait avec des photos, des couleurs et des gros boutons, et la voix explique chaque écran dans votre langue.</p></details>
+    <details style="background: #FFFFFF; border-radius: 20px; padding: 20px 24px;"><summary style="font-size: 20px; font-weight: 800; cursor: pointer;">Sur quels appareils ?</summary><p style="margin: 12px 0 0; font-size: 18px; line-height: 1.5; color: #4A5A56;">Ordinateur, tablette et téléphone, dans le navigateur. Rien à installer.</p></details>
+    <details style="background: #FFFFFF; border-radius: 20px; padding: 20px 24px;"><summary style="font-size: 20px; font-weight: 800; cursor: pointer;">L'essai est-il vraiment sans engagement ?</summary><p style="margin: 12px 0 0; font-size: 18px; line-height: 1.5; color: #4A5A56;">Oui. 10 jours avec toutes les fonctions, sans carte bancaire. Vous choisissez une formule seulement si vous continuez.</p></details>
+    <details style="background: #FFFFFF; border-radius: 20px; padding: 20px 24px;"><summary style="font-size: 20px; font-weight: 800; cursor: pointer;">Que deviennent mes données si j'arrête ?</summary><p style="margin: 12px 0 0; font-size: 18px; line-height: 1.5; color: #4A5A56;">Elles restent à vous : export complet à tout moment, jamais vendues.</p></details>
+  </section>
+
+  <!-- Appel final -->
+  <section id="essai" style="background: #0A3F37; color: #FFFFFF;">
+    <div style="max-width: 1000px; margin: 0 auto; padding: 88px 24px; display: flex; flex-direction: column; align-items: center; gap: 24px; text-align: center;">
+      <h2 style="margin: 0; font-size: 48px; line-height: 1.1; font-weight: 800;">Ce soir, sachez exactement combien vous avez gagné.</h2>
+      <p style="margin: 0; font-size: 20px; color: #D7EEE7;">Créez votre compte en 2 minutes. On vous aide à mettre vos articles.</p>
+      <form style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 640px;">
+        <label style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 6px; text-align: left;">
+          <span style="font-size: 16px; font-weight: 700; color: #BFE6DC;">Votre numéro WhatsApp</span>
+          <input type="tel" placeholder="77 000 00 00" style="height: 64px; border-radius: 18px; border: none; padding: 0 18px; font-size: 21px; color: #10201C;">
+        </label>
+        <button type="submit" style="align-self: flex-end; height: 64px; padding: 0 28px; border-radius: 18px; border: none; background: #34B89C; color: #04201A; font-size: 21px; font-weight: 800;">Commencer gratuitement</button>
+      </form>
+      <span style="font-size: 16px; color: #BFE6DC;">10 jours gratuits · Sans engagement · Aucune carte bancaire</span>
+      <a href="https://wa.me/221768645836" style="text-decoration: none; display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 22px; border-radius: 16px; border: 2px solid #5BE0B0; color: #FFFFFF; font-size: 18px; font-weight: 700;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"></path></svg>
+        Une question ? WhatsApp 76 864 58 36
+      </a>
+    </div>
+  </section>
+
+  <footer style="background: #062A25; color: #BFE6DC;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 32px 24px; display: flex; gap: 24px; flex-wrap: wrap; align-items: center; font-size: 16px;">
+      <span style="flex-grow: 1; font-weight: 800; color: #FFFFFF;">DIABA GESCOM</span>
+      <span>Vos données sauvegardées chaque jour, chiffrées, jamais vendues.</span>
+      <a href="#questions" style="color: #BFE6DC;">Questions</a>
+      <a href="#prix" style="color: #BFE6DC;">Prix</a>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":5920}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
