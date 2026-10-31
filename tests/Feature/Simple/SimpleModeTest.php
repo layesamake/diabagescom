@@ -33,13 +33,21 @@ class SimpleModeTest extends TestCase
         $this->actingAs($user)->get('/simple/composants')->assertNotFound();
     }
 
-    public function test_a_field_role_arrives_in_simple_mode_and_a_manager_in_expert_mode(): void
+    public function test_operational_roles_arrive_in_simple_mode_and_the_accountant_stays_in_expert_mode(): void
     {
-        ['user' => $vendeur] = $this->createTenantWithMember('cashier');
         ['user' => $admin] = $this->createTenantWithMember('admin');
+        ['user' => $vendeur] = $this->createTenantWithMember('cashier');
+        ['user' => $gestionnaire] = $this->createTenantWithMember('warehouse_manager');
+        ['user' => $acheteur] = $this->createTenantWithMember('purchaser');
+        ['user' => $direction] = $this->createTenantWithMember('management');
+        ['user' => $comptable] = $this->createTenantWithMember('accountant');
 
+        $this->assertTrue($admin->memberships()->firstOrFail()->usesSimpleMode());
         $this->assertTrue($vendeur->memberships()->firstOrFail()->usesSimpleMode());
-        $this->assertFalse($admin->memberships()->firstOrFail()->usesSimpleMode());
+        $this->assertTrue($gestionnaire->memberships()->firstOrFail()->usesSimpleMode());
+        $this->assertTrue($acheteur->memberships()->firstOrFail()->usesSimpleMode());
+        $this->assertTrue($direction->memberships()->firstOrFail()->usesSimpleMode());
+        $this->assertFalse($comptable->memberships()->firstOrFail()->usesSimpleMode());
     }
 
     public function test_switching_changes_the_mode_of_the_membership_only(): void
@@ -120,11 +128,11 @@ class SimpleModeTest extends TestCase
             ->assertInertia(fn ($page) => $page->component('simple/Demo'));
     }
 
-    public function test_the_dashboard_redirects_a_simple_membership_to_the_simple_home(): void
+    public function test_the_dashboard_redirects_a_new_administrator_to_the_simple_home(): void
     {
-        ['tenant' => $tenant, 'user' => $vendeur] = $this->createTenantWithMember('cashier');
+        ['tenant' => $tenant, 'user' => $admin] = $this->createTenantWithMember('admin');
 
-        $this->actingAs($vendeur)
+        $this->actingAs($admin)
             ->withSession([ResolveTenantContext::SESSION_TENANT => $tenant->id])
             ->get('/dashboard')
             ->assertRedirect('/simple');
