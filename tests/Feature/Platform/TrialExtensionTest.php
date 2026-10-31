@@ -5,6 +5,7 @@ namespace Tests\Feature\Platform;
 use App\Domain\Tenancy\TenantScope;
 use App\Models\Role;
 use App\Models\Subscription;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -27,7 +28,7 @@ class TrialExtensionTest extends TestCase
     }
 
     /**
-     * @param  array{tenant: \App\Models\Tenant}  $setup
+     * @param  array{tenant: Tenant}  $setup
      */
     private function subscriptionOf(array $setup): Subscription
     {
