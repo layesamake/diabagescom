@@ -9,9 +9,11 @@ L'erreur 500 **n'était pas causée par `tenantOf()`**, mais par une **validatio
 ## 🐛 Bug réel
 
 ### Fichier
+
 `app/Http/Controllers/Platform/TenantController.php`, ligne 310
 
 ### Code bugué
+
 ```php
 'days' => ['required_if:action,extend_trial', 'nullable', 'integer', 'min:1', 'max:60'],
                                              ^^^^^^^^
@@ -20,10 +22,12 @@ L'erreur 500 **n'était pas causée par `tenantOf()`**, mais par une **validatio
 ### Le problème
 
 La règle de validation inclut **`'nullable'`**, ce qui signifie :
+
 - ✅ Le champ peut être null
 - ✅ Mais il est aussi `required_if:action,extend_trial`
 
 **Conflit** : Quand `action = 'extend_trial'`:
+
 1. `days` est REQUIS
 2. Mais `'nullable'` le permet à `null`
 3. Validation **passe même si `days` est null** ❌
@@ -54,6 +58,7 @@ La règle de validation inclut **`'nullable'`**, ce qui signifie :
 ## ✅ Fix appliqué
 
 ### Changement
+
 **Ligne 310** : Supprimer `'nullable'`
 
 ```diff
@@ -64,6 +69,7 @@ La règle de validation inclut **`'nullable'`**, ce qui signifie :
 ### Résultat
 
 Maintenant quand `action = 'extend_trial'`:
+
 1. `days` est REQUIS (pas nullable)
 2. Si absent ou null → Erreur de validation 422 ✓
 3. Si présent → Doit être integer 1–60 ✓
@@ -73,27 +79,31 @@ Maintenant quand `action = 'extend_trial'`:
 
 ## 📊 Comparaison
 
-| Étape | Avant (Bugué) | Après (Correct) |
-|-------|---|---|
-| User envoie days=null | ✓ | ❌ Rejeté validation 422 |
-| Validation passe | ✓ Oui (bug) | ✓ Non (correct) |
-| Cast to int | (int) null = 0 | N/A |
-| extendTrial() | Reçoit 0 | Reçoit 1-60 |
-| Exception | Lancée → 500 | Pas d'exception |
-| Résultat utilisateur | Erreur 500 | Erreur 422 validation ou succès |
+| Étape                 | Avant (Bugué)  | Après (Correct)                 |
+| --------------------- | -------------- | ------------------------------- |
+| User envoie days=null | ✓              | ❌ Rejeté validation 422        |
+| Validation passe      | ✓ Oui (bug)    | ✓ Non (correct)                 |
+| Cast to int           | (int) null = 0 | N/A                             |
+| extendTrial()         | Reçoit 0       | Reçoit 1-60                     |
+| Exception             | Lancée → 500   | Pas d'exception                 |
+| Résultat utilisateur  | Erreur 500     | Erreur 422 validation ou succès |
 
 ---
 
 ## 🔍 Chronologie du débogage
 
 ### Hypothèse 1 (Fausse ❌)
+
 **"Le problème vient de `tenantOf()` qui lance une exception"**
+
 - Appliqué fix : cachage de `tenantOf()`
 - Résultat : Erreur 500 persiste
 - **Conclusion** : Ce n'était pas la cause
 
 ### Hypothèse 2 (Vraie ✅)
+
 **"La validation laisse passer `days=null`, ce qui provoque une exception dans `extendTrial()`"**
+
 - Analysé validation règles
 - Trouvé `'nullable'` incompatible avec `'required_if'`
 - Supprimé `'nullable'`
@@ -104,6 +114,7 @@ Maintenant quand `action = 'extend_trial'`:
 ## 📝 Commits appliqués
 
 ### Commit 1 : Fix initial (incorrect)
+
 ```
 33b0b4a fix(billing): resolve race condition in trial extension
 - Cachage de tenantOf() ✓ (bonne optimisation)
@@ -111,6 +122,7 @@ Maintenant quand `action = 'extend_trial'`:
 ```
 
 ### Commit 2 : Fix vrai (correct) 🎯
+
 ```
 c70045d fix(validation): remove nullable from required_if days field
 - Suppression de 'nullable' de la règle 'days' ✓
@@ -123,18 +135,22 @@ c70045d fix(validation): remove nullable from required_if days field
 ## 🧪 Validation
 
 ### Test 1 : Envoyer days=null (vieux bug)
+
 **Avant** : Passe validation → Exception 500  
 **Après** : Rejette validation → Erreur 422 ✓
 
 ### Test 2 : Envoyer days=0 (vieux bug)
+
 **Avant** : Passe validation → Exception 500  
 **Après** : Rejette validation (min:1) → Erreur 422 ✓
 
 ### Test 3 : Envoyer days=14 (normal)
+
 **Avant** : Valide → Exception non-liée possible  
 **Après** : Valide → Succès ✓
 
 ### Test 4 : Envoyer days=61 (overflow)
+
 **Avant** : Rejette validation (max:60) → Erreur 422  
 **Après** : Rejette validation (max:60) → Erreur 422 ✓
 
@@ -162,10 +178,10 @@ Mais avec le fix de validation, c'est maintenant prévenu à la source.
 
 ## 📋 Fichiers modifiés
 
-| Fichier | Ligne | Changement |
-|---------|-------|-----------|
-| `TenantController.php` | 310 | Suppression `'nullable'` |
-| `TRIAL_EXTENSION_DIAGNOSTIC.md` | Nouveau | Diagnostic complet |
+| Fichier                         | Ligne   | Changement               |
+| ------------------------------- | ------- | ------------------------ |
+| `TenantController.php`          | 310     | Suppression `'nullable'` |
+| `TRIAL_EXTENSION_DIAGNOSTIC.md` | Nouveau | Diagnostic complet       |
 
 ---
 
@@ -173,7 +189,7 @@ Mais avec le fix de validation, c'est maintenant prévenu à la source.
 
 **Commit** : `c70045d`  
 **Branch** : main  
-**Ready** : ✅ Oui  
+**Ready** : ✅ Oui
 
 ```bash
 # Commandes pour production
@@ -189,10 +205,10 @@ grep -n "required_if:action,extend_trial" app/Http/Controllers/Platform/TenantCo
 
 ## 📊 Résumé des bugs trouvés
 
-| Bug # | Fichier | Ligne | Severity | Status |
-|-------|---------|-------|----------|--------|
-| **Bug 1** | SubscriptionLifecycle.php | 294, 296 | Medium | ✅ Fixé (cachage) |
-| **Bug 2** | TenantController.php | 310 | **HIGH** | ✅ Fixé (nullable supprimé) |
+| Bug #     | Fichier                   | Ligne    | Severity | Status                      |
+| --------- | ------------------------- | -------- | -------- | --------------------------- |
+| **Bug 1** | SubscriptionLifecycle.php | 294, 296 | Medium   | ✅ Fixé (cachage)           |
+| **Bug 2** | TenantController.php      | 310      | **HIGH** | ✅ Fixé (nullable supprimé) |
 
 **Bug 2 est le vrai responsable de l'erreur 500.**
 

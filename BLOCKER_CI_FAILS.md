@@ -5,6 +5,7 @@
 **Tous les workflows de déploiement ÉCHOUENT** à l'étape "Install PHP dependencies (locked)".
 
 Cela signifie que :
+
 - ✅ Nos fixes de code sont bons
 - ✅ Les commits sont poussés vers GitHub
 - ❌ **Le workflow CI/CD échoue** avant même de builder les images Docker
@@ -19,6 +20,7 @@ L'étape échouante : `"Install PHP dependencies (locked)"`
 Cela signifie que `composer install --no-dev --no-scripts` échoue dans le CI.
 
 **Raisons possibles** :
+
 1. ✅ `composer.lock` est compatible
 2. ❌ Mais le `composer.json` que nous avons modifié est incompatible
 3. ❌ Ou une dépendance a un conflit de version
@@ -53,24 +55,6 @@ composer install --no-dev --no-scripts
 # Cherche les erreurs
 # Si erreur : composer update --lock --no-dev --no-scripts
 ```
-
-### Option 3 : Vérifier la dépendance diagnost
-
-Le problème pourrait venir de l'ajout de `DiagnosticController.php` qui ajoute une référence `use` à un service qui n'existe pas.
-
-Vérifie le fichier :
-
-```php
-// File: app/Http/Controllers/DiagnosticController.php
-// Ligne 6-8
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-
-// Chèque si ces namespaces existent vraiment
-// Sinon : supprimer les use inutilisées
-```
-
----
 
 ## Actions immédiates
 
@@ -114,12 +98,14 @@ docker compose exec app composer install --no-dev --no-scripts
 ## Pourquoi c'est important
 
 **Sans** que le CI passe :
+
 - ❌ Pas d'images Docker buildées
 - ❌ Pas de déploiement possible
 - ❌ Les fixes restent en local/GitHub mais pas en production
 - ❌ L'erreur 500 persiste en production
 
 **Avec** le CI qui passe :
+
 - ✅ Images Docker buildées
 - ✅ Déploiement automatique sur dev.diaba.cloud
 - ✅ Puis déploiement manuel sur production
@@ -130,14 +116,14 @@ docker compose exec app composer install --no-dev --no-scripts
 
 ## Statut
 
-| Étape | Status |
-|-------|--------|
-| Code fixes | ✅ Complet |
-| Commits poussés | ✅ OK |
-| Tests CI | ❌ ÉCHOUENT (Install PHP) |
-| Docker build | ⏸️ En attente tests |
-| Deploy dev | ⏸️ En attente build |
-| Deploy prod | ⏸️ En attente dev |
+| Étape           | Status                    |
+| --------------- | ------------------------- |
+| Code fixes      | ✅ Complet                |
+| Commits poussés | ✅ OK                     |
+| Tests CI        | ❌ ÉCHOUENT (Install PHP) |
+| Docker build    | ⏸️ En attente tests       |
+| Deploy dev      | ⏸️ En attente build       |
+| Deploy prod     | ⏸️ En attente dev         |
 
 **BLOCKER** : Étape "Install PHP dependencies" échoue
 

@@ -1,6 +1,7 @@
 # 🔑 Impossible d'accéder au serveur SSH — Solutions alternatives
 
 ## Problème
+
 ```
 ssh root@diaba.cloud
 → Permission denied (publickey)
@@ -50,9 +51,9 @@ gh workflow run deploy.yml -F environment=production
 3. Onglet : **File Manager** ou **Terminal**
 4. Navigue vers : `/opt/diaba/prod/` (ou `/root/diaba/prod/`)
 5. Édite `.env` :
-   ```
-   DIABA_SIMPLE_MODE=true
-   ```
+    ```
+    DIABA_SIMPLE_MODE=true
+    ```
 6. Sauvegarde
 7. Terminal : `docker compose restart app`
 8. Teste : `curl https://diaba.cloud/simple -I`
@@ -62,6 +63,7 @@ gh workflow run deploy.yml -F environment=production
 ### ✅ Option 3 : Contacte Étienne directement
 
 **Message** :
+
 > « Le serveur production ne répond pas en SSH. Peux-tu activer DIABA_SIMPLE_MODE=true dans /opt/diaba/prod/.env et redémarrer l'app ? »
 
 ---
@@ -121,12 +123,12 @@ curl https://diaba.cloud/simple -I
 
 ## Résumé
 
-| Méthode | Temps | Complexité | Recommandé |
-|---------|-------|-----------|-----------|
-| GitHub Actions (workflow) | 10 min | Facile | ✅ **OUI** |
-| Hostinger Panel | 5 min | Moyen | ✅ **OUI** |
-| SSH (clé config) | 30 min | Complexe | ❌ Non |
-| Contact Étienne | ? | Facile | ⚠️ En attente |
+| Méthode                   | Temps  | Complexité | Recommandé    |
+| ------------------------- | ------ | ---------- | ------------- |
+| GitHub Actions (workflow) | 10 min | Facile     | ✅ **OUI**    |
+| Hostinger Panel           | 5 min  | Moyen      | ✅ **OUI**    |
+| SSH (clé config)          | 30 min | Complexe   | ❌ Non        |
+| Contact Étienne           | ?      | Facile     | ⚠️ En attente |
 
 **Je recommande : GitHub Actions ou Hostinger Panel.**
 

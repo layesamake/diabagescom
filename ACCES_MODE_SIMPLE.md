@@ -5,16 +5,19 @@
 ### 1️⃣ **URL directe (la plus rapide)**
 
 Accès direct à l'accueil du mode simple :
+
 ```
 https://diaba.cloud/simple
 ```
 
 Ou sur dev :
+
 ```
 https://dev.diaba.cloud/simple
 ```
 
 **Écrans du mode simple** :
+
 - `/simple` — Accueil
 - `/simple/vendre` — Vendre
 - `/simple/caisse` — Caisse
@@ -32,15 +35,17 @@ https://dev.diaba.cloud/simple
 ### 2️⃣ **Via le menu (si tu es connecté)**
 
 **Pour un vendeur** :
+
 - ✅ Arrive **directement en mode simple** (Accueil mode simple)
 - ✅ Menu gauche : tuiles Vendre, Caisse, Stock, Clients, etc.
 - ✅ Barre bas (mobile) : 5 onglets (Accueil, Ventes, Vendre, Stock, Plus)
 
 **Pour un administrateur** :
+
 - ✅ Arrive en **mode expert** par défaut (Tableau de bord standard)
 - ✅ Cherche le bouton « Mode simple » ou « Bascule » dans :
-  - Menu Paramètres › Affichage
-  - Ou bouton dédié dans l'en-tête
+    - Menu Paramètres › Affichage
+    - Ou bouton dédié dans l'en-tête
 - ✅ Clique : bascule vers mode simple
 - ✅ Pour revenir au mode expert : même bouton
 
@@ -49,6 +54,7 @@ https://dev.diaba.cloud/simple
 ### 3️⃣ **Via la bascule simple/expert (dans l'app)**
 
 Une fois connecté en mode simple :
+
 - Cherche le bouton « Basculer vers mode expert » (ou icône ⚙️)
 - Clique : change le mode
 - **La session est conservée** (tu restes connecté)
@@ -58,6 +64,7 @@ Une fois connecté en mode simple :
 ## 🔍 Où voir le bouton de bascule ?
 
 ### Dans le code (SimpleModeController)
+
 ```php
 // Route POST pour basculer
 POST /mode
@@ -65,6 +72,7 @@ POST /mode
 ```
 
 ### Dans l'interface (à chercher)
+
 - **En-tête** : bouton ou menu déroulant
 - **Paramètres** : section "Affichage" ou "Mode de travail"
 - **Menu utilisateur** : profil/compte
@@ -73,12 +81,12 @@ POST /mode
 
 ## 💡 Rôles et modes par défaut
 
-| Rôle | Mode par défaut | Peut basculer ? |
-|-----|---|---|
-| **Vendeur** | Mode simple | ✅ Oui (vers expert si besoin) |
-| **Gestionnaire stock** | Mode simple | ✅ Oui |
-| **Administrateur** | Mode expert | ✅ Oui (vers simple) |
-| **Comptable** | Mode expert | ❌ Non (pas accès mode simple) |
+| Rôle                   | Mode par défaut | Peut basculer ?                |
+| ---------------------- | --------------- | ------------------------------ |
+| **Vendeur**            | Mode simple     | ✅ Oui (vers expert si besoin) |
+| **Gestionnaire stock** | Mode simple     | ✅ Oui                         |
+| **Administrateur**     | Mode expert     | ✅ Oui (vers simple)           |
+| **Comptable**          | Mode expert     | ❌ Non (pas accès mode simple) |
 
 ---
 
@@ -86,11 +94,11 @@ POST /mode
 
 - Même interface que desktop
 - Barre fixe **en bas** avec 5 onglets :
-  1. 🏠 Accueil
-  2. 📊 Mes ventes
-  3. 🛒 Vendre (bouton central surélevé)
-  4. 📦 Stock
-  5. ➕ Plus (menu caché)
+    1. 🏠 Accueil
+    2. 📊 Mes ventes
+    3. 🛒 Vendre (bouton central surélevé)
+    4. 📦 Stock
+    5. ➕ Plus (menu caché)
 - Pas de défilement horizontal
 - Tous les boutons ≥ 48 px
 
@@ -101,15 +109,16 @@ POST /mode
 1. ✅ **Être connecté** (`/login` ou `/register`)
 2. ✅ **Avoir une entreprise** (créée lors de l'onboarding)
 3. ✅ **Avoir le rôle "Vendeur" ou "Gestionnaire stock" ou "Administrateur"**
-   - Comptables n'ont pas accès
+    - Comptables n'ont pas accès
 4. ✅ **`DIABA_SIMPLE_MODE=true`** activé sur le serveur
-   - Sinon : pages `/simple` retournent 404
+    - Sinon : pages `/simple` retournent 404
 
 ---
 
 ## ✅ Vérification : est-ce que c'est activé ?
 
 ### Test 1 : URL directe
+
 ```bash
 curl https://dev.diaba.cloud/simple -I
 # Si activé → 200 OK
@@ -117,6 +126,7 @@ curl https://dev.diaba.cloud/simple -I
 ```
 
 ### Test 2 : Logs config
+
 ```bash
 # Sur le serveur
 grep DIABA_SIMPLE_MODE /opt/diaba/dev/.env
@@ -124,6 +134,7 @@ grep DIABA_SIMPLE_MODE /opt/diaba/dev/.env
 ```
 
 ### Test 3 : Depuis l'app
+
 - Connecte-toi
 - Cherche bouton "Mode simple" ou accès `/simple`
 - S'il y a un bouton → activé ✓
@@ -134,6 +145,7 @@ grep DIABA_SIMPLE_MODE /opt/diaba/dev/.env
 ## 🚀 Cas d'usage
 
 ### Je suis un vendeur
+
 ```
 1. Vais sur https://diaba.cloud
 2. Connecte-moi (login)
@@ -143,6 +155,7 @@ grep DIABA_SIMPLE_MODE /opt/diaba/dev/.env
 ```
 
 ### Je suis un administrateur
+
 ```
 1. Vais sur https://diaba.cloud
 2. Connecte-moi (login)
@@ -154,6 +167,7 @@ grep DIABA_SIMPLE_MODE /opt/diaba/dev/.env
 ```
 
 ### Je teste en tant que commerçant
+
 ```
 1. Crée un compte (https://diaba.cloud/register)
 2. Remplis la fiche entreprise (Premiers pas)
@@ -183,41 +197,43 @@ grep DIABA_SIMPLE_MODE /opt/diaba/dev/.env
 
 ## 🔗 URLs clés
 
-| Page | URL | Notes |
-|-----|-----|-------|
-| **Accueil simple** | `/simple` | Landing mode simple |
-| **Vendre** | `/simple/vendre` | Panier + paiement |
-| **Caisse** | `/simple/caisse` | Ouverture, comptage, fermeture |
-| **Mes ventes** | `/simple/ventes` | Jour choisi + détails |
-| **Clients** | `/simple/clients` | Dettes, fiche, paiements |
-| **Stock** | `/simple/stock` | Jauge 3 états, + et − |
-| **Achats** | `/simple/achats` | Commandes, réception |
-| **Articles** | `/simple/articles/nouveau` | Création avec photo + voix |
-| **Résultats** | `/simple/resultats` | Mois, semaine, année |
-| **Guide** | `/simple/guide` | 11 étapes (audio à étape 2) |
-| **Voix** | `/simple/voix` | Enregistrement messages |
+| Page               | URL                        | Notes                          |
+| ------------------ | -------------------------- | ------------------------------ |
+| **Accueil simple** | `/simple`                  | Landing mode simple            |
+| **Vendre**         | `/simple/vendre`           | Panier + paiement              |
+| **Caisse**         | `/simple/caisse`           | Ouverture, comptage, fermeture |
+| **Mes ventes**     | `/simple/ventes`           | Jour choisi + détails          |
+| **Clients**        | `/simple/clients`          | Dettes, fiche, paiements       |
+| **Stock**          | `/simple/stock`            | Jauge 3 états, + et −          |
+| **Achats**         | `/simple/achats`           | Commandes, réception           |
+| **Articles**       | `/simple/articles/nouveau` | Création avec photo + voix     |
+| **Résultats**      | `/simple/resultats`        | Mois, semaine, année           |
+| **Guide**          | `/simple/guide`            | 11 étapes (audio à étape 2)    |
+| **Voix**           | `/simple/voix`             | Enregistrement messages        |
 
 ---
 
 ## Cas d'erreur courants
 
-| Erreur | Cause | Solution |
-|--------|-------|----------|
-| 404 sur `/simple` | `DIABA_SIMPLE_MODE=false` | Activer le flag en `.env` |
-| Pas de bouton bascule | Admin en mode expert, pas de toggle visible | Chercher dans Settings › Affichage |
-| Arrive en mode expert | Admin, mode par défaut | Cherche bouton "Mode simple" |
-| Comptable voit `/simple` 404 | Comptables n'ont pas accès | Assigner un autre rôle ou créer un utilisateur vendeur |
+| Erreur                       | Cause                                       | Solution                                               |
+| ---------------------------- | ------------------------------------------- | ------------------------------------------------------ |
+| 404 sur `/simple`            | `DIABA_SIMPLE_MODE=false`                   | Activer le flag en `.env`                              |
+| Pas de bouton bascule        | Admin en mode expert, pas de toggle visible | Chercher dans Settings › Affichage                     |
+| Arrive en mode expert        | Admin, mode par défaut                      | Cherche bouton "Mode simple"                           |
+| Comptable voit `/simple` 404 | Comptables n'ont pas accès                  | Assigner un autre rôle ou créer un utilisateur vendeur |
 
 ---
 
 ## 🎯 Summary
 
 **Pour accéder au mode simple :**
+
 1. **URL directe** : `https://diaba.cloud/simple`
 2. **Menu connecté** : cherche "Mode simple" ou bouton bascule
 3. **Par défaut** : vendeurs arrivent en simple, admins peuvent basculer
 
 **Prérequis** :
+
 - ✅ Connecté
 - ✅ Entreprise créée
 - ✅ Rôle vendeur/stock/admin

@@ -26,6 +26,7 @@ GET https://diaba.cloud/simple
 ### Pour que ça marche maintenant, il faut :
 
 **Cas 1 : Accès SSH au serveur production**
+
 ```bash
 # Sur le serveur diaba.cloud
 ssh user@diaba.cloud
@@ -49,6 +50,7 @@ curl https://diaba.cloud/simple -I
 ---
 
 **Cas 2 : Via le gestionnaire de secrets (Kubernetes/Helm)**
+
 ```bash
 # Si le serveur utilise des secrets Kubernetes
 kubectl set env deployment/diaba-app \
@@ -65,13 +67,16 @@ kubectl rollout restart deployment/diaba-app
 ---
 
 **Cas 3 : Via GitHub Actions (workflow_dispatch)**
+
 ```bash
 # Déclenche un redéploiement avec la variable
 gh workflow run deploy.yml \
   -F environment=production \
   -f DIABA_SIMPLE_MODE=true
 ```
+
 ⚠️ Mais ça va chercher la valeur dans `.env` (locale), donc faut d'abord :
+
 ```bash
 echo "DIABA_SIMPLE_MODE=true" >> .env
 git add .env.example
@@ -84,12 +89,14 @@ git push origin main
 ## Vérification du statut
 
 ### Sur **dev.diaba.cloud**
+
 ```bash
 curl https://dev.diaba.cloud/simple -I
 # Output: 200 OK ✓ (dev est à jour)
 ```
 
 ### Sur **diaba.cloud** (production)
+
 ```bash
 curl https://diaba.cloud/simple -I
 # Output: 404 Not Found ✗ (production n'est pas à jour)
@@ -128,12 +135,12 @@ curl -s https://diaba.cloud/api/config | grep simple_mode
 
 ## Statut actuel
 
-| Environnement | DIABA_SIMPLE_MODE | État | Action |
-|---|---|---|---|
-| `.env.example` | ✅ true | Modèle OK | Aucune |
-| **localhost** | ❓ À mettre à jour | Local seulement | `cp .env.example .env` + edit |
-| **dev.diaba.cloud** | ✅ true (probablement) | À vérifier | Tester : curl `.../simple` |
-| **diaba.cloud** | ❌ false (par défaut) | **BLOQUANT** | **À activer NOW** |
+| Environnement       | DIABA_SIMPLE_MODE      | État            | Action                        |
+| ------------------- | ---------------------- | --------------- | ----------------------------- |
+| `.env.example`      | ✅ true                | Modèle OK       | Aucune                        |
+| **localhost**       | ❓ À mettre à jour     | Local seulement | `cp .env.example .env` + edit |
+| **dev.diaba.cloud** | ✅ true (probablement) | À vérifier      | Tester : curl `.../simple`    |
+| **diaba.cloud**     | ❌ false (par défaut)  | **BLOQUANT**    | **À activer NOW**             |
 
 ---
 

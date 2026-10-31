@@ -32,6 +32,7 @@ private function tenantOf(Subscription $subscription): Tenant
 ```
 
 **Scenarios d'erreur** :
+
 1. **Tenant supprimé** : Entre l'appel 1 et 2, le tenant est supprimé → `ModelNotFoundException` → 500
 2. **Contexte invalide** : Contexte tenant change entre les appels
 3. **Race condition** : Comportement imprévisible en production sous charge
@@ -51,6 +52,7 @@ $this->access->forget($tenant);
 ```
 
 **Avantages** :
+
 - ✅ Une seule requête DB au lieu de deux
 - ✅ Élimine la race condition
 - ✅ Améliore la performance
@@ -61,6 +63,7 @@ $this->access->forget($tenant);
 ## 📝 Commits appliqués
 
 ### 1. Fix principal
+
 ```
 commit 33b0b4a
 fix(billing): resolve race condition in trial extension
@@ -75,6 +78,7 @@ Affected:
 ```
 
 ### 2. Tests complets
+
 ```
 commit 33b0b4a
 Fichier : tests/Feature/Platform/TrialExtensionTest.php
@@ -88,6 +92,7 @@ Tests ajoutés :
 ```
 
 ### 3. Documentation
+
 ```
 Fichier : BUG_500_EXTEND_TRIAL.md
 
@@ -104,7 +109,9 @@ Contenu :
 ## 🧪 Validation
 
 ### Tests unitaires
+
 5 tests créés et validant :
+
 ```
 ✓ Prolongation d'essai réussit
 ✓ Validation min/max jours (1-60)
@@ -114,6 +121,7 @@ Contenu :
 ```
 
 ### Couverture
+
 - ✅ Happy path (prolongation valide)
 - ✅ Validation côté frontend
 - ✅ Validation côté backend
@@ -124,14 +132,14 @@ Contenu :
 
 ## 📊 Impact
 
-| Aspect | Avant | Après |
-|--------|-------|-------|
-| **Erreur 500** | ❌ Oui | ✅ Non |
-| **Requêtes DB** | 2 x tenantOf() | 1 x tenantOf() |
-| **Race condition** | ❌ Présente | ✅ Éliminée |
-| **Audit logging** | ✅ Fonctionne | ✅ Améliioré |
-| **Performance** | 2 x lookup | 1 x lookup |
-| **Tests** | 0 | 5 tests |
+| Aspect             | Avant          | Après          |
+| ------------------ | -------------- | -------------- |
+| **Erreur 500**     | ❌ Oui         | ✅ Non         |
+| **Requêtes DB**    | 2 x tenantOf() | 1 x tenantOf() |
+| **Race condition** | ❌ Présente    | ✅ Éliminée    |
+| **Audit logging**  | ✅ Fonctionne  | ✅ Améliioré   |
+| **Performance**    | 2 x lookup     | 1 x lookup     |
+| **Tests**          | 0              | 5 tests        |
 
 ---
 
@@ -140,24 +148,26 @@ Contenu :
 ### Pour mettre en production
 
 1. **Merge vers main** ✅
-   ```bash
-   Commits :
-   - 33b0b4a fix(billing): resolve race condition in trial extension
-   - 3ff9547 test: fix trial extension tests using proper Plan lookup
-   ```
+
+    ```bash
+    Commits :
+    - 33b0b4a fix(billing): resolve race condition in trial extension
+    - 3ff9547 test: fix trial extension tests using proper Plan lookup
+    ```
 
 2. **Lancer GitHub Actions** (déploiement auto)
-   ```
-   URL : https://github.com/layesamake/diabagescom/actions
-   Workflow : deploy.yml
-   Environment : production
-   ```
+
+    ```
+    URL : https://github.com/layesamake/diabagescom/actions
+    Workflow : deploy.yml
+    Environment : production
+    ```
 
 3. **Vérifier le déploiement**
-   ```bash
-   curl https://diaba.cloud/platform/tenants/{id}
-   # Vérifier que prolongation d'essai fonctionne
-   ```
+    ```bash
+    curl https://diaba.cloud/platform/tenants/{id}
+    # Vérifier que prolongation d'essai fonctionne
+    ```
 
 ### Test manuel en production
 
@@ -166,8 +176,8 @@ Contenu :
 3. Clique sur l'onglet "Souscription"
 4. Clique sur "Prolonger l'essai"
 5. Remplis :
-   - **Jours** : 14
-   - **Raison** : "Client request"
+    - **Jours** : 14
+    - **Raison** : "Client request"
 6. Clique "Appliquer"
 7. ✅ Doit rediriger sans erreur 500
 8. ✅ `trial_ends_at` augmenté de 14 jours
@@ -177,11 +187,11 @@ Contenu :
 
 ## 📋 Fichiers modifiés
 
-| Fichier | Changement | Type |
-|---------|-----------|------|
-| `app/Domain/Subscriptions/SubscriptionLifecycle.php` | Ligne 289-290 : Cachage du tenant | Fix |
-| `tests/Feature/Platform/TrialExtensionTest.php` | Nouveau fichier | Test |
-| `BUG_500_EXTEND_TRIAL.md` | Nouveau fichier | Doc |
+| Fichier                                              | Changement                        | Type |
+| ---------------------------------------------------- | --------------------------------- | ---- |
+| `app/Domain/Subscriptions/SubscriptionLifecycle.php` | Ligne 289-290 : Cachage du tenant | Fix  |
+| `tests/Feature/Platform/TrialExtensionTest.php`      | Nouveau fichier                   | Test |
+| `BUG_500_EXTEND_TRIAL.md`                            | Nouveau fichier                   | Doc  |
 
 ---
 
@@ -197,20 +207,21 @@ Contenu :
 
 ## 📈 Résumé
 
-| Élément | Status |
-|--------|--------|
-| **Bug trouvé** | ✅ Race condition dans `tenantOf()` |
-| **Fix appliqué** | ✅ Cachage du tenant |
-| **Tests ajoutés** | ✅ 5 tests complets |
-| **Code committé** | ✅ main (33b0b4a + 3ff9547) |
-| **Prêt pour prod** | ✅ Oui |
-| **Vérification manuelle** | ⏳ À faire en production |
+| Élément                   | Status                              |
+| ------------------------- | ----------------------------------- |
+| **Bug trouvé**            | ✅ Race condition dans `tenantOf()` |
+| **Fix appliqué**          | ✅ Cachage du tenant                |
+| **Tests ajoutés**         | ✅ 5 tests complets                 |
+| **Code committé**         | ✅ main (33b0b4a + 3ff9547)         |
+| **Prêt pour prod**        | ✅ Oui                              |
+| **Vérification manuelle** | ⏳ À faire en production            |
 
 ---
 
 **Status** : 🟢 **READY FOR PRODUCTION**
 
 Le fix est :
+
 - ✅ Complet
 - ✅ Testé
 - ✅ Documenté
@@ -220,5 +231,5 @@ Le fix est :
 
 ---
 
-*Fix appliqué le 28 octobre 2026*  
-*Commits : 33b0b4a, 3ff9547*
+_Fix appliqué le 28 octobre 2026_
+_Commits : 33b0b4a, 3ff9547_

@@ -3,6 +3,7 @@
 ## Situation
 
 Le message d'erreur 500 persiste **après le déploiement** du fix :
+
 ```
 Le serveur n'a pas pu répondre (erreur 500).
 ```
@@ -14,11 +15,13 @@ Le fix a été appliqué et poussé vers `main`, mais la production n'a peut-êt
 ## Causes possibles
 
 ### 1️⃣ **Déploiement non effectué**
+
 - ❓ Le workflow GitHub Actions n'a pas terminé
 - ❓ Le déploiement s'est arrêté mi-chemin
 - ❓ Production exécute encore l'ancienne version
 
 **Vérification** :
+
 ```bash
 # Sur le serveur
 grep "Resolve tenant once" /var/www/html/app/Domain/Subscriptions/SubscriptionLifecycle.php
@@ -26,11 +29,13 @@ grep "Resolve tenant once" /var/www/html/app/Domain/Subscriptions/SubscriptionLi
 ```
 
 ### 2️⃣ **Cache Laravel non vidé**
+
 - ❓ Les fichiers PHP sont à jour, mais le cache bootstrap persiste
 - ❓ Le cache de configuration n'a pas été rafraîchi
 - ❓ OPcache serveur a gardé l'ancienne version
 
 **Vérification** :
+
 ```bash
 # Sur le serveur
 docker compose exec app php artisan cache:clear
@@ -39,6 +44,7 @@ docker compose restart app
 ```
 
 ### 3️⃣ **Autre cause non identifiée**
+
 - ❓ L'erreur 500 vient d'ailleurs
 - ❓ `tenantOf()` n'est pas l'unique cause
 - ❓ Plusieurs bugs imbriqués
@@ -104,26 +110,32 @@ curl -X POST https://diaba.cloud/platform/tenants/{id}/subscriptions/update \
 ## Actions recommandées (par ordre de probabilité)
 
 ### 🔴 **URGENT — Probable (90%)**
+
 **Cause** : Déploiement incomplet ou cache non vidé
 
 **Actions** :
+
 1. Vérifier que `33b0b4a` est en production
 2. Vider le cache Laravel
 3. Redémarrer l'app
 4. Tester
 
 ### 🟡 **Probable (50%)**
+
 **Cause** : Erreur différente (pas `tenantOf()`)
 
 **Actions** :
+
 1. Lire les logs complets
 2. Identifier l'exception exacte
 3. Relancer le débogage avec nouvelle cause
 
 ### 🟢 **Peu probable (10%)**
+
 **Cause** : Plusieurs bugs imbriqués
 
 **Actions** :
+
 1. Contacter Étienne pour accès SSH
 2. Analyser les logs live
 3. Debugger en production directement
@@ -177,12 +189,14 @@ curl https://diaba.cloud/health
 ## Si aucune de ces actions ne fonctionne
 
 **Prochaine étape** : Contacter **Étienne** pour :
+
 1. Accès SSH au serveur production
 2. Logs complets de l'erreur 500
 3. État du déploiement (en cours, terminé, échoué)
 4. Configuration du serveur (cache, OPcache, etc.)
 
 **Questions à poser à Étienne** :
+
 - « Le workflow GitHub Actions a-t-il terminé ? »
 - « Quel commit est actuellement en production ? »
 - « Y a-t-il des logs d'erreur pour l'action extend_trial ? »

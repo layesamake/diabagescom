@@ -22,21 +22,22 @@
 
 ## 📋 À vérifier / ajuster
 
-| Point | Cahier des charges | État | Action |
-|-------|---|---|---|
-| **Barre du bas (mobile)** | « Essayer » + WhatsApp fixe en bas | ❓ TBD | Ajouter si manquant |
-| **Bouton « Voir une vente en 30 s » ** | Après héro (vidéo démo) | ❌ Retiré (no video) | Garder retiré |
-| **Bloc témoignage vidéo** | Avant « Prix » | ❌ Retiré (no testimonial) | Garder retiré |
-| **Images compressées** | WebP, < 3s chargement 3G | ❓ TBD | Valider après déploiement |
-| **WhatsApp** | +221 76 864 58 36 | ✅ Config ok | Vérifier en `.env` |
-| **Lien d'inscr** | « Essayer gratuitement » → `/register` | ✅ Fait | Tester le flux |
-| **Renvoi formulaire** | Capture numéro WhatsApp → envoi via WhatsApp API | ✅ Fait | Tester submission |
+| Point                                  | Cahier des charges                               | État                       | Action                    |
+| -------------------------------------- | ------------------------------------------------ | -------------------------- | ------------------------- |
+| **Barre du bas (mobile)**              | « Essayer » + WhatsApp fixe en bas               | ❓ TBD                     | Ajouter si manquant       |
+| **Bouton « Voir une vente en 30 s » ** | Après héro (vidéo démo)                          | ❌ Retiré (no video)       | Garder retiré             |
+| **Bloc témoignage vidéo**              | Avant « Prix »                                   | ❌ Retiré (no testimonial) | Garder retiré             |
+| **Images compressées**                 | WebP, < 3s chargement 3G                         | ❓ TBD                     | Valider après déploiement |
+| **WhatsApp**                           | +221 76 864 58 36                                | ✅ Config ok               | Vérifier en `.env`        |
+| **Lien d'inscr**                       | « Essayer gratuitement » → `/register`           | ✅ Fait                    | Tester le flux            |
+| **Renvoi formulaire**                  | Capture numéro WhatsApp → envoi via WhatsApp API | ✅ Fait                    | Tester submission         |
 
 ---
 
 ## 🚀 Prochaines étapes
 
 ### 1. Valider les détails
+
 ```bash
 cd C:\Users\ADMIN\Documents\dev\diabagescom
 
@@ -48,6 +49,7 @@ grep "Route::get('/'," routes/web.php
 ```
 
 ### 2. Tester localement
+
 ```bash
 # Lancer Docker
 docker compose up -d
@@ -59,6 +61,7 @@ npm run dev
 ```
 
 ### 3. Vérifier sur mobile et ordinateur
+
 - Largeur : 360 px (téléphone)
 - Largeur : 1440 px (ordinateur)
 - **Pas de défilement horizontal**
@@ -67,17 +70,20 @@ npm run dev
 - Montants au format « 45 000 F »
 
 ### 4. Tester les formulaires
+
 - [ ] Clic « Essayer gratuitement » → redirect vers `/register`
 - [ ] Saisir numéro WhatsApp → envoi via WhatsApp Web
 - [ ] Lien WhatsApp bas de page → `https://wa.me/221768645836`
 
 ### 5. Vérifier les images
+
 - [ ] Logo DIABA GESCOM visible
 - [ ] Illustration téléphone + articles
 - [ ] Icônes Lucide (CheckCircle, ShoppingCart, Speaker…)
 - [ ] Couleurs exactes (tokens)
 
 ### 6. Merger et tester sur dev
+
 ```bash
 git add resources/js/pages/Welcome.vue
 git commit -m "feat(landing): align Welcome.vue with cahier des charges"
@@ -107,15 +113,15 @@ git push origin main
 
 ## 📸 Ressources
 
-| Ressource | Chemin |
-|---|---|
-| **Cahier des charges landing** | `docs/interface simplifiee/04-landing-page.md` |
-| **Maquette ordinateur** | `docs/interface simplifiee/maquettes-html/LandingOrdinateur.html` |
-| **Maquette téléphone** | `docs/interface simplifiee/maquettes-html/LandingTelephone.html` |
-| **Tokens design** | `docs/interface simplifiee/design/tokens.{css,json}` |
-| **Welcome.vue** | `resources/js/pages/Welcome.vue` |
-| **WelcomeController** | `app/Http/Controllers/Marketing/WelcomeController.php` |
-| **Route** | `routes/web.php` (ligne ~63) |
+| Ressource                      | Chemin                                                            |
+| ------------------------------ | ----------------------------------------------------------------- |
+| **Cahier des charges landing** | `docs/interface simplifiee/04-landing-page.md`                    |
+| **Maquette ordinateur**        | `docs/interface simplifiee/maquettes-html/LandingOrdinateur.html` |
+| **Maquette téléphone**         | `docs/interface simplifiee/maquettes-html/LandingTelephone.html`  |
+| **Tokens design**              | `docs/interface simplifiee/design/tokens.{css,json}`              |
+| **Welcome.vue**                | `resources/js/pages/Welcome.vue`                                  |
+| **WelcomeController**          | `app/Http/Controllers/Marketing/WelcomeController.php`            |
+| **Route**                      | `routes/web.php` (ligne ~63)                                      |
 
 ---
 
@@ -152,6 +158,6 @@ git push origin feat/landing-integration
 ✅ Vidéo 30s = retirer jusqu'à disponibilité  
 ✅ WhatsApp = +221 76 864 58 36  
 ✅ Domaine = diaba.cloud  
-✅ Test sur dev.diaba.cloud (Docker local) avant production  
+✅ Test sur dev.diaba.cloud (Docker local) avant production
 
 **Blocker** : aucun. Page est prête pour test local.

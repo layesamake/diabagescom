@@ -10,15 +10,15 @@
 
 Le mode simple est **en cours de déploiement avancé** : 6 lots sur 7 proposés sont implémentés et testés ; le dernier (tests terrain) est prévu.
 
-| Lot | Nom | Cahier des charges | État | Commits | En ligne |
-|-----|-----|---|---|---|---|
-| 1 | Fondations | Sec. 1 | ✅ Fait | 1–5 | dev.diaba.cloud |
-| 2 | Journée de vente | Sec. 2 | ✅ Fait | 6–15 | dev.diaba.cloud |
-| 3 | Accueil & Mes ventes | Sec. 3 | ✅ Fait | 16–20 | dev.diaba.cloud |
-| 4 | Audio (phrases + guide 2) | Sec. 4 | ✅ Fait | 21–35 | dev.diaba.cloud |
-| 5 | Stock, Clients, Articles | Sec. 5 | ✅ Fait | 36–50 | dev.diaba.cloud |
-| 6 | Achats, Résultats, Guide complet | Sec. 6 | ✅ Fait | 51–66 | dev.diaba.cloud |
-| 7 | Test terrain (Thiès) | — | ⏳ Planifié | — | — |
+| Lot | Nom                              | Cahier des charges | État        | Commits | En ligne        |
+| --- | -------------------------------- | ------------------ | ----------- | ------- | --------------- |
+| 1   | Fondations                       | Sec. 1             | ✅ Fait     | 1–5     | dev.diaba.cloud |
+| 2   | Journée de vente                 | Sec. 2             | ✅ Fait     | 6–15    | dev.diaba.cloud |
+| 3   | Accueil & Mes ventes             | Sec. 3             | ✅ Fait     | 16–20   | dev.diaba.cloud |
+| 4   | Audio (phrases + guide 2)        | Sec. 4             | ✅ Fait     | 21–35   | dev.diaba.cloud |
+| 5   | Stock, Clients, Articles         | Sec. 5             | ✅ Fait     | 36–50   | dev.diaba.cloud |
+| 6   | Achats, Résultats, Guide complet | Sec. 6             | ✅ Fait     | 51–66   | dev.diaba.cloud |
+| 7   | Test terrain (Thiès)             | —                  | ⏳ Planifié | —       | —               |
 
 ---
 
@@ -49,20 +49,20 @@ Tous les composants réutilisables du cahier des charges sont en place et testé
 
 ### Écrans principaux (tous sur téléphone + ordinateur)
 
-| Écran | Route | État | Image | Code |
-|-------|-------|------|-------|------|
-| Accueil | `/simple` | ✅ Fait | 01 | Accueil.vue |
-| Vendre | `/simple/vendre` | ✅ Fait | 02a–02d | Vendre.vue |
-| Mes ventes | `/simple/ventes` | ✅ Fait | 04a–04b | Ventes.vue |
-| Caisse | `/simple/caisse` | ✅ Fait | 06a–06d | Caisse.vue |
-| Stock | `/simple/stock` | ✅ Fait | 07a–07b | Stock.vue |
-| Clients | `/simple/clients` | ✅ Fait | 08a–08b | Clients.vue |
-| Clients (fiche) | — (modal) | ✅ Fait | — | Client.vue |
-| Ajouter article | `/simple/articles/nouveau` | ✅ Fait | 09 | NouvelArticle.vue |
-| Achats | `/simple/achats` | ✅ Fait | 10a–10c | (intégré à Accueil/menu) |
-| Mes résultats | `/simple/resultats` | ✅ Fait | 11 | (intégré à Accueil/menu) |
-| Premiers pas | `/simple/guide` | ✅ Fait | 03 | PremiersPas.vue |
-| Messages audio | `/simple/voix` | ✅ Fait | 05a–05c | Voix.vue |
+| Écran           | Route                      | État    | Image   | Code                     |
+| --------------- | -------------------------- | ------- | ------- | ------------------------ |
+| Accueil         | `/simple`                  | ✅ Fait | 01      | Accueil.vue              |
+| Vendre          | `/simple/vendre`           | ✅ Fait | 02a–02d | Vendre.vue               |
+| Mes ventes      | `/simple/ventes`           | ✅ Fait | 04a–04b | Ventes.vue               |
+| Caisse          | `/simple/caisse`           | ✅ Fait | 06a–06d | Caisse.vue               |
+| Stock           | `/simple/stock`            | ✅ Fait | 07a–07b | Stock.vue                |
+| Clients         | `/simple/clients`          | ✅ Fait | 08a–08b | Clients.vue              |
+| Clients (fiche) | — (modal)                  | ✅ Fait | —       | Client.vue               |
+| Ajouter article | `/simple/articles/nouveau` | ✅ Fait | 09      | NouvelArticle.vue        |
+| Achats          | `/simple/achats`           | ✅ Fait | 10a–10c | (intégré à Accueil/menu) |
+| Mes résultats   | `/simple/resultats`        | ✅ Fait | 11      | (intégré à Accueil/menu) |
+| Premiers pas    | `/simple/guide`            | ✅ Fait | 03      | PremiersPas.vue          |
+| Messages audio  | `/simple/voix`             | ✅ Fait | 05a–05c | Voix.vue                 |
 
 ### Pages manquantes ou non totalement implémentées
 
@@ -76,21 +76,21 @@ Tous les composants réutilisables du cahier des charges sont en place et testé
 
 ### État de l'implémentation
 
-| Groupe | Phrases | État | Code |
-|--------|---------|------|------|
-| Communs | 12 | ✅ Fait | Lecture au haut-parleur |
-| Chiffres & montants | 30 | ✅ Fait | Assemblage par langue (français complet, autres TBD) |
-| Accueil | 14 | ✅ Fait | Intégré à l'écran Accueil |
-| Vendre | 16 | ✅ Fait | Intégré à l'écran Vendre |
-| Caisse | 13 | ✅ Fait | Intégré à l'écran Caisse |
-| Clients & crédit | 11 | ✅ Fait | Intégré à l'écran Clients |
-| Stock | 9 | ✅ Fait | Intégré à l'écran Stock |
-| Mes ventes | 9 | ✅ Fait | Intégré à Mes ventes |
-| Ajouter article | 7 | ✅ Fait | Intégré à l'écran |
-| Achats | 9 | ✅ Fait | Intégré |
-| Mes résultats (Pilotage) | 9 | ✅ Fait | Intégré |
-| Premiers pas | 14 | ✅ Fait | 11 étapes, étape 2 est l'audio |
-| **Total** | **153** | ✅ Complet | **Voir ci-dessous** |
+| Groupe                   | Phrases | État       | Code                                                 |
+| ------------------------ | ------- | ---------- | ---------------------------------------------------- |
+| Communs                  | 12      | ✅ Fait    | Lecture au haut-parleur                              |
+| Chiffres & montants      | 30      | ✅ Fait    | Assemblage par langue (français complet, autres TBD) |
+| Accueil                  | 14      | ✅ Fait    | Intégré à l'écran Accueil                            |
+| Vendre                   | 16      | ✅ Fait    | Intégré à l'écran Vendre                             |
+| Caisse                   | 13      | ✅ Fait    | Intégré à l'écran Caisse                             |
+| Clients & crédit         | 11      | ✅ Fait    | Intégré à l'écran Clients                            |
+| Stock                    | 9       | ✅ Fait    | Intégré à l'écran Stock                              |
+| Mes ventes               | 9       | ✅ Fait    | Intégré à Mes ventes                                 |
+| Ajouter article          | 7       | ✅ Fait    | Intégré à l'écran                                    |
+| Achats                   | 9       | ✅ Fait    | Intégré                                              |
+| Mes résultats (Pilotage) | 9       | ✅ Fait    | Intégré                                              |
+| Premiers pas             | 14      | ✅ Fait    | 11 étapes, étape 2 est l'audio                       |
+| **Total**                | **153** | ✅ Complet | **Voir ci-dessous**                                  |
 
 ### Règle du haut-parleur
 
@@ -100,8 +100,8 @@ Tous les composants réutilisables du cahier des charges sont en place et testé
 
 - ✅ **Français** : module de nombres complet (CHF-01 à CHF-30)
 - ⚠️ **Autres langues** (wolof, pulaar, bambara, sérère, dioula, soninké, mandingue) : **règles des nombres TBD** avec l'administrateur avant enregistrement
-  - Exemple : wolof : 6 = juróom benn (« cinq-un »), 1 000 F = 200 dërëm
-  - Décision : parler en francs ou en unités locales ? **TBD**
+    - Exemple : wolof : 6 = juróom benn (« cinq-un »), 1 000 F = 200 dërëm
+    - Décision : parler en francs ou en unités locales ? **TBD**
 
 ### Enregistrement & stockage
 
@@ -164,12 +164,12 @@ Tous les composants réutilisables du cahier des charges sont en place et testé
 
 ### Permissions implémentées ✅
 
-| Rôle | Mode par défaut | Écrans visibles | Limite |
-|-----|---|---|---|
-| **Vendeur** | Simple | Accueil, Vendre, Mes ventes (siennes), Caisse, Clients (encaisser), Stock (lecture) | Pas de Pilotage, Comptabilité, Admin |
-| **Gestionnaire stock** | Simple | Accueil, Stock (+/−), Achats (recevoir), Ajouter article | Pas de Caisse, Comptabilité |
-| **Administrateur** | Expert (bascule possible) | Tous + Messages audio, annuler une vente, étapes 2 & 11 du guide | Tous les modes |
-| **Comptable** | Expert | Aucun (inchangé) | — |
+| Rôle                   | Mode par défaut           | Écrans visibles                                                                     | Limite                               |
+| ---------------------- | ------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------ |
+| **Vendeur**            | Simple                    | Accueil, Vendre, Mes ventes (siennes), Caisse, Clients (encaisser), Stock (lecture) | Pas de Pilotage, Comptabilité, Admin |
+| **Gestionnaire stock** | Simple                    | Accueil, Stock (+/−), Achats (recevoir), Ajouter article                            | Pas de Caisse, Comptabilité          |
+| **Administrateur**     | Expert (bascule possible) | Tous + Messages audio, annuler une vente, étapes 2 & 11 du guide                    | Tous les modes                       |
+| **Comptable**          | Expert                    | Aucun (inchangé)                                                                    | —                                    |
 
 **Vérifications** : tests PHP + JS bloquent l'accès aux écrans non autorisés ; un vendeur ne voit pas les coûts d'achat.
 
@@ -177,17 +177,17 @@ Tous les composants réutilisables du cahier des charges sont en place et testé
 
 ## 7. Critères d'acceptation (cahier des charges sec. 10)
 
-| Critère | État | Preuve |
-|---------|------|--------|
-| Vente en < 1 min sans lire | ⏳ TBD | Test terrain Thiès |
-| Texte ≥ 15 px, zone tactile ≥ 48 px | ✅ Fait | Tests JS + maquettes HTML |
-| Contraste ≥ 4,5:1 | ✅ Fait | Variables tokens.json, audit WCAG |
-| Haut-parleur visible ssi enregistré | ✅ Fait | Logique `audio_clips` |
-| Vente mode simple → Ventes mode expert | ✅ Fait | Mêmes données, même source de vérité |
-| Offline : sync automatique | ✅ Fait | Service worker (Vendre, Caisse) |
-| Montants « 45 000 F » | ✅ Fait | Composant d'affichage |
-| ≤ 360 px sans défilement H | ✅ Fait | Tests à 360 px |
-| Mode expert inchangé | ✅ Fait | Aucune modification aux routes expert |
+| Critère                                | État    | Preuve                                |
+| -------------------------------------- | ------- | ------------------------------------- |
+| Vente en < 1 min sans lire             | ⏳ TBD  | Test terrain Thiès                    |
+| Texte ≥ 15 px, zone tactile ≥ 48 px    | ✅ Fait | Tests JS + maquettes HTML             |
+| Contraste ≥ 4,5:1                      | ✅ Fait | Variables tokens.json, audit WCAG     |
+| Haut-parleur visible ssi enregistré    | ✅ Fait | Logique `audio_clips`                 |
+| Vente mode simple → Ventes mode expert | ✅ Fait | Mêmes données, même source de vérité  |
+| Offline : sync automatique             | ✅ Fait | Service worker (Vendre, Caisse)       |
+| Montants « 45 000 F »                  | ✅ Fait | Composant d'affichage                 |
+| ≤ 360 px sans défilement H             | ✅ Fait | Tests à 360 px                        |
+| Mode expert inchangé                   | ✅ Fait | Aucune modification aux routes expert |
 
 ---
 
@@ -246,12 +246,14 @@ tests/js/simple-*.test.ts
 ### Tests PHP ✅
 
 Les workflows Laravel testent :
+
 - Droits d'accès (RBAC)
 - Créations d'objets (vente, caisse, stock, client)
 - Synchronisation offline
 - Migration audio
 
 **Commandes** :
+
 ```bash
 docker compose exec app php artisan test
 docker compose exec app vendor/bin/pint --test
@@ -261,6 +263,7 @@ docker compose exec app vendor/bin/phpstan analyse
 ### CI/CD ✅
 
 `.github/workflows/tests.yml` exécute :
+
 - Audit dépendances
 - Tests PHP & JS
 - Build images Docker (`ghcr.io/layesamake/diabagescom:sha`)
@@ -287,6 +290,7 @@ docker compose exec app vendor/bin/phpstan analyse
 
 **État** : maquettes HTML + spec complète (`04-landing-page.md`)  
 **À faire** :
+
 - Intégrer dans le site (route `/`, remplacer accueil actuel)
 - Brancher « Essayer gratuitement » → inscription
 - Brancher WhatsApp +221 76 864 58 36
@@ -297,15 +301,15 @@ docker compose exec app vendor/bin/phpstan analyse
 
 ### Autres points ouverts du cahier
 
-| Question | Réponse | État |
-|----------|---------|------|
-| Répartition des rôles | Validée | ✅ |
-| Règles des nombres (autre langue) | TBD avec admin | 📝 En attente |
-| Francs ou unités locales (dërëm) ? | TBD avec admin | 📝 En attente |
-| Reconnaissance vocale pour recherche ? | Garder français seulement | ✅ Décidé |
-| Logos Wave/Orange Money | À vérifier | 📝 En attente |
-| Mode simple sur ordinateur aussi ? | Oui | ✅ Décidé |
-| Site de test distinct ? | Non (dev.diaba.cloud local) | ✅ Décidé |
+| Question                               | Réponse                     | État          |
+| -------------------------------------- | --------------------------- | ------------- |
+| Répartition des rôles                  | Validée                     | ✅            |
+| Règles des nombres (autre langue)      | TBD avec admin              | 📝 En attente |
+| Francs ou unités locales (dërëm) ?     | TBD avec admin              | 📝 En attente |
+| Reconnaissance vocale pour recherche ? | Garder français seulement   | ✅ Décidé     |
+| Logos Wave/Orange Money                | À vérifier                  | 📝 En attente |
+| Mode simple sur ordinateur aussi ?     | Oui                         | ✅ Décidé     |
+| Site de test distinct ?                | Non (dev.diaba.cloud local) | ✅ Décidé     |
 
 ---
 
@@ -316,12 +320,12 @@ Avant un `git push` en production, valider :
 - [ ] **Phase 7 terrain complète** : commerçants testent, feedback résolu
 - [ ] **Landing page en ligne** : boutons opérationnels, WhatsApp, mesures (GA4)
 - [ ] **Recette complète** (doc : `docs/runbooks/recette-avant-production.md`)
-  - [ ] Toutes cases ★ cochées sur téléphone ET ordinateur
-  - [ ] Accès RBAC testé (vendeur, gestionnaire stock, admin)
-  - [ ] Audio enregistré et rejoué (français au minimum)
-  - [ ] Mode expert inchangé
-  - [ ] Offline/sync testé
-  - [ ] Performance (< 3 s au chargement)
+    - [ ] Toutes cases ★ cochées sur téléphone ET ordinateur
+    - [ ] Accès RBAC testé (vendeur, gestionnaire stock, admin)
+    - [ ] Audio enregistré et rejoué (français au minimum)
+    - [ ] Mode expert inchangé
+    - [ ] Offline/sync testé
+    - [ ] Performance (< 3 s au chargement)
 - [ ] **Notification clients** : les 3–4 formules incluent mode simple, aide WhatsApp
 - [ ] **Documentation** : guide utilisateur en français, vidéo 30 s (TBD)
 
@@ -368,21 +372,21 @@ git push origin main
 
 ## 13. Ressources & dépôt
 
-| Ressource | Lien / Chemin |
-|-----------|--------------|
-| **Cahier des charges** | `docs/interface simplifiee/01-cahier-des-charges.md` |
-| **Messages audio** | `docs/interface simplifiee/02-messages-audio.md` |
-| **Brief orchestrateur** | `docs/interface simplifiee/03-brief-orchestrateur.md` |
-| **Landing page** | `docs/interface simplifiee/04-landing-page.md` |
-| **Design tokens** | `docs/interface simplifiee/design/tokens.{css,json}` |
-| **Maquettes HTML** | `docs/interface simplifiee/maquettes-html/` |
-| **Images écrans** | `docs/interface simplifiee/images/{app-telephone,app-ordinateur,landing}/` |
-| **Recette avant prod** | `docs/runbooks/recette-avant-production.md` |
-| **Code source** | `resources/js/{pages,components,routes}/simple/` |
-| **Tests** | `tests/{js,Feature}/` |
-| **Dépôt GitHub** | `https://github.com/layesamake/diabagescom` |
-| **Site de test** | https://dev.diaba.cloud (local Docker) |
-| **Production** | https://diaba.cloud (TBD après terrain) |
+| Ressource               | Lien / Chemin                                                              |
+| ----------------------- | -------------------------------------------------------------------------- |
+| **Cahier des charges**  | `docs/interface simplifiee/01-cahier-des-charges.md`                       |
+| **Messages audio**      | `docs/interface simplifiee/02-messages-audio.md`                           |
+| **Brief orchestrateur** | `docs/interface simplifiee/03-brief-orchestrateur.md`                      |
+| **Landing page**        | `docs/interface simplifiee/04-landing-page.md`                             |
+| **Design tokens**       | `docs/interface simplifiee/design/tokens.{css,json}`                       |
+| **Maquettes HTML**      | `docs/interface simplifiee/maquettes-html/`                                |
+| **Images écrans**       | `docs/interface simplifiee/images/{app-telephone,app-ordinateur,landing}/` |
+| **Recette avant prod**  | `docs/runbooks/recette-avant-production.md`                                |
+| **Code source**         | `resources/js/{pages,components,routes}/simple/`                           |
+| **Tests**               | `tests/{js,Feature}/`                                                      |
+| **Dépôt GitHub**        | `https://github.com/layesamake/diabagescom`                                |
+| **Site de test**        | https://dev.diaba.cloud (local Docker)                                     |
+| **Production**          | https://diaba.cloud (TBD après terrain)                                    |
 
 ---
 

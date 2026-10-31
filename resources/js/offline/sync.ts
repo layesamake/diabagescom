@@ -287,8 +287,10 @@ export async function initOffline(next: Scope): Promise<void> {
     }
 
     syncState.lastSync = next.warehouseId
-        ? ((await getMeta<string>(context.db, `synced_at:${next.warehouseId}`)) ??
-          null)
+        ? ((await getMeta<string>(
+              context.db,
+              `synced_at:${next.warehouseId}`,
+          )) ?? null)
         : null;
     await loadStock(context);
     await refreshCounts();
@@ -825,7 +827,9 @@ export async function currentPrices(
 }
 
 /** Bases IndexedDB de ce compte, toutes entreprises confondues. */
-async function accountDatabaseNames(userId: string | number): Promise<string[]> {
+async function accountDatabaseNames(
+    userId: string | number,
+): Promise<string[]> {
     if (typeof indexedDB.databases !== 'function') {
         return [];
     }
@@ -845,7 +849,13 @@ async function hasUnsentCommands(name: string): Promise<boolean> {
         handle = await openDatabase(name);
 
         return (await getAll<LocalCommand>(handle, 'commands')).some((c) =>
-            ['queued', 'sending', 'rejected', 'conflict', 'requires_review'].includes(c.status),
+            [
+                'queued',
+                'sending',
+                'rejected',
+                'conflict',
+                'requires_review',
+            ].includes(c.status),
         );
     } catch {
         // Illisible : on la conserve plutôt que de risquer une perte de vente.
@@ -864,7 +874,10 @@ async function purgeAccountDatabases(
     userId: string | number,
     activeName: string,
 ): Promise<void> {
-    const names = new Set([activeName, ...(await accountDatabaseNames(userId))]);
+    const names = new Set([
+        activeName,
+        ...(await accountDatabaseNames(userId)),
+    ]);
 
     for (const name of names) {
         if (name !== activeName && (await hasUnsentCommands(name))) {
