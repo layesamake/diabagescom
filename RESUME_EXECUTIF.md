@@ -5,6 +5,7 @@
 **SaaS de gestion commerciale & comptable** pour TPE et PME au Sénégal.
 
 Interface avec **2 modes** :
+
 - 🔧 **Mode Expert** : Dashboard complet, tous les détails, pour admins
 - 🖼️ **Mode Simple** : Interface en images, pour vendeurs
 
@@ -12,16 +13,16 @@ Interface avec **2 modes** :
 
 ## 📈 Par les chiffres
 
-| Métrique | Valeur |
-|----------|--------|
-| 📁 Fichiers PHP | 291 |
-| 🎨 Composants Vue | 289 |
-| ✅ Tests | 108 |
-| 🛣️ Routes | 292 |
-| 🔄 Migrations DB | 36 |
-| 📦 Dépendances | 300+ |
-| 💾 Taille | 815 MB |
-| 📝 Commits | 168 |
+| Métrique          | Valeur |
+| ----------------- | ------ |
+| 📁 Fichiers PHP   | 291    |
+| 🎨 Composants Vue | 289    |
+| ✅ Tests          | 108    |
+| 🛣️ Routes         | 292    |
+| 🔄 Migrations DB  | 36     |
+| 📦 Dépendances    | 300+   |
+| 💾 Taille         | 815 MB |
+| 📝 Commits        | 168    |
 
 ---
 
@@ -42,33 +43,39 @@ Frontend                Backend               Database
 ## 🚀 Fonctionnalités Principales
 
 ### 1. **Gestion de ventes (POS)**
+
 - ✅ Panier d'achat
 - ✅ Encaissement
 - ✅ Gestion caisse (ouverture, comptage, fermeture)
 - ✅ Historique ventes
 
 ### 2. **Stock & Inventaire**
+
 - ✅ Mouvements (entrée/sortie)
 - ✅ Jauge 3 états (OK/Alerte/Rupture)
 - ✅ Articles (création, photo, code-barres)
 
 ### 3. **Clients & Crédit**
+
 - ✅ Fiches clients
 - ✅ Gestion dettes
 - ✅ Paiements partiels
 
 ### 4. **Achats & Fournisseurs**
+
 - ✅ Commandes
 - ✅ Réception articles
 - ✅ Suivi fournisseurs
 
 ### 5. **Comptabilité (SYSCOHADA)**
+
 - ✅ Écritures comptables
 - ✅ Plan comptable Sénégal (Classe 1–9)
 - ✅ Rapports financiers (bilan, compte résultat)
 - ✅ Validation équilibres
 
 ### 6. **Sécurité & Authentification**
+
 - ✅ 2FA (deux facteurs)
 - ✅ Passkeys (empreinte digitale)
 - ✅ Multi-tenancy (isolation données)
@@ -81,17 +88,18 @@ Frontend                Backend               Database
 
 ### Écrans disponibles
 
-| Écran | Lot | État | Accès |
-|-------|-----|------|-------|
-| 🏠 **Accueil** | 1 | ✅ | `/simple` |
-| 🛒 **Vendre** | 2 | ✅ | `/simple/vendre` |
-| 💰 **Caisse** | 3 | ✅ | `/simple/caisse` |
-| 📦 **Stock** | 4 | ✅ | `/simple/stock` |
-| 👥 **Clients** | 5 | ✅ | `/simple/clients` |
-| 🛍️ **Achats** | 6 | ✅ | `/simple/achats` |
-| 📈 **Tests terrain** | 7 | ⏳ | Thiès (1 semaine) |
+| Écran                | Lot | État | Accès             |
+| -------------------- | --- | ---- | ----------------- |
+| 🏠 **Accueil**       | 1   | ✅   | `/simple`         |
+| 🛒 **Vendre**        | 2   | ✅   | `/simple/vendre`  |
+| 💰 **Caisse**        | 3   | ✅   | `/simple/caisse`  |
+| 📦 **Stock**         | 4   | ✅   | `/simple/stock`   |
+| 👥 **Clients**       | 5   | ✅   | `/simple/clients` |
+| 🛍️ **Achats**        | 6   | ✅   | `/simple/achats`  |
+| 📈 **Tests terrain** | 7   | ⏳   | Thiès (1 semaine) |
 
 ### Points forts du mode simple
+
 - 📱 Responsive : 360–1920 px
 - 🎙️ 153 phrases audio (FR + Wolof)
 - 📴 Hors ligne (Service Worker)
@@ -117,36 +125,42 @@ Lot 7 (Tests)        ████░░░░░░░░░░░░  25% ⏳
 ## 🚀 Activation Mode Simple — Statut
 
 ### ✅ Code prêt
+
 - `.env.example` : `DIABA_SIMPLE_MODE=true`
 - Routes `/simple/*` : implémentées
 - Composants : testés
 
 ### 🟡 Déploiement en cours
+
 - GitHub Actions : déclenché (run #40314265514)
 - Durée estimée : 10–15 minutes
 - Environnement : Production (diaba.cloud)
 
 ### Statut par environnement
-| Environnement | DIABA_SIMPLE_MODE | Routes `/simple` | Statut |
-|---|---|---|---|
-| **localhost** | À configurer | 404 | Local dev seulement |
-| **dev.diaba.cloud** | À vérifier | ? | À tester après déploiement |
-| **diaba.cloud** | En cours d'activation | 404 → 200 | Déploiement GitHub Actions |
+
+| Environnement       | DIABA_SIMPLE_MODE     | Routes `/simple` | Statut                     |
+| ------------------- | --------------------- | ---------------- | -------------------------- |
+| **localhost**       | À configurer          | 404              | Local dev seulement        |
+| **dev.diaba.cloud** | À vérifier            | ?                | À tester après déploiement |
+| **diaba.cloud**     | En cours d'activation | 404 → 200        | Déploiement GitHub Actions |
 
 ---
 
 ## 📱 Comment accéder au mode simple ?
 
 ### 1️⃣ **URL directe** (la plus simple)
+
 ```
 https://diaba.cloud/simple
 ```
 
 ### 2️⃣ **Par rôle** (si connecté)
+
 - **Vendeur** : Arrive **automatiquement** en mode simple
 - **Admin** : Clique sur "Bascule" ou "Mode simple" dans le menu
 
 ### 3️⃣ **Écrans disponibles**
+
 - Accueil : `/simple`
 - Vendre : `/simple/vendre`
 - Caisse : `/simple/caisse`
@@ -175,12 +189,14 @@ https://diaba.cloud/simple
 ## 🧪 Tests & Qualité
 
 ### Couverture de tests
+
 - **108 fichiers** de tests
 - **Feature tests** : Auth, Accounting, Sales, etc.
 - **Unit tests** : Domain, Audio, Barcode, etc.
 - **Integration tests** : Workflows complets
 
 ### CI/CD Pipeline
+
 ```
 1. Lint (PHP + TypeScript)
 2. Tests (PHPUnit + Jest)
@@ -204,16 +220,19 @@ https://diaba.cloud/simple
 ## 📊 Prochaines étapes
 
 ### Immédiat (aujourd'hui)
+
 1. ✅ Déclencher déploiement GitHub Actions → ✅ Fait
 2. ⏳ Attendre fin du déploiement (~15 min)
 3. ⏳ Tester `https://diaba.cloud/simple` → 200 OK
 
 ### Semaine prochaine
+
 1. Tests terrain (lot 7) à Thiès
 2. Feedback commerçants
 3. Corrections si nécessaire
 
 ### Mois prochain
+
 1. Ajouter langue Wolof complète
 2. Intégration paiement mobile
 3. Rapports PDF

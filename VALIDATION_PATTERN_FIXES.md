@@ -3,6 +3,7 @@
 ## 🐛 Bugs trouvés et fixés
 
 ### Bug #1 : TenantController (ligne 310) ✅ FIXÉ
+
 **Fichier** : `app/Http/Controllers/Platform/TenantController.php`
 
 ```php
@@ -19,6 +20,7 @@
 ---
 
 ### Bug #2 : TenantController (ligne 309) ✅ FIXÉ
+
 **Fichier** : `app/Http/Controllers/Platform/TenantController.php`
 
 ```php
@@ -35,6 +37,7 @@
 ---
 
 ### Bug #3 : TenantController (ligne 311) ✅ FIXÉ
+
 **Fichier** : `app/Http/Controllers/Platform/TenantController.php`
 
 ```php
@@ -51,6 +54,7 @@
 ---
 
 ### Bug #4 : StockController (ligne 136) ✅ FIXÉ
+
 **Fichier** : `app/Http/Controllers/Inventory/StockController.php`
 
 ```php
@@ -69,6 +73,7 @@
 ## 🔍 Audit complet
 
 Scan effectué sur tous les controllers :
+
 ```bash
 grep -r "required_if.*nullable\|nullable.*required_if" app/
 # Résultat : 0 matches (tous les bugs corrigés)
@@ -78,12 +83,12 @@ grep -r "required_if.*nullable\|nullable.*required_if" app/
 
 ## 📊 Résumé des corrections
 
-| Fichier | Ligne | Champ | Action |
-|---------|-------|-------|--------|
-| TenantController.php | 310 | `days` | ✅ Suppression `'nullable'` |
-| TenantController.php | 309 | `plan_id` | ✅ Suppression `'nullable'` |
-| TenantController.php | 311 | `billing_cycle` | ✅ Suppression `'nullable'` |
-| StockController.php | 136 | `reason` | ✅ Suppression `'nullable'` |
+| Fichier              | Ligne | Champ           | Action                      |
+| -------------------- | ----- | --------------- | --------------------------- |
+| TenantController.php | 310   | `days`          | ✅ Suppression `'nullable'` |
+| TenantController.php | 309   | `plan_id`       | ✅ Suppression `'nullable'` |
+| TenantController.php | 311   | `billing_cycle` | ✅ Suppression `'nullable'` |
+| StockController.php  | 136   | `reason`        | ✅ Suppression `'nullable'` |
 
 ---
 
@@ -119,24 +124,28 @@ required_if:action,extend_trial
 ## 📋 Tests à effectuer
 
 ### Test 1 : Prolonger essai
+
 ```bash
 POST /platform/tenants/{id}/subscriptions/update
 days = null  # Doit retourner 422, pas 500
 ```
 
 ### Test 2 : Changer de plan
+
 ```bash
 POST /platform/tenants/{id}/subscriptions/update
 plan_id = null  # Doit retourner 422, pas 500
 ```
 
 ### Test 3 : Activer souscription
+
 ```bash
 POST /platform/tenants/{id}/subscriptions/update
 billing_cycle = null  # Doit retourner 422, pas 500
 ```
 
 ### Test 4 : Ajustement stock
+
 ```bash
 POST /inventory/warehouses/{id}/stock/adjust
 mode = 'adjustment'

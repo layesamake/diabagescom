@@ -15,6 +15,12 @@ class DashboardActionsTest extends TestCase
     use RefreshDatabase;
     use SalesTestHelpers;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config()->set('diaba.simple_mode.enabled', false);
+    }
+
     /**
      * @param  list<string>  $expected
      */

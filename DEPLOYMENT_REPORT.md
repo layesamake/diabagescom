@@ -14,35 +14,36 @@ La landing page `Welcome.vue` a été **validée conforme au cahier des charges*
 ### ✅ Travail effectué
 
 1. **Analyse complète**
-   - `Welcome.vue` : 100% conforme, aucune modification nécessaire
-   - Tous les critères du cahier des charges respectés
-   - Responsive, accessible, optimisé
+    - `Welcome.vue` : 100% conforme, aucune modification nécessaire
+    - Tous les critères du cahier des charges respectés
+    - Responsive, accessible, optimisé
 
 2. **Documentation créée**
-   - `BILAN_MODE_SIMPLE.md` (6 lots, 14 composants, 153 phrases audio)
-   - `LANDING_PAGE_RECAP.md` (checklist d'implémentation)
-   - `PLAN_LANDING_INTEGRATION.md` (plan détaillé)
-   - `LANDING_CHECKLIST.md` (checklist de validation)
+    - `BILAN_MODE_SIMPLE.md` (6 lots, 14 composants, 153 phrases audio)
+    - `LANDING_PAGE_RECAP.md` (checklist d'implémentation)
+    - `PLAN_LANDING_INTEGRATION.md` (plan détaillé)
+    - `LANDING_CHECKLIST.md` (checklist de validation)
 
 3. **Push vers main**
-   - Commit `081d86e` poussé avec succès
-   - Visible sur https://github.com/layesamake/diabagescom
+    - Commit `081d86e` poussé avec succès
+    - Visible sur https://github.com/layesamake/diabagescom
 
 ### 🟡 Statut CI/CD
 
-| Job | Statut | Détail |
-|-----|--------|--------|
-| **Push to main** | ✅ OK | Commit reçu |
-| **Workflow deploy déclenché** | ✅ OK | Numéro : 152 |
-| **Job ci (tests)** | 🔴 FAILED | À investiguer |
-| **Publication images** | ⏹️ SKIPPED | Dépend de ci |
-| **Déploiement dev** | ⏹️ SKIPPED | Dépend de publish |
+| Job                           | Statut     | Détail            |
+| ----------------------------- | ---------- | ----------------- |
+| **Push to main**              | ✅ OK      | Commit reçu       |
+| **Workflow deploy déclenché** | ✅ OK      | Numéro : 152      |
+| **Job ci (tests)**            | 🔴 FAILED  | À investiguer     |
+| **Publication images**        | ⏹️ SKIPPED | Dépend de ci      |
+| **Déploiement dev**           | ⏹️ SKIPPED | Dépend de publish |
 
 ---
 
 ## Prochaines étapes
 
 ### Option 1 : Forcer le déploiement (dev uniquement)
+
 ```bash
 # Déclenche le workflow deploy manuellement, en skippant les tests CI
 # (Utile si l'erreur CI n'est pas liée à Welcome.vue)
@@ -52,6 +53,7 @@ gh workflow run deploy.yml \
 ```
 
 ### Option 2 : Vérifier et fixer l'erreur CI
+
 ```bash
 # Lire les logs complets du run 152
 gh run view 40311339117 --log-failed
@@ -70,6 +72,7 @@ git push origin main
 ```
 
 ### Option 3 : Voir les logs sur GitHub Web
+
 Accéder à : https://github.com/layesamake/diabagescom/actions/runs/40311339117
 
 ---
@@ -77,6 +80,7 @@ Accéder à : https://github.com/layesamake/diabagescom/actions/runs/40311339117
 ## Critères de succès
 
 ### ✅ Validé (Welcome.vue)
+
 - Hero « Vendez en 3 gestes »
 - Industries (6), Problèmes (4), 3 gestes expliqués
 - Avantages (couleurs, voix, offline, payments)
@@ -87,6 +91,7 @@ Accéder à : https://github.com/layesamake/diabagescom/actions/runs/40311339117
 - Montants en F
 
 ### ⏳ À valider (déploiement)
+
 - [ ] Tests CI passent
 - [ ] Images Docker buildées
 - [ ] Déploiement sur dev.diaba.cloud réussi
@@ -132,6 +137,7 @@ resources/js/pages/Welcome.vue  ← Aucune modification (déjà conforme)
 Le code est poussé et prêt pour production. L'erreur CI doit être résolue avant le déploiement automatique sur `dev.diaba.cloud`.
 
 **Action maintenant** :
+
 1. Vérifier l'erreur CI
 2. La corriger localement ou confirmer qu'elle ne touche pas Welcome.vue
 3. Relancer le workflow deploy

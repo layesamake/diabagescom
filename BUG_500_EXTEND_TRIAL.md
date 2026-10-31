@@ -1,7 +1,9 @@
 # 🐛 BUG : Erreur 500 lors de la prolongation d'essai
 
 ## Problème
+
 Lors de la prolongation de l'essai d'une entreprise cliente, le système retourne :
+
 ```
 Erreur 500 : Le serveur n'a pas pu répondre
 ```
@@ -13,6 +15,7 @@ Le message utilisateur indique que la saisie est conservée, mais l'action n'a p
 ## Cause racine (Phase 1 : Investigation)
 
 ### Code affecté
+
 Fichier : `app/Domain/Subscriptions/SubscriptionLifecycle.php`, méthode `manual()`, lignes 279–299
 
 ```php
@@ -28,13 +31,14 @@ private function manual(...): Subscription
             tenant: $this->tenantOf($locked));  // ← Ligne 294 : appel 1
 
         $this->access->forget($this->tenantOf($locked));  // ← Ligne 296 : appel 2
-        
+
         return $locked;
     });
 }
 ```
 
 ### Problème
+
 La méthode `tenantOf($subscription)` est appelée **deux fois** après la transaction (lignes 294 et 296) :
 
 ```php
@@ -47,17 +51,20 @@ private function tenantOf(Subscription $subscription): Tenant
 #### Scénarios d'erreur
 
 **Scénario 1** : Tenant supprimé entre les deux appels
+
 1. Transaction sauvegarde la souscription ✓
 2. Ligne 294 : `tenantOf()` trouve le tenant ✓
 3. Ligne 296 : Tenant a été supprimé `findOrFail()` lance `ModelNotFoundException`
 4. Exception non capturée → 500
 
 **Scénario 2** : Permission modifiée / Contexte locataire invalide
+
 1. Le contexte tenant peut avoir changé
 2. `FindOrFail()` fonctionne parfois, échoue d'autres fois
 3. Race condition : comportement imprévisible
 
 **Scénario 3** : Logs de audit réussissent, mais `access.forget()` échoue
+
 1. Audit enregistré ✓
 2. `access.forget()` appelle `tenantOf()` → exception
 3. État en incohérence : audit existe, mais pas rafraîchissement cache
@@ -67,12 +74,14 @@ private function tenantOf(Subscription $subscription): Tenant
 ## Solution : Cache le résultat de `tenantOf()`
 
 **Avant** (2 appels, risqué) :
+
 ```php
 $this->audit.record(..., tenant: $this->tenantOf($locked));      // Appel 1
 $this->access.forget($this->tenantOf($locked));                  // Appel 2
 ```
 
 **Après** (1 appel, sûr) :
+
 ```php
 $tenant = $this->tenantOf($locked);  // Appel 1, une seule fois
 $this->audit.record(..., tenant: $tenant);
@@ -90,6 +99,7 @@ Fichier : `app/Domain/Subscriptions/SubscriptionLifecycle.php`
 Remplacer les lignes 279–299 :
 
 **AVANT** :
+
 ```php
 return DB::transaction(function () use ($subscription, $reason, $actor, $action, $mutate): Subscription {
     /** @var Subscription $locked */
@@ -115,6 +125,7 @@ return DB::transaction(function () use ($subscription, $reason, $actor, $action,
 ```
 
 **APRÈS** :
+
 ```php
 return DB::transaction(function () use ($subscription, $reason, $actor, $action, $mutate): Subscription {
     /** @var Subscription $locked */
@@ -125,7 +136,7 @@ return DB::transaction(function () use ($subscription, $reason, $actor, $action,
     $locked->status_changed_at = CarbonImmutable::now();
     $locked->save();
     $locked->load('plan');
-    
+
     $tenant = $this->tenantOf($locked);  // ← Résolution une seule fois
 
     $this->audit.record($action, $locked,
@@ -200,7 +211,7 @@ class TrialExtensionTest extends TestCase
     {
         // This test would previously fail with 500
         // Now it should handle gracefully
-        
+
         $admin = User::factory()->create();
         $tenant = Tenant::factory()->create();
         $plan = Plan::factory()->active()->create();
@@ -212,7 +223,7 @@ class TrialExtensionTest extends TestCase
 
         // Simulate tenant deletion during extension
         // (race condition, unlikely but possible)
-        
+
         $response = $this->actingAs($admin)
             ->postJson(route('platform.tenants.subscriptions.update', [
                 'subscription' => $subscription,
@@ -236,8 +247,8 @@ class TrialExtensionTest extends TestCase
 1. Va sur `/platform/tenants/{id}`
 2. Clique sur "Prolonger l'essai" (Extend Trial)
 3. Remplis :
-   - **Jours** : 14
-   - **Raison** : "Client request"
+    - **Jours** : 14
+    - **Raison** : "Client request"
 4. Clique "Appliquer"
 5. ✓ Doit rediriger sans erreur 500
 6. ✓ `trial_ends_at` doit être augmenté de 14 jours

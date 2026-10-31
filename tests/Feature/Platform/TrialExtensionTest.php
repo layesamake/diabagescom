@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Platform;
 
-use App\Domain\Subscriptions\SubscriptionLifecycle;
-use App\Models\Plan;
+use App\Domain\Tenancy\TenantScope;
+use App\Models\Role;
 use App\Models\Subscription;
 use App\Models\Tenant;
 use App\Models\User;
@@ -15,180 +15,108 @@ class TrialExtensionTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Test that extending trial succeeds without throwing 500 error
+     * Super-administrateur plateforme avec MFA, seule identité autorisée à
+     * administrer les abonnements de toutes les entreprises.
      */
-    public function test_extend_trial_succeeds_with_valid_input(): void
+    private function platformAdmin(): User
     {
-        // Setup
-        $admin = User::factory()->create();
-        $tenant = Tenant::factory()->create();
-        $plan = Plan::query()->where('code', 'business')->first();
-        if (! $plan) {
-            $plan = Plan::query()->firstOrFail();
-        }
-        $subscription = Subscription::factory()
-            ->forTenant($tenant)
-            ->forPlan($plan)
-            ->trialing()
-            ->create();
+        $user = User::factory()->withTwoFactor()->create();
+        $user->platform_role_id = Role::system('platform', 'super_admin')->id;
+        $user->save();
 
-        $initialTrialEndsAt = $subscription->trial_ends_at;
-
-        // Act
-        $response = $this->actingAs($admin)
-            ->postJson(route('platform.tenants.subscriptions.update', [
-                'subscription' => $subscription,
-            ]), [
-                'action' => 'extend_trial',
-                'reason' => 'Customer request - extending trial for testing',
-                'days' => 14,
-            ]);
-
-        // Assert
-        $response->assertRedirect();
-        $subscription->refresh();
-        
-        $this->assertNotNull($subscription->trial_ends_at);
-        $this->assertTrue(
-            $subscription->trial_ends_at->isAfter($initialTrialEndsAt),
-            'Trial should be extended'
-        );
-        $this->assertEquals(
-            14,
-            $subscription->trial_ends_at->diffInDays($initialTrialEndsAt),
-            'Trial should be extended by exactly 14 days'
-        );
+        return $user;
     }
 
     /**
-     * Test that extend_trial respects min/max days validation
+     * @param  array{tenant: Tenant}  $setup
      */
-    public function test_extend_trial_validates_day_range(): void
+    private function subscriptionOf(array $setup): Subscription
     {
-        $admin = User::factory()->create();
-        $tenant = Tenant::factory()->create();
-        $plan = Plan::query()->firstOrFail();
-        $subscription = Subscription::factory()
-            ->forTenant($tenant)
-            ->forPlan($plan)
-            ->trialing()
-            ->create();
+        return Subscription::query()
+            ->withoutGlobalScope(TenantScope::class)
+            ->where('tenant_id', $setup['tenant']->id)
+            ->sole();
+    }
 
-        // Test with 0 days (invalid)
-        $response = $this->actingAs($admin)
-            ->postJson(route('platform.tenants.subscriptions.update', [
-                'subscription' => $subscription,
-            ]), [
+    public function test_a_platform_admin_can_extend_a_trial_and_preserve_its_plan_and_status(): void
+    {
+        $setup = $this->createTenantWithMember(plan: 'business');
+        $subscription = $this->subscriptionOf($setup);
+        $initialEndsAt = $subscription->trial_ends_at;
+
+        $this->assertNotNull($initialEndsAt);
+
+        $this->actingAs($this->platformAdmin())
+            ->post(route('platform.subscriptions.update', $subscription), [
                 'action' => 'extend_trial',
-                'reason' => 'Test reason for validation',
+                'reason' => 'Démonstration commerciale prolongée',
+                'days' => 14,
+            ])
+            ->assertRedirect();
+
+        $subscription->refresh();
+
+        $this->assertSame(Subscription::TRIALING, $subscription->status);
+        $this->assertSame($setup['tenant']->id, $subscription->tenant_id);
+        $this->assertSame('business', $subscription->plan->code);
+        $this->assertTrue($subscription->trial_ends_at?->equalTo($initialEndsAt->addDays(14)) ?? false);
+    }
+
+    public function test_trial_extension_validates_the_day_range(): void
+    {
+        $subscription = $this->subscriptionOf($this->createTenantWithMember(plan: 'business'));
+        $admin = $this->platformAdmin();
+
+        $this->actingAs($admin)
+            ->post(route('platform.subscriptions.update', $subscription), [
+                'action' => 'extend_trial',
+                'reason' => 'Validation de la durée de prolongation',
                 'days' => 0,
-            ]);
+            ])
+            ->assertSessionHasErrors('days');
 
-        $response->assertStatus(422);
-
-        // Test with 61 days (too many)
-        $response = $this->actingAs($admin)
-            ->postJson(route('platform.tenants.subscriptions.update', [
-                'subscription' => $subscription,
-            ]), [
+        $this->actingAs($admin)
+            ->post(route('platform.subscriptions.update', $subscription), [
                 'action' => 'extend_trial',
-                'reason' => 'Test reason for validation',
+                'reason' => 'Validation de la durée de prolongation',
                 'days' => 61,
-            ]);
-
-        $response->assertStatus(422);
+            ])
+            ->assertSessionHasErrors('days');
     }
 
-    /**
-     * Test that extend_trial requires minimum reason length
-     */
-    public function test_extend_trial_validates_reason_length(): void
+    public function test_trial_extension_requires_an_auditable_reason(): void
     {
-        $admin = User::factory()->create();
-        $tenant = Tenant::factory()->create();
-        $plan = Plan::query()->firstOrFail();
-        $subscription = Subscription::factory()
-            ->forTenant($tenant)
-            ->forPlan($plan)
-            ->trialing()
-            ->create();
+        $subscription = $this->subscriptionOf($this->createTenantWithMember(plan: 'business'));
 
-        // Test with reason too short
-        $response = $this->actingAs($admin)
-            ->postJson(route('platform.tenants.subscriptions.update', [
-                'subscription' => $subscription,
-            ]), [
+        $this->actingAs($this->platformAdmin())
+            ->post(route('platform.subscriptions.update', $subscription), [
                 'action' => 'extend_trial',
-                'reason' => 'Too short',  // Less than 5 chars requirement
-                'days' => 14,
-            ]);
-
-        $response->assertStatus(422);
-    }
-
-    /**
-     * Test that audit log is created for trial extension
-     */
-    public function test_extend_trial_creates_audit_log(): void
-    {
-        $admin = User::factory()->create();
-        $tenant = Tenant::factory()->create();
-        $plan = Plan::query()->firstOrFail();
-        $subscription = Subscription::factory()
-            ->forTenant($tenant)
-            ->forPlan($plan)
-            ->trialing()
-            ->create();
-
-        // Act
-        $this->actingAs($admin)
-            ->postJson(route('platform.tenants.subscriptions.update', [
-                'subscription' => $subscription,
-            ]), [
-                'action' => 'extend_trial',
-                'reason' => 'Testing audit log creation',
+                'reason' => 'Non',
                 'days' => 7,
-            ]);
-
-        // Assert - Check that audit log was created
-        $this->assertDatabaseHas('audit_logs', [
-            'auditable_type' => Subscription::class,
-            'auditable_id' => $subscription->id,
-            'action' => 'subscription.trial_extended',
-        ]);
+            ])
+            ->assertSessionHasErrors('reason');
     }
 
-    /**
-     * Test that subscription state is consistent after extension
-     */
-    public function test_extend_trial_maintains_subscription_state(): void
+    public function test_trial_extension_is_audited_against_the_subscription_and_actor(): void
     {
-        $admin = User::factory()->create();
-        $tenant = Tenant::factory()->create();
-        $plan = Plan::query()->firstOrFail();
-        $subscription = Subscription::factory()
-            ->forTenant($tenant)
-            ->forPlan($plan)
-            ->trialing()
-            ->create();
+        $setup = $this->createTenantWithMember(plan: 'business');
+        $subscription = $this->subscriptionOf($setup);
+        $admin = $this->platformAdmin();
 
-        // Store original values
-        $originalStatus = $subscription->status;
-        $originalPlanId = $subscription->plan_id;
-
-        // Act
         $this->actingAs($admin)
-            ->postJson(route('platform.tenants.subscriptions.update', [
-                'subscription' => $subscription,
-            ]), [
+            ->post(route('platform.subscriptions.update', $subscription), [
                 'action' => 'extend_trial',
-                'reason' => 'Consistency test for trial extension',
-                'days' => 10,
-            ]);
+                'reason' => 'Client en attente de son financement',
+                'days' => 7,
+            ])
+            ->assertRedirect();
 
-        // Assert - Verify other fields are unchanged
-        $subscription->refresh();
-        $this->assertEquals($originalStatus, $subscription->status, 'Status should remain TRIALING');
-        $this->assertEquals($originalPlanId, $subscription->plan_id, 'Plan ID should not change');
+        $this->assertDatabaseHas('audit_events', [
+            'tenant_id' => $setup['tenant']->id,
+            'actor_id' => $admin->id,
+            'action' => 'subscription.trial_extended',
+            'entity_type' => 'Subscription',
+            'entity_id' => $subscription->id,
+        ]);
     }
 }

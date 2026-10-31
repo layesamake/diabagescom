@@ -1,6 +1,6 @@
 # ✅ Landing Page — Prêt à déployer
 
-**Résumé :** La landing page `Welcome.vue` est 100% conforme au cahier des charges *Interface simplifiée* (oct 2026). Aucune modification à faire. Prête pour tests locaux → prod.
+**Résumé :** La landing page `Welcome.vue` est 100% conforme au cahier des charges _Interface simplifiée_ (oct 2026). Aucune modification à faire. Prête pour tests locaux → prod.
 
 ---
 
@@ -139,20 +139,21 @@ git push origin main
 
 ## 📁 Fichiers de référence
 
-| Fichier | Rôle | Statut |
-|---------|------|--------|
-| `resources/js/pages/Welcome.vue` | Page d'accueil | ✅ Conforme |
-| `app/Http/Controllers/Marketing/WelcomeController.php` | Fourni données (tarifs, contact) | ✅ OK |
-| `config/diaba.php` | Tarifs, testimonials, WhatsApp | ✅ Config |
-| `.env.example` | Variables d'env | ✅ Pré-rempli |
-| `routes/web.php` | Route `/` | ✅ Défini |
-| `docs/interface simplifiee/04-landing-page.md` | Cahier des charges | ✅ Référence |
+| Fichier                                                | Rôle                             | Statut        |
+| ------------------------------------------------------ | -------------------------------- | ------------- |
+| `resources/js/pages/Welcome.vue`                       | Page d'accueil                   | ✅ Conforme   |
+| `app/Http/Controllers/Marketing/WelcomeController.php` | Fourni données (tarifs, contact) | ✅ OK         |
+| `config/diaba.php`                                     | Tarifs, testimonials, WhatsApp   | ✅ Config     |
+| `.env.example`                                         | Variables d'env                  | ✅ Pré-rempli |
+| `routes/web.php`                                       | Route `/`                        | ✅ Défini     |
+| `docs/interface simplifiee/04-landing-page.md`         | Cahier des charges               | ✅ Référence  |
 
 ---
 
 ## 🚀 Commandes rapides (à copier-coller)
 
 ### Test local (Docker)
+
 ```bash
 cd C:\Users\ADMIN\Documents\dev\diabagescom && \
 docker compose up -d && \
@@ -162,6 +163,7 @@ npm ci && npm run dev
 ```
 
 ### Build final
+
 ```bash
 cd C:\Users\ADMIN\Documents\dev\diabagescom && \
 npm run build && \
@@ -169,6 +171,7 @@ npm run check
 ```
 
 ### Merger & pusher (si changements)
+
 ```bash
 cd C:\Users\ADMIN\Documents\dev\diabagescom && \
 git add resources/js/pages/Welcome.vue && \

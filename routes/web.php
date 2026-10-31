@@ -442,15 +442,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Webhooks des prestataires : sans session, authentifiés par signature.
 // Document partagé (WhatsApp, email) : lien signé et temporaire, sans compte.
 Route::get('d/{document}', [DocumentShareController::class, 'show'])->whereUuid('document')
-    ->middleware('throttle:60,1')->name('documents.show');
+    ->middleware(['signed', 'throttle:30,1'])->name('documents.shared');
 
-// Diagnostic endpoints (temporary - remove after debugging)
-Route::get('diagnostic/trial-extend', [\App\Http\Controllers\DiagnosticController::class, 'trialExtendDiagnostic']);
-Route::post('diagnostic/trial-extend-test', [\App\Http\Controllers\DiagnosticController::class, 'testTrialExtend']);
-Route::get('diagnostic/recent-errors', [\App\Http\Controllers\DiagnosticController::class, 'recentErrors']);
-Route::get('diagnostic/extend-trial-errors', [\App\Http\Controllers\DiagnosticController::class, 'extendTrialErrors']);
-
-Route::post('webhooks/billing/{provider}', WebhookController::class);
+Route::post('webhooks/billing/{provider}', WebhookController::class)
     ->where('provider', '[a-z_]+')
     ->middleware('throttle:120,1')
     ->name('webhooks.billing');

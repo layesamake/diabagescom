@@ -9,6 +9,7 @@
 ## Explication du design
 
 ### Configuration actuelle
+
 ```
 .env.example (ligne 13) : DIABA_SIMPLE_MODE=false
 config/diaba.php (ligne 111) : 'enabled' => (bool) env('DIABA_SIMPLE_MODE', false)
@@ -16,9 +17,11 @@ routes/web.php (ligne 121) : Routes /simple/* retournent 404 tant que le flag es
 ```
 
 ### Objectif
+
 Éviter qu'un lot en développement (ex. mode simple lot 3) n'apparaisse chez les clients en production avant validation complète.
 
 **Workflow** :
+
 1. ✅ Développer sur branche feature
 2. ✅ Tester sur dev.diaba.cloud (`DIABA_SIMPLE_MODE=true`)
 3. ✅ Valider auprès des commerçants (lot 7 : tests terrain Thiès)
@@ -29,6 +32,7 @@ routes/web.php (ligne 121) : Routes /simple/* retournent 404 tant que le flag es
 ## Pour activer maintenant
 
 ### Environnement de développement (localhost)
+
 ```bash
 # Edit .env
 DIABA_SIMPLE_MODE=true
@@ -41,6 +45,7 @@ npm run dev
 ```
 
 ### Environnement dev.diaba.cloud
+
 ```bash
 # Via le gestionnaire de secrets (Étienne)
 # Ajouter ou modifier : DIABA_SIMPLE_MODE=true
@@ -51,6 +56,7 @@ gh workflow run deploy.yml -F environment=dev -F DIABA_SIMPLE_MODE=true
 ```
 
 ### Environnement production (diaba.cloud)
+
 ```bash
 # Attendre l'approbation d'Etienne après tests terrain
 # Puis activer via le gestionnaire de secrets
@@ -62,17 +68,18 @@ DIABA_SIMPLE_MODE=true
 
 ## Statut actuel
 
-| Environnement | DIABA_SIMPLE_MODE | État | Routes /simple |
-|---|---|---|---|
-| **localhost** | false | ❌ Désactivé | 404 |
-| **dev.diaba.cloud** | false | ❌ Désactivé | 404 |
-| **diaba.cloud** | false | ❌ Désactivé | 404 |
+| Environnement       | DIABA_SIMPLE_MODE | État         | Routes /simple |
+| ------------------- | ----------------- | ------------ | -------------- |
+| **localhost**       | false             | ❌ Désactivé | 404            |
+| **dev.diaba.cloud** | false             | ❌ Désactivé | 404            |
+| **diaba.cloud**     | false             | ❌ Désactivé | 404            |
 
 ---
 
 ## Commandes pour activer
 
 ### Localement (Docker)
+
 ```bash
 cd C:\Users\ADMIN\Documents\dev\diabagescom
 echo "DIABA_SIMPLE_MODE=true" >> .env
@@ -82,11 +89,14 @@ curl http://localhost:8000/simple
 ```
 
 ### Sur dev.diaba.cloud
+
 Contacte Étienne pour :
+
 1. Ajouter `DIABA_SIMPLE_MODE=true` au gestionnaire de secrets
 2. Redéployer
 
 Ou pousse via git + attend la CI :
+
 ```bash
 git add .env.example  # Change DIABA_SIMPLE_MODE=true
 git commit -m "feat(env): enable simple mode on dev"
@@ -94,7 +104,9 @@ git push origin main
 ```
 
 ### Avant production
+
 Attendre :
+
 - [ ] Tests terrain complétés (lot 7)
 - [ ] Feedback commerçants validé
 - [ ] Approbation Étienne
@@ -105,6 +117,7 @@ Attendre :
 ## Vérification
 
 Une fois activé, tester :
+
 ```bash
 # Interface simple doit être accessible
 curl https://dev.diaba.cloud/simple | grep -o "Accueil\|Vendre\|Caisse"
@@ -121,6 +134,7 @@ curl https://dev.diaba.cloud/simple | grep -o "Accueil\|Vendre\|Caisse"
 **Recommandation** : Laisser `DIABA_SIMPLE_MODE=false` jusqu'à la fin des tests terrain (lot 7).
 
 Ensuite, l'activer progressivement :
+
 1. ✅ dev.diaba.cloud (tests UAT complets)
 2. ✅ production (après approbation finale)
 
