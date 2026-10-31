@@ -10,6 +10,12 @@ class MultiFactorEnforcementTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config()->set('diaba.simple_mode.enabled', false);
+    }
+
     public function test_admin_without_mfa_is_redirected_to_security_settings(): void
     {
         $setup = $this->createTenantWithMember('admin', User::factory()->create());
