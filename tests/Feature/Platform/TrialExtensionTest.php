@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Platform;
 
-use App\Domain\Subscriptions\SubscriptionLifecycle;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\Tenant;
@@ -23,7 +22,7 @@ class TrialExtensionTest extends TestCase
         $admin = User::factory()->create();
         $tenant = Tenant::factory()->create();
         $plan = Plan::query()->where('code', 'business')->first();
-        if (! $plan) {
+        if (!$plan) {
             $plan = Plan::query()->firstOrFail();
         }
         $subscription = Subscription::factory()
