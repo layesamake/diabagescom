@@ -15,7 +15,7 @@
 - [ ] ★ Abonnement / tarifs : trois formules seulement, Essentiel (5 000 / 51 000), Business (12 500 / 120 000) et Premium (15 000 / 135 000).
 
 ## 0 bis. Mode simple (interface de la maquette)
-Couvre Accueil, Vendre, Caisse, Mes ventes, Stock, Clients et crédit, Ajouter un article, Premiers pas et Messages audio. Les écrans Achats (réception) et Mes résultats de la maquette ne sont pas encore développés.
+Couvre Accueil, Vendre, Caisse, Mes ventes, Stock, Clients et crédit, Ajouter un article, Premiers pas, Messages audio, Achats (réception) et Mes résultats. Pour observer ces parcours avec des commerçants, suivre aussi le protocole `docs/runbooks/test-terrain-mode-simple.md`.
 
 - [ ] ★ Le mode simple est activé : l'adresse `/simple` s'ouvre (sinon page introuvable : l'option `DIABA_SIMPLE_MODE` est coupée). La bascule simple/expert fonctionne sans perdre la session.
 - [ ] ★ Accueil : salutation, badge « Essai : N jours », carte « Aujourd'hui » (montant en F, ventes, comparaison avec hier), tuiles Vendre, Caisse, Stock, Clients, « À regarder », « Cette semaine ».
