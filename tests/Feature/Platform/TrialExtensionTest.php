@@ -22,9 +22,7 @@ class TrialExtensionTest extends TestCase
         $admin = User::factory()->create();
         $tenant = Tenant::factory()->create();
         $plan = Plan::query()->where('code', 'business')->first();
-        if (!$plan) {
-            $plan = Plan::query()->firstOrFail();
-        }
+        $plan ??= Plan::query()->firstOrFail();
         $subscription = Subscription::factory()
             ->forTenant($tenant)
             ->forPlan($plan)
