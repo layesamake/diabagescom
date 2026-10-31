@@ -44,7 +44,7 @@ class TrialExtensionTest extends TestCase
         // Assert
         $response->assertRedirect();
         $subscription->refresh();
-        
+
         $this->assertNotNull($subscription->trial_ends_at);
         $this->assertTrue(
             $subscription->trial_ends_at->isAfter($initialTrialEndsAt),
