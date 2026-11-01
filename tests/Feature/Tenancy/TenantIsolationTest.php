@@ -100,7 +100,7 @@ class TenantIsolationTest extends TestCase
 
         $this->actingAs($a['user'])
             ->withSession([ResolveTenantContext::SESSION_TENANT => $b['tenant']->id])
-            ->get(route('dashboard'))
+            ->get(route('simple.home'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page->where('context.tenant.id', $a['tenant']->id));
     }
@@ -121,7 +121,7 @@ class TenantIsolationTest extends TestCase
         $b = $this->createTenantWithMember();
 
         $this->actingAs($a['user'])
-            ->get(route('dashboard'))
+            ->get(route('simple.home'))
             ->assertInertia(fn ($page) => $page
                 ->where('context.tenants', [['id' => $a['tenant']->id, 'name' => $a['tenant']->display_name]])
                 ->where('context.warehouses.0.id', $a['warehouse']->id)
@@ -147,7 +147,7 @@ class TenantIsolationTest extends TestCase
     public function test_revoked_membership_loses_access_immediately(): void
     {
         $a = $this->createTenantWithMember();
-        $this->actingAs($a['user'])->get(route('dashboard'))->assertOk();
+        $this->actingAs($a['user'])->get(route('simple.home'))->assertOk();
 
         $a['membership']->forceFill(['status' => 'revoked'])->save();
 

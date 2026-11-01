@@ -108,6 +108,7 @@ class FeatureAccessTest extends TestCase
         $this->freezeTime();
         $setup = $this->createTenantWithMember();
         $this->travel(11)->days();
+        $setup['membership']->forceFill(['ui_mode' => 'expert'])->save();
 
         $this->actingAs($setup['user'])->get(route('dashboard'))->assertOk();
         $this->actingAs($setup['user'])->get(route('warehouses.index'))->assertOk();
@@ -164,6 +165,7 @@ class FeatureAccessTest extends TestCase
         $this->freezeTime();
         $setup = $this->createTenantWithMember();
         $this->travel(7)->days();
+        $setup['membership']->forceFill(['ui_mode' => 'expert'])->save();
 
         $this->actingAs($setup['user'])->get(route('dashboard'))
             ->assertInertia(fn ($page) => $page

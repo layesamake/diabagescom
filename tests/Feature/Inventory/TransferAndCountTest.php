@@ -178,6 +178,8 @@ class TransferAndCountTest extends TestCase
                 ->where('rows.data.0.low', true)
                 ->where('rows.data.0.value', 3000));
 
+        $setup['membership']->forceFill(['ui_mode' => 'expert'])->save();
+
         $this->actingAs($setup['user'])->get(route('dashboard'))->assertInertia(fn ($page) => $page->where('alerts.low_stock', 1));
     }
 

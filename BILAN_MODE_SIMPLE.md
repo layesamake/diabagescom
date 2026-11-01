@@ -168,7 +168,7 @@ Tous les composants réutilisables du cahier des charges sont en place et testé
 | ---------------------- | ------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------ |
 | **Vendeur**            | Simple                    | Accueil, Vendre, Mes ventes (siennes), Caisse, Clients (encaisser), Stock (lecture) | Pas de Pilotage, Comptabilité, Admin |
 | **Gestionnaire stock** | Simple                    | Accueil, Stock (+/−), Achats (recevoir), Ajouter article                            | Pas de Caisse, Comptabilité          |
-| **Administrateur**     | Expert (bascule possible) | Tous + Messages audio, annuler une vente, étapes 2 & 11 du guide                    | Tous les modes                       |
+| **Administrateur**     | Simple (bascule possible) | Tous + Messages audio, annuler une vente, étapes 2 & 11 du guide                    | Tous les modes                       |
 | **Comptable**          | Expert                    | Aucun (inchangé)                                                                    | —                                    |
 
 **Vérifications** : tests PHP + JS bloquent l'accès aux écrans non autorisés ; un vendeur ne voit pas les coûts d'achat.

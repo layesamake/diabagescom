@@ -3,7 +3,10 @@
 namespace Tests\Feature\Simple;
 
 use App\Http\Middleware\ResolveTenantContext;
+use App\Models\AuditEvent;
+use App\Models\Role;
 use App\Models\TenantMembership;
+use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
@@ -33,13 +36,66 @@ class SimpleModeTest extends TestCase
         $this->actingAs($user)->get('/simple/composants')->assertNotFound();
     }
 
-    public function test_a_field_role_arrives_in_simple_mode_and_a_manager_in_expert_mode(): void
+    public function test_operational_roles_arrive_in_simple_mode_and_the_accountant_stays_in_expert_mode(): void
     {
-        ['user' => $vendeur] = $this->createTenantWithMember('cashier');
         ['user' => $admin] = $this->createTenantWithMember('admin');
+        ['user' => $vendeur] = $this->createTenantWithMember('cashier');
+        ['user' => $gestionnaire] = $this->createTenantWithMember('warehouse_manager');
+        ['user' => $acheteur] = $this->createTenantWithMember('purchaser');
+        ['user' => $direction] = $this->createTenantWithMember('management');
+        ['user' => $comptable] = $this->createTenantWithMember('accountant');
 
+        $this->assertTrue($admin->memberships()->firstOrFail()->usesSimpleMode());
         $this->assertTrue($vendeur->memberships()->firstOrFail()->usesSimpleMode());
-        $this->assertFalse($admin->memberships()->firstOrFail()->usesSimpleMode());
+        $this->assertTrue($gestionnaire->memberships()->firstOrFail()->usesSimpleMode());
+        $this->assertTrue($acheteur->memberships()->firstOrFail()->usesSimpleMode());
+        $this->assertTrue($direction->memberships()->firstOrFail()->usesSimpleMode());
+        $this->assertFalse($comptable->memberships()->firstOrFail()->usesSimpleMode());
+    }
+
+    public function test_the_migration_updates_legacy_defaults_without_overwriting_an_explicit_choice(): void
+    {
+        ['user' => $admin] = $this->createTenantWithMember('admin');
+        ['tenant' => $tenant, 'user' => $vendeur] = $this->createTenantWithMember('cashier');
+
+        $legacy = $admin->memberships()->firstOrFail();
+        $legacy->ui_mode = TenantMembership::MODE_EXPERT;
+        $legacy->save();
+
+        $chosen = $vendeur->memberships()->firstOrFail();
+        $chosen->ui_mode = TenantMembership::MODE_EXPERT;
+        $chosen->save();
+
+        $customRole = Role::query()->create([
+            'tenant_id' => $tenant->id,
+            'scope' => 'tenant',
+            'code' => 'admin',
+            'name' => 'Administrateur local',
+            'system' => false,
+        ]);
+        $customMembership = new TenantMembership;
+        $customMembership->forceFill([
+            'tenant_id' => $tenant->id,
+            'user_id' => User::factory()->create()->id,
+            'role_id' => $customRole->id,
+        ])->save();
+
+        AuditEvent::query()->create([
+            'tenant_id' => $tenant->id,
+            'actor_id' => $vendeur->id,
+            'action' => 'membership.ui_mode_changed',
+            'entity_type' => 'TenantMembership',
+            'entity_id' => $chosen->id,
+            'before' => ['ui_mode' => TenantMembership::MODE_SIMPLE],
+            'after' => ['ui_mode' => TenantMembership::MODE_EXPERT],
+        ]);
+
+        $migration = require database_path('migrations/2026_11_04_000100_default_simple_mode_for_operational_memberships.php');
+        $migration->up();
+
+        $this->assertTrue($legacy->refresh()->usesSimpleMode());
+        $this->assertFalse($chosen->refresh()->usesSimpleMode());
+        $this->assertFalse($customMembership->refresh()->usesSimpleMode());
     }
 
     public function test_switching_changes_the_mode_of_the_membership_only(): void
@@ -120,11 +176,11 @@ class SimpleModeTest extends TestCase
             ->assertInertia(fn ($page) => $page->component('simple/Demo'));
     }
 
-    public function test_the_dashboard_redirects_a_simple_membership_to_the_simple_home(): void
+    public function test_the_dashboard_redirects_a_new_administrator_to_the_simple_home(): void
     {
-        ['tenant' => $tenant, 'user' => $vendeur] = $this->createTenantWithMember('cashier');
+        ['tenant' => $tenant, 'user' => $admin] = $this->createTenantWithMember('admin');
 
-        $this->actingAs($vendeur)
+        $this->actingAs($admin)
             ->withSession([ResolveTenantContext::SESSION_TENANT => $tenant->id])
             ->get('/dashboard')
             ->assertRedirect('/simple');
@@ -132,7 +188,9 @@ class SimpleModeTest extends TestCase
 
     public function test_switching_company_uses_the_mode_of_the_target_membership(): void
     {
-        ['tenant' => $expert, 'user' => $user] = $this->createTenantWithMember('admin');
+        ['tenant' => $expert, 'user' => $user, 'membership' => $expertMembership] = $this->createTenantWithMember('admin');
+        $expertMembership->ui_mode = TenantMembership::MODE_EXPERT;
+        $expertMembership->save();
         ['tenant' => $simple] = $this->createTenantWithMember('cashier', $user);
 
         $this->actingAs($user)
@@ -162,6 +220,8 @@ class SimpleModeTest extends TestCase
     public function test_the_mode_change_is_rolled_back_if_the_audit_cannot_be_written(): void
     {
         ['tenant' => $tenant, 'user' => $admin, 'membership' => $membership] = $this->createTenantWithMember('admin');
+        $membership->ui_mode = TenantMembership::MODE_EXPERT;
+        $membership->save();
         Schema::drop('audit_events');
 
         try {

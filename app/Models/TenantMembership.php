@@ -40,15 +40,22 @@ class TenantMembership extends Model
 
     public const string MODE_EXPERT = 'expert';
 
-    /** Rôles de terrain : le mode simple est leur interface par défaut. */
-    public const array FIELD_ROLES = ['cashier', 'warehouse_manager'];
+    /** Rôles dont le parcours de travail démarre dans l'interface simple. */
+    public const array SIMPLE_DEFAULT_ROLES = [
+        'admin',
+        'cashier',
+        'warehouse_manager',
+        'purchaser',
+        'management',
+    ];
 
     protected $attributes = ['status' => 'active'];
 
     /**
      * Mode d'interface par défaut, quel que soit le chemin de création de
-     * l'appartenance (invitation, restauration, jeux de test) : les rôles de
-     * terrain arrivent en mode simple, les autres en mode expert.
+     * l'appartenance (invitation, restauration, jeux de test) : les rôles
+     * opérationnels arrivent en mode simple ; le comptable reste en expert,
+     * car il ne dispose pas d'un parcours comptable dans ce mode.
      */
     protected static function booted(): void
     {
@@ -57,9 +64,14 @@ class TenantMembership extends Model
                 return;
             }
 
-            $code = Role::query()->whereKey($membership->role_id)->value('code');
+            $code = Role::query()
+                ->whereKey($membership->role_id)
+                ->whereNull('tenant_id')
+                ->where('scope', PermissionCatalog::SCOPE_TENANT)
+                ->where('system', true)
+                ->value('code');
 
-            $membership->ui_mode = in_array($code, self::FIELD_ROLES, true)
+            $membership->ui_mode = in_array($code, self::SIMPLE_DEFAULT_ROLES, true)
                 ? self::MODE_SIMPLE
                 : self::MODE_EXPERT;
         });
