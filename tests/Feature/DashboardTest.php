@@ -15,11 +15,10 @@ class DashboardTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    public function test_authenticated_users_can_visit_the_dashboard()
+    public function test_new_administrators_are_redirected_to_the_simple_home(): void
     {
         $this->actingAs($this->createTenantWithMember()['user']);
 
-        $response = $this->get(route('dashboard'));
-        $response->assertOk();
+        $this->get(route('dashboard'))->assertRedirect(route('simple.home'));
     }
 }

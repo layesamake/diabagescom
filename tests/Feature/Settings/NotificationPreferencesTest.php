@@ -67,6 +67,7 @@ class NotificationPreferencesTest extends TestCase
     public function test_the_home_page_follows_the_in_app_choice(): void
     {
         $setup = $this->withForgottenCashSession();
+        $setup['membership']->forceFill(['ui_mode' => 'expert'])->save();
 
         $this->actingAs($setup['user'])->get(route('dashboard'))->assertInertia(fn (Assert $p) => $p->where('alerts.cash_to_close', 1));
 

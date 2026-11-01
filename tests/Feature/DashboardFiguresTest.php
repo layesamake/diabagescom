@@ -26,6 +26,8 @@ class DashboardFiguresTest extends TestCase
         $this->sell($setup, $session, [[$rice->id, '3']], [['cash', 6000]]);
         $this->sell($setup, $session, [[$rice->id, '2']], [['cash', 500]], customerId: $customer->id);
 
+        $setup['membership']->forceFill(['ui_mode' => 'expert'])->save();
+
         $this->actingAs($setup['user'])->get(route('dashboard'))->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard')
             ->where('figures.today.total', 10000)

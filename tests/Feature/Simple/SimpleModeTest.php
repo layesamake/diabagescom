@@ -73,11 +73,12 @@ class SimpleModeTest extends TestCase
             'name' => 'Administrateur local',
             'system' => false,
         ]);
-        $customMembership = TenantMembership::query()->create([
+        $customMembership = new TenantMembership;
+        $customMembership->forceFill([
             'tenant_id' => $tenant->id,
             'user_id' => User::factory()->create()->id,
             'role_id' => $customRole->id,
-        ]);
+        ])->save();
 
         AuditEvent::query()->create([
             'tenant_id' => $tenant->id,
@@ -187,7 +188,9 @@ class SimpleModeTest extends TestCase
 
     public function test_switching_company_uses_the_mode_of_the_target_membership(): void
     {
-        ['tenant' => $expert, 'user' => $user] = $this->createTenantWithMember('admin');
+        ['tenant' => $expert, 'user' => $user, 'membership' => $expertMembership] = $this->createTenantWithMember('admin');
+        $expertMembership->ui_mode = TenantMembership::MODE_EXPERT;
+        $expertMembership->save();
         ['tenant' => $simple] = $this->createTenantWithMember('cashier', $user);
 
         $this->actingAs($user)
@@ -217,6 +220,8 @@ class SimpleModeTest extends TestCase
     public function test_the_mode_change_is_rolled_back_if_the_audit_cannot_be_written(): void
     {
         ['tenant' => $tenant, 'user' => $admin, 'membership' => $membership] = $this->createTenantWithMember('admin');
+        $membership->ui_mode = TenantMembership::MODE_EXPERT;
+        $membership->save();
         Schema::drop('audit_events');
 
         try {

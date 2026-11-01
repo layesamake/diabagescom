@@ -81,9 +81,10 @@ class OnboardingTest extends TestCase
         $user = User::factory()->withTwoFactor()->create();
         $this->actingAs($user)->post(route('onboarding.store'), $this->payload());
 
-        $this->get(route('dashboard'))
+        $this->get(route('simple.home'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
+                ->component('simple/Accueil')
                 ->where('context.tenant.name', 'Boutique Diallo')
                 ->where('context.warehouse.code', 'DKR-1')
                 ->where('context.role.code', 'admin'));

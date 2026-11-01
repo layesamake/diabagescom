@@ -211,7 +211,7 @@ class TenantRestoreTest extends TestCase
         $this->assertSame(TenantRestore::DONE, $restore->status, (string) $restore->error);
         $this->assertNull($restore->path);
         $this->assertSame([], Storage::disk('local')->files('restores'));
-        $this->post(route('context.tenant'), ['tenant_id' => $restore->tenant_id])->assertRedirect(route('dashboard'));
+        $this->post(route('context.tenant'), ['tenant_id' => $restore->tenant_id])->assertRedirect(route('simple.home'));
     }
 
     public function test_someone_who_was_not_a_member_cannot_restore_the_archive(): void
