@@ -85,7 +85,7 @@ POST /mode
 | ---------------------- | --------------- | ------------------------------ |
 | **Vendeur**            | Mode simple     | ✅ Oui (vers expert si besoin) |
 | **Gestionnaire stock** | Mode simple     | ✅ Oui                         |
-| **Administrateur**     | Mode expert     | ✅ Oui (vers simple)           |
+| **Administrateur**     | Mode simple     | ✅ Oui (vers expert)           |
 | **Comptable**          | Mode expert     | ❌ Non (pas accès mode simple) |
 
 ---

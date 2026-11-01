@@ -3,7 +3,10 @@
 namespace Tests\Feature\Simple;
 
 use App\Http\Middleware\ResolveTenantContext;
+use App\Models\AuditEvent;
+use App\Models\Role;
 use App\Models\TenantMembership;
+use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
@@ -48,6 +51,50 @@ class SimpleModeTest extends TestCase
         $this->assertTrue($acheteur->memberships()->firstOrFail()->usesSimpleMode());
         $this->assertTrue($direction->memberships()->firstOrFail()->usesSimpleMode());
         $this->assertFalse($comptable->memberships()->firstOrFail()->usesSimpleMode());
+    }
+
+    public function test_the_migration_updates_legacy_defaults_without_overwriting_an_explicit_choice(): void
+    {
+        ['user' => $admin] = $this->createTenantWithMember('admin');
+        ['tenant' => $tenant, 'user' => $vendeur] = $this->createTenantWithMember('cashier');
+
+        $legacy = $admin->memberships()->firstOrFail();
+        $legacy->ui_mode = TenantMembership::MODE_EXPERT;
+        $legacy->save();
+
+        $chosen = $vendeur->memberships()->firstOrFail();
+        $chosen->ui_mode = TenantMembership::MODE_EXPERT;
+        $chosen->save();
+
+        $customRole = Role::query()->create([
+            'tenant_id' => $tenant->id,
+            'scope' => 'tenant',
+            'code' => 'admin',
+            'name' => 'Administrateur local',
+            'system' => false,
+        ]);
+        $customMembership = TenantMembership::query()->create([
+            'tenant_id' => $tenant->id,
+            'user_id' => User::factory()->create()->id,
+            'role_id' => $customRole->id,
+        ]);
+
+        AuditEvent::query()->create([
+            'tenant_id' => $tenant->id,
+            'actor_id' => $vendeur->id,
+            'action' => 'membership.ui_mode_changed',
+            'entity_type' => 'TenantMembership',
+            'entity_id' => $chosen->id,
+            'before' => ['ui_mode' => TenantMembership::MODE_SIMPLE],
+            'after' => ['ui_mode' => TenantMembership::MODE_EXPERT],
+        ]);
+
+        $migration = require database_path('migrations/2026_11_04_000100_default_simple_mode_for_operational_memberships.php');
+        $migration->up();
+
+        $this->assertTrue($legacy->refresh()->usesSimpleMode());
+        $this->assertFalse($chosen->refresh()->usesSimpleMode());
+        $this->assertFalse($customMembership->refresh()->usesSimpleMode());
     }
 
     public function test_switching_changes_the_mode_of_the_membership_only(): void

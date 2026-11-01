@@ -123,8 +123,8 @@ Une fois activé, tester :
 curl https://dev.diaba.cloud/simple | grep -o "Accueil\|Vendre\|Caisse"
 
 # User doit pouvoir basculer via menu Paramètres › Affichage
-# Mode simple par défaut pour vendeur
-# Mode expert pour admin (avec toggle)
+# Mode simple par défaut pour vendeur et admin
+# Le comptable reste en mode expert (sans mode simple)
 ```
 
 ---

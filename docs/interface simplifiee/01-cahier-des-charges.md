@@ -132,7 +132,7 @@ Les rôles reprennent ceux du guide actuel (vendeur, gestionnaire de stock, comp
 | --- | --- | --- |
 | Vendeur | Simple | Accueil, Vendre, Mes ventes (les siennes), Caisse, Clients (encaisser une dette), Stock (voir seulement) |
 | Gestionnaire de stock | Simple | Accueil, Stock (+ et −), Achats (recevoir), Ajouter un article |
-| Administrateur | Expert, bascule possible | Tous, plus Messages audio, annuler une vente, étapes 2 et 11 du guide |
+| Administrateur | Simple, bascule possible | Tous, plus Messages audio, annuler une vente, étapes 2 et 11 du guide |
 | Comptable | Expert | Aucun (inchangé) |
 
 ## Système audio
